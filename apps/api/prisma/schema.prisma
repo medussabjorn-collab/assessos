@@ -1,0 +1,152 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id                String    @id @default(cuid())
+  slug              String    @unique
+  name              String
+  plan              Plan      @default(free)
+  whiteLabel        Json?
+  ssoConfig         Json?
+  settings          Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  users             User[]
+  assessmentSessions AssessmentSession[]
+  assessmentConfigs AssessmentConfig[]
+  aiReports         AiReport[]
+  subscriptions     Subscription[]
+
+  @@map("tenants")
+}
+
+enum Plan {
+  free
+  pro
+  enterprise
+}
+
+model User {
+  id                String    @id @default(cuid())
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  firebaseUid       String    @unique
+  email             String
+  name              String
+  role              Role      @default(employee)
+  department        String?
+  metadata          Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  assessmentSessions AssessmentSession[]
+  aiReports         AiReport[]
+
+  @@index([tenantId])
+  @@index([role])
+  @@map("users")
+}
+
+enum Role {
+  super_admin
+  org_admin
+  manager
+  employee
+}
+
+model AssessmentSession {
+  id                String    @id @default(cuid())
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  configId          String
+  config            AssessmentConfig @relation(fields: [configId], references: [id])
+  pillar            String    @default("leadership")
+  status            SessionStatus @default(pending)
+  startedAt         DateTime?
+  submittedAt       DateTime?
+  createdAt         DateTime  @default(now())
+
+  aiReport          AiReport?
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("assessment_sessions")
+}
+
+enum SessionStatus {
+  pending
+  active
+  done
+}
+
+model AssessmentConfig {
+  id                String    @id @default(cuid())
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pillar            String    @default("leadership")
+  dimensions        Json[]
+  timeLimitMin      Int
+  passMark          Int
+  aiProctoring      Boolean   @default(true)
+  benchmarkGroup    String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  sessions          AssessmentSession[]
+
+  @@index([tenantId])
+  @@map("assessment_configs")
+}
+
+model AiReport {
+  id                String    @id @default(cuid())
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId         String    @unique
+  session           AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dimensionScores   Json
+  narrative         String?
+  benchmarkPercentile Int?
+  recommendation    String?
+  coachingPlan      Json?
+  status            ReportStatus @default(pending)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("ai_reports")
+}
+
+enum ReportStatus {
+  pending
+  ready
+  archived
+}
+
+model Subscription {
+  id                String    @id @default(cuid())
+  tenantId          String    @unique
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stripeCustomerId  String?
+  stripeSubId       String?
+  plan              Plan      @default(free)
+  seats             Int       @default(5)
+  assessmentCredits Int       @default(100)
+  renewsAt          DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("subscriptions")
+}
