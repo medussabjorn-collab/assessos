@@ -8,6 +8,7 @@ import { ReportingModule } from './modules/reporting/reporting.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { HiringModule } from './modules/hiring/hiring.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -21,6 +22,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     AnalyticsModule,
     BillingModule,
     AdminModule,
+    HiringModule,
   ],
 })
 export class AppModule implements NestModule {
