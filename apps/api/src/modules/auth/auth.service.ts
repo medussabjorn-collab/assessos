@@ -1,0 +1,32 @@
+import { Injectable } from '@nestjs/common';
+import * as admin from 'firebase-admin';
+
+@Injectable()
+export class AuthService {
+  constructor() {
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(
+          /\\n/g,
+          '\n'
+        ),
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      });
+    }
+  }
+
+  async verifyIdToken(token: string) {
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      return decodedToken;
+    } catch (error) {
+      throw new Error(`Invalid token: ${error.message}`);
+    }
+  }
+
+  async getUserByUid(uid: string) {
+    const user = await admin.auth().getUser(uid);
+    return user;
+  }
+}
