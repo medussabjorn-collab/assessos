@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { FirebaseAuthGuard } from './auth.guard';
+import { PrismaService } from '../../database/prisma.service';
 
 @Module({
   imports: [
@@ -13,7 +15,8 @@ import { FirebaseAuthGuard } from './auth.guard';
       signOptions: { expiresIn: '24h' },
     }),
   ],
-  providers: [AuthService, JwtStrategy, FirebaseAuthGuard],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy, FirebaseAuthGuard, PrismaService],
   exports: [AuthService, FirebaseAuthGuard],
 })
 export class AuthModule {}
