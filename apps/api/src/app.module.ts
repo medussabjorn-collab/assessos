@@ -6,6 +6,8 @@ import { UsersModule } from './modules/users/users.module';
 import { AssessmentModule } from './modules/assessment/assessment.module';
 import { ReportingModule } from './modules/reporting/reporting.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { BillingModule } from './modules/billing/billing.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -17,13 +19,15 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     AssessmentModule,
     ReportingModule,
     AnalyticsModule,
+    BillingModule,
+    AdminModule,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
-      .exclude('api/auth/register', 'api/auth/tenant')
+      .exclude('api/auth/register', 'api/auth/tenant', 'api/billing/webhooks/stripe')
       .forRoutes('*');
   }
 }
