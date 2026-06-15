@@ -12,3 +12,27 @@ __pycache__/
 *.swp
 *.swo
 .turbo/
+
+# Local Claude/agent config
+.claude/
+
+# Scratch documents (design drafts, not source)
+*.docx
+
+# Cloned dev installs — separate repos, not part of this project
+/swc/
+/hermes-agent/
+/LMCache/
+/mattermost/
+/openmed/
+/leadership-assessment/
+/leadership-assessment-backend/
+/openclaw-everything-claude-code/
+
+# External skill collections
+/agent-skills/
+/pm-skills/
+
+# Mattermost helper scripts
+/mm-node-setup.sh
+/mm-webapp-build.sh
