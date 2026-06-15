@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { AuthContext } from '@/lib/auth-context';
+import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
 import AssessmentView from '@/components/AssessmentView';
 
-export default function AssessmentPage() {
-  const { user, tenantId } = useContext(AuthContext);
+function AssessmentPageContent() {
+  const { user, tenantId } = useAuth();
   const searchParams = useSearchParams();
   const configId = searchParams.get('configId');
 
@@ -47,4 +47,12 @@ export default function AssessmentPage() {
   if (!sessionId) return <div className="p-8">Loading...</div>;
 
   return <AssessmentView sessionId={sessionId} configId={configId!} />;
+}
+
+export default function AssessmentPage() {
+  return (
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <AssessmentPageContent />
+    </Suspense>
+  );
 }
