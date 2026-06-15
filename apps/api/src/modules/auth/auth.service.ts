@@ -20,7 +20,7 @@ export class AuthService {
     try {
       const decodedToken = await admin.auth().verifyIdToken(token);
       return decodedToken;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Invalid token: ${error.message}`);
     }
   }

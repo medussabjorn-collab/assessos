@@ -5,6 +5,7 @@ import { JobRoleService } from './job-role.service';
 import { CandidateService } from './candidate.service';
 import { HiringScoreService } from './hiring-score.service';
 import { PrismaService } from '../../database/prisma.service';
+import { LeadershipIndexService } from '../analytics/leadership-index.service';
 
 @Module({
   controllers: [HiringController],
@@ -13,6 +14,7 @@ import { PrismaService } from '../../database/prisma.service';
     JobRoleService,
     CandidateService,
     HiringScoreService,
+    LeadershipIndexService,
     PrismaService,
   ],
   exports: [
