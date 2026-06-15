@@ -1,0 +1,17 @@
+# Next.js
+.next/
+out/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env.local
+.env*.local
+
+# Playwright E2E
+e2e-artifacts/
+e2e-report/
+e2e-results.xml
+playwright-report/
+test-results/
