@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '@/lib/auth-context';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
 import { FileText, Loader } from 'lucide-react';
 import Link from 'next/link';
@@ -15,7 +15,7 @@ interface Report {
 }
 
 export default function ReportsPage() {
-  const { user, tenantId } = useContext(AuthContext);
+  const { user, tenantId } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

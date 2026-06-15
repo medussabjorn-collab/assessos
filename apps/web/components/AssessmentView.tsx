@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '@/lib/auth-context';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
 import Timer from './Timer';
 import QuestionCard from './QuestionCard';
@@ -28,7 +28,7 @@ export default function AssessmentView({
   sessionId,
   configId,
 }: AssessmentViewProps) {
-  const { user, tenantId } = useContext(AuthContext);
+  const { user, tenantId } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);

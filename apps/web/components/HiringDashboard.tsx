@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '@/lib/auth-context';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
 import { Users, Briefcase, TrendingUp, Loader } from 'lucide-react';
 
@@ -15,7 +15,7 @@ interface DashboardMetrics {
 }
 
 export default function HiringDashboard() {
-  const { user, tenantId } = useContext(AuthContext);
+  const { user, tenantId } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

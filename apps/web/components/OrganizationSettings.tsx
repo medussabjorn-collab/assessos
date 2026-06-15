@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '@/lib/auth-context';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
 import { Loader, Save } from 'lucide-react';
 
@@ -17,7 +17,7 @@ interface WhiteLabelSettings {
 }
 
 export default function OrganizationSettings() {
-  const { user, tenantId } = useContext(AuthContext);
+  const { user, tenantId } = useAuth();
   const [settings, setSettings] = useState<WhiteLabelSettings>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

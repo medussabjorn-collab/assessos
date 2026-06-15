@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '@/lib/auth-context';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
 import {
   Users,
@@ -38,7 +38,7 @@ interface DashboardData {
 }
 
 export default function CHRODashboard() {
-  const { user, tenantId } = useContext(AuthContext);
+  const { user, tenantId } = useAuth();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
