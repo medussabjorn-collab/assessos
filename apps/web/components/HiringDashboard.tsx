@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import axios from 'axios';
+import { api } from '@/lib/api';
 import { Users, Briefcase, TrendingUp, Loader } from 'lucide-react';
 
 interface DashboardMetrics {
@@ -25,15 +25,7 @@ export default function HiringDashboard() {
 
     const fetchDashboard = async () => {
       try {
-        const response = await axios.get(
-          'http://localhost:3000/api/hiring/dashboard',
-          {
-            headers: {
-              'x-tenant-id': tenantId,
-              Authorization: `Bearer ${await user.getIdToken()}`,
-            },
-          },
-        );
+        const response = await api.get('/api/hiring/dashboard');
         setMetrics(response.data.data);
         setLoading(false);
       } catch (err) {
