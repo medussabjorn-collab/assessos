@@ -4,9 +4,11 @@ import { HiringController } from './hiring.controller';
 import { JobRoleService } from './job-role.service';
 import { CandidateService } from './candidate.service';
 import { HiringScoreService } from './hiring-score.service';
+import { AnalyticsModule } from '../analytics/analytics.module';
 import { PrismaService } from '../../database/prisma.service';
 
 @Module({
+  imports: [AnalyticsModule],
   controllers: [HiringController],
   providers: [
     HiringService,
