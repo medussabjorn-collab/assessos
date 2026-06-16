@@ -55,7 +55,7 @@ export class StripeService {
   }
 
   async cancelSubscription(subscriptionId: string): Promise<void> {
-    await this.stripe.subscriptions.del(subscriptionId);
+    await this.stripe.subscriptions.cancel(subscriptionId);
   }
 
   async updateSubscription(
