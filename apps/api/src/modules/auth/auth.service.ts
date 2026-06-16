@@ -1,24 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  private firebaseReady = false;
+
   constructor() {
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(
-            /\\n/g,
-            '\n'
-          ),
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        }),
-      });
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(
+      /\\n/g,
+      '\n'
+    );
+
+    // Only initialize Firebase when all credentials are present, so the
+    // service boots in environments where auth isn't configured yet.
+    if (projectId && clientEmail && privateKey) {
+      if (!admin.apps.length) {
+        admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId,
+            privateKey,
+            clientEmail,
+          }),
+        });
+      }
+      this.firebaseReady = true;
+    } else {
+      this.logger.warn(
+        'Firebase credentials not configured — auth endpoints are disabled until FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY are set.',
+      );
     }
   }
 
   async verifyIdToken(token: string) {
+    if (!this.firebaseReady) {
+      throw new Error('Authentication is not configured on this server.');
+    }
     try {
       const decodedToken = await admin.auth().verifyIdToken(token);
       return decodedToken;
