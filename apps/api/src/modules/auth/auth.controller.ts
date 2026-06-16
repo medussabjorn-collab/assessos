@@ -23,7 +23,7 @@ export class AuthController {
   async register(@Request() req: any, @Body() registerDto: RegisterDto) {
     const { uid, email } = req.user;
 
-    let tenant = null;
+    let tenant: Awaited<ReturnType<typeof this.prisma.tenant.findUnique>> = null;
     if (registerDto.tenantSlug) {
       tenant = await this.prisma.tenant.findUnique({
         where: { slug: registerDto.tenantSlug },

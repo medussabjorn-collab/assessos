@@ -45,7 +45,7 @@ export class BillingService {
     }
 
     // Create Stripe customer if not exists
-    let customerId = null;
+    let customerId: string = '';
     const existingSubscription = await this.prisma.subscription.findUnique({
       where: { tenantId },
     });

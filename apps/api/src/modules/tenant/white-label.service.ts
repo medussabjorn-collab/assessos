@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, Scope } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 export interface WhiteLabelSettings {
@@ -55,7 +56,7 @@ export class WhiteLabelService {
     const tenant = await this.prisma.tenant.update({
       where: { id: this.tenantId },
       data: {
-        whiteLabel: settings,
+        whiteLabel: settings as unknown as Prisma.InputJsonValue,
       },
       select: { whiteLabel: true },
     });
