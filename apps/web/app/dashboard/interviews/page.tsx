@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from '@/lib/api';
 
 export default function InterviewsPage() {
   const [interviews, setInterviews] = useState<any[]>([]);
@@ -11,12 +11,9 @@ export default function InterviewsPage() {
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
-        const response = await axios.get('/api/interviews', {
-          headers: {
-            'x-tenant-id': localStorage.getItem('tenantId') || '',
-          },
-        });
-        setInterviews(response.data.data || []);
+        const response = await api.get('/api/interviews/dashboard');
+        const data = response.data.data;
+        setInterviews(data?.interviews || data?.upcoming || []);
       } catch (error) {
         console.error('Failed to fetch interviews:', error);
       } finally {
@@ -31,7 +28,7 @@ export default function InterviewsPage() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     try {
-      await axios.post('/api/interviews/schedule', {
+      await api.post('/api/interviews/schedule', {
         candidateName: formData.get('candidateName'),
         candidateEmail: formData.get('candidateEmail'),
         scheduledTime: formData.get('scheduledTime'),
