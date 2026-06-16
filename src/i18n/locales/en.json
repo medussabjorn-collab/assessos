@@ -1,0 +1,70 @@
+{
+  "app": { "name": "LeaderAssess Pro", "tagline": "Enterprise Leadership Assessment Platform" },
+  "nav": {
+    "dashboard": "Dashboard", "assessments": "Assessments", "results": "Results",
+    "admin": "Admin", "settings": "Settings", "logout": "Sign Out", "profile": "Profile"
+  },
+  "auth": {
+    "signIn": "Sign In", "signOut": "Sign Out", "signUp": "Create Account",
+    "email": "Email Address", "password": "Password", "name": "Full Name",
+    "forgotPassword": "Forgot Password?", "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?", "role": "Select Role",
+    "candidate": "Candidate", "admin": "Administrator", "viewer": "Viewer",
+    "welcomeBack": "Welcome back", "createAccount": "Create your account",
+    "signingIn": "Signing in...", "rememberMe": "Remember me",
+    "secureLogin": "Secure enterprise login"
+  },
+  "dashboard": {
+    "welcome": "Welcome back", "overview": "Platform Overview",
+    "totalAssessments": "Total Assessments", "completed": "Completed",
+    "avgScore": "Average Score", "timeSpent": "Time Spent",
+    "recentActivity": "Recent Activity", "quickStart": "Quick Start",
+    "performance": "Performance", "upcomingAssessments": "Upcoming Assessments",
+    "myProgress": "My Progress", "leaderboard": "Leaderboard"
+  },
+  "assessment": {
+    "technical": "Technical Assessment", "attitude": "Attitude Assessment",
+    "behavioral": "Behavioral Assessment", "psychometric": "Psychometric Assessment",
+    "communication": "Communication Assessment",
+    "start": "Start Assessment", "resume": "Resume", "review": "Review",
+    "submit": "Submit Assessment", "next": "Next Question", "previous": "Previous",
+    "flag": "Flag Question", "unflag": "Unflag", "timeRemaining": "Time Remaining",
+    "question": "Question", "of": "of", "answered": "Answered",
+    "unanswered": "Unanswered", "flagged": "Flagged",
+    "confirmSubmit": "Are you sure you want to submit?",
+    "instructions": "Instructions", "begin": "Begin",
+    "selectLanguage": "Select Programming Language",
+    "runCode": "Run Code", "resetCode": "Reset",
+    "proctoringActive": "AI Proctoring Active",
+    "offlineMode": "Offline Mode",
+    "loading": "Loading assessment...",
+    "completed": "Assessment Completed",
+    "score": "Your Score", "passed": "Passed", "failed": "Failed",
+    "viewResults": "View Detailed Results"
+  },
+  "admin": {
+    "title": "Admin Console", "users": "Users", "configurations": "Configurations",
+    "reports": "Reports", "auditLogs": "Audit Logs", "notifications": "Notifications",
+    "createConfig": "Create Configuration", "editConfig": "Edit Configuration",
+    "deleteConfig": "Delete Configuration", "exportReport": "Export Report",
+    "userManagement": "User Management", "systemSettings": "System Settings",
+    "totalUsers": "Total Users", "activeAssessments": "Active Assessments",
+    "completionRate": "Completion Rate", "avgPerformance": "Avg Performance"
+  },
+  "modules": {
+    "technical": { "name": "Technical", "desc": "Programming & engineering fundamentals with live code editor" },
+    "attitude":  { "name": "Attitude",  "desc": "Professional mindset, values and work ethics evaluation" },
+    "behavioral": { "name": "Behavioral", "desc": "Real-world workplace scenario response analysis" },
+    "psychometric": { "name": "Psychometric", "desc": "Cognitive abilities, personality traits and aptitude" },
+    "communication": { "name": "Communication", "desc": "Written, verbal and interpersonal communication skills" }
+  },
+  "common": {
+    "save": "Save", "cancel": "Cancel", "delete": "Delete", "edit": "Edit",
+    "create": "Create", "search": "Search", "filter": "Filter", "export": "Export",
+    "loading": "Loading...", "error": "Something went wrong", "success": "Success",
+    "confirm": "Confirm", "back": "Back", "close": "Close", "view": "View",
+    "minutes": "minutes", "seconds": "seconds", "hours": "hours",
+    "darkMode": "Dark Mode", "language": "Language", "theme": "Theme",
+    "notifications": "Notifications", "offline": "Offline", "online": "Online"
+  }
+}
