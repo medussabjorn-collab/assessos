@@ -77,7 +77,7 @@ export default function HackathonPage() {
   };
 
   return (
-    <div className="p-8">
+    <div>
       <h1 className="text-3xl font-bold mb-8">Hackathons</h1>
 
       {loading ? (

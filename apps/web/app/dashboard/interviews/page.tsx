@@ -41,7 +41,7 @@ export default function InterviewsPage() {
   };
 
   return (
-    <div className="p-8">
+    <div>
       <div className="mb-8 flex justify-between items-center">
         <h1 className="text-3xl font-bold">Live Interviews</h1>
         <button
