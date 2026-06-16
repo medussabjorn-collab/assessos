@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
@@ -7,6 +7,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { FirebaseAuthGuard } from './auth.guard';
 import { PrismaService } from '../../database/prisma.service';
 
+@Global()
 @Module({
   imports: [
     PassportModule,
