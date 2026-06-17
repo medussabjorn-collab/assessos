@@ -36,7 +36,7 @@ const MOCK_FEEDBACK = {
 const MOCK_BADGES = [{ id: 'b1', name: 'First Answer', awardedAt: new Date().toISOString() }];
 
 test.describe('Practice Learning Flow', () => {
-  test.fixme(
+  test(
     'happy path: select question → submit answer → receive spaced-repetition feedback',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -69,7 +69,7 @@ test.describe('Practice Learning Flow', () => {
     },
   );
 
-  test.fixme(
+  test(
     'spaced repetition shows next review date after correct answer',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -84,7 +84,7 @@ test.describe('Practice Learning Flow', () => {
     },
   );
 
-  test.fixme('badge awarded on milestone progress', async ({ authedPage: page }) => {
+  test('badge awarded on milestone progress', async ({ authedPage: page }) => {
     await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
     await mockApi(page, /\/api\/practice\/badges/, { data: MOCK_BADGES });
 
@@ -92,7 +92,7 @@ test.describe('Practice Learning Flow', () => {
     await expect(page.getByText('First Answer')).toBeVisible();
   });
 
-  test.fixme('wrong answer shows explanation without advancing streak', async ({ authedPage: page }) => {
+  test('wrong answer shows explanation without advancing streak', async ({ authedPage: page }) => {
     const wrongFeedback = { ...MOCK_FEEDBACK, correct: false, streakCount: 0 };
     await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
     await mockApi(page, /\/api\/practice\/submit/, { data: wrongFeedback });

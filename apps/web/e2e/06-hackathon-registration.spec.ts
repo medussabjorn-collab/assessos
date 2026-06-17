@@ -3,7 +3,7 @@
  * login → create/join team → submit project → judges score → leaderboard with prizes
  *
  * NOTE: The hackathon module is not yet implemented in the codebase.
- * Tests are quarantined with test.fixme() until the /dashboard/hackathon route ships.
+ * Tests are quarantined with test() until the /dashboard/hackathon route ships.
  */
 import { test, expect } from './fixtures/auth.fixture';
 import { mockApi } from './fixtures/helpers';
@@ -38,7 +38,7 @@ const MOCK_LEADERBOARD = [
 ];
 
 test.describe('Hackathon Registration Flow', () => {
-  test.fixme(
+  test(
     'happy path: create team → submit project → view scored leaderboard',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -75,7 +75,7 @@ test.describe('Hackathon Registration Flow', () => {
     },
   );
 
-  test.fixme(
+  test(
     'join existing team via invite code',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -90,7 +90,7 @@ test.describe('Hackathon Registration Flow', () => {
     },
   );
 
-  test.fixme(
+  test(
     'submission form validates required fields before API call',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -103,7 +103,7 @@ test.describe('Hackathon Registration Flow', () => {
     },
   );
 
-  test.fixme(
+  test(
     'leaderboard shows prize rankings after judging',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });

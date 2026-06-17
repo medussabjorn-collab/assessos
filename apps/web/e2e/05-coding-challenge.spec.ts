@@ -3,7 +3,7 @@
  * login → select problem → submit code → auto-grade → view leaderboard rank
  *
  * NOTE: The coding-challenge module is not yet implemented in the codebase.
- * Tests are quarantined with test.fixme() until the /dashboard/challenges route ships.
+ * Tests are quarantined with test() until the /dashboard/challenges route ships.
  */
 import { test, expect } from './fixtures/auth.fixture';
 import { mockApi } from './fixtures/helpers';
@@ -32,7 +32,7 @@ const MOCK_GRADE_RESULT = {
 };
 
 test.describe('Coding Challenge Flow', () => {
-  test.fixme(
+  test(
     'happy path: select problem → submit code → see grade and leaderboard rank',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -60,7 +60,7 @@ test.describe('Coding Challenge Flow', () => {
     },
   );
 
-  test.fixme(
+  test(
     'failed submission shows which test cases did not pass',
     async ({ authedPage: page }) => {
       const failResult = { ...MOCK_GRADE_RESULT, passed: false, passedCases: 1, score: 33 };
@@ -76,7 +76,7 @@ test.describe('Coding Challenge Flow', () => {
     },
   );
 
-  test.fixme('empty submission is blocked before reaching the API', async ({ authedPage: page }) => {
+  test('empty submission is blocked before reaching the API', async ({ authedPage: page }) => {
     await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
     await mockApi(page, /\/api\/challenges\/ch-001$/, { data: MOCK_PROBLEM });
 
@@ -88,7 +88,7 @@ test.describe('Coding Challenge Flow', () => {
     await expect(page.getByText(/code cannot be empty/i)).toBeVisible();
   });
 
-  test.fixme('leaderboard is accessible from the challenge page', async ({ authedPage: page }) => {
+  test('leaderboard is accessible from the challenge page', async ({ authedPage: page }) => {
     await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
     await mockApi(page, /\/api\/challenges\/ch-001\/leaderboard/, {
       data: MOCK_GRADE_RESULT.leaderboard,

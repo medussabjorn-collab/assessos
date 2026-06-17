@@ -3,7 +3,7 @@
  * login → schedule interview → start video room → AI proctoring → submit feedback
  *
  * NOTE: The live-interview module is not yet implemented in the codebase.
- * Tests are quarantined with test.fixme() until the /dashboard/interviews route ships.
+ * Tests are quarantined with test() until the /dashboard/interviews route ships.
  */
 import { test, expect } from './fixtures/auth.fixture';
 import { mockApi } from './fixtures/helpers';
@@ -27,7 +27,7 @@ const MOCK_FEEDBACK = {
 };
 
 test.describe('Live Interview Flow', () => {
-  test.fixme(
+  test(
     'happy path: schedule → start room → proctor active → submit feedback',
     async ({ managerPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -57,7 +57,7 @@ test.describe('Live Interview Flow', () => {
     },
   );
 
-  test.fixme(
+  test(
     'scheduling validation: past date is rejected',
     async ({ managerPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -71,7 +71,7 @@ test.describe('Live Interview Flow', () => {
     },
   );
 
-  test.fixme(
+  test(
     'proctoring flag is visible during active room session',
     async ({ managerPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
@@ -84,7 +84,7 @@ test.describe('Live Interview Flow', () => {
     },
   );
 
-  test.fixme(
+  test(
     'feedback form requires both scores before submission',
     async ({ managerPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
