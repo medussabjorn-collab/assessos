@@ -71,7 +71,7 @@ export default function HackathonPage() {
   };
 
   const fieldClass =
-    'w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-600';
+    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-blue-600';
   const primaryBtn =
     'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition';
 
@@ -79,7 +79,7 @@ export default function HackathonPage() {
     <div>
       <PageHeader eyebrow="Hackathon" title={title} icon={Trophy} />
 
-      <div className="max-w-xl bg-slate-900 border border-slate-800 rounded-xl p-6">
+      <div className="max-w-xl bg-surface border border-hairline rounded-xl p-6">
         {mode === 'idle' && (
           <div className="flex gap-3">
             <button
@@ -90,7 +90,7 @@ export default function HackathonPage() {
             </button>
             <button
               onClick={() => setMode('joinForm')}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-canvas text-ink rounded-lg hover:bg-canvas transition"
             >
               <UserPlus size={16} /> Join Team
             </button>
@@ -106,7 +106,7 @@ export default function HackathonPage() {
             className="space-y-4"
           >
             <div>
-              <label htmlFor="teamName" className="block text-sm text-slate-300 mb-1">
+              <label htmlFor="teamName" className="block text-sm text-slate-600 mb-1">
                 Team Name
               </label>
               <input
@@ -131,7 +131,7 @@ export default function HackathonPage() {
             className="space-y-4"
           >
             <div>
-              <label htmlFor="invite" className="block text-sm text-slate-300 mb-1">
+              <label htmlFor="invite" className="block text-sm text-slate-600 mb-1">
                 Invite Code
               </label>
               <input
@@ -153,7 +153,7 @@ export default function HackathonPage() {
               <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-600/15 text-blue-400">
                 <Users size={18} />
               </span>
-              <p className="text-white font-semibold">{team.name}</p>
+              <p className="text-ink font-semibold">{team.name}</p>
             </div>
             <button onClick={() => setMode('projectForm')} className={primaryBtn}>
               Submit Project
@@ -176,7 +176,7 @@ export default function HackathonPage() {
             className="space-y-4"
           >
             <div>
-              <label htmlFor="projectTitle" className="block text-sm text-slate-300 mb-1">
+              <label htmlFor="projectTitle" className="block text-sm text-slate-600 mb-1">
                 Project Title
               </label>
               <input
@@ -187,7 +187,7 @@ export default function HackathonPage() {
               />
             </div>
             <div>
-              <label htmlFor="repo" className="block text-sm text-slate-300 mb-1">
+              <label htmlFor="repo" className="block text-sm text-slate-600 mb-1">
                 Repo URL
               </label>
               <input
@@ -198,7 +198,7 @@ export default function HackathonPage() {
               />
             </div>
             <div>
-              <label htmlFor="demo" className="block text-sm text-slate-300 mb-1">
+              <label htmlFor="demo" className="block text-sm text-slate-600 mb-1">
                 Demo URL
               </label>
               <input

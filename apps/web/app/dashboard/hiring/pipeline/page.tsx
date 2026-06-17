@@ -67,7 +67,7 @@ export default function HiringPipelinePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Hiring Pipeline</h1>
-        <p className="text-slate-400">Move candidates through each evaluation stage</p>
+        <p className="text-subtle">Move candidates through each evaluation stage</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -88,10 +88,10 @@ export default function HiringPipelinePage() {
                   return (
                     <div
                       key={candidate.id}
-                      className={`bg-slate-800 border-l-4 ${stage.color} border border-slate-700 rounded-lg p-3`}
+                      className={`bg-canvas border-l-4 ${stage.color} border border-hairline rounded-lg p-3`}
                     >
                       <div className="font-medium">{candidate.name}</div>
-                      <div className="text-xs text-slate-400 mb-2">{candidate.role}</div>
+                      <div className="text-xs text-subtle mb-2">{candidate.role}</div>
                       <div className="flex gap-3 text-xs mb-3">
                         <span className="flex items-center gap-1">
                           <Star size={12} className="text-blue-400" />
@@ -114,7 +114,7 @@ export default function HiringPipelinePage() {
                   );
                 })}
                 {inStage.length === 0 && (
-                  <div className="text-xs text-slate-600 text-center py-4 border border-dashed border-slate-700 rounded-lg">
+                  <div className="text-xs text-slate-600 text-center py-4 border border-dashed border-hairline rounded-lg">
                     Empty
                   </div>
                 )}

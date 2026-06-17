@@ -72,10 +72,10 @@ export default function AssessmentTaker({ params }: { params: { sessionId: strin
 
   if (submitted) {
     return (
-      <div className="max-w-2xl mx-auto bg-slate-800 border border-slate-700 rounded-lg p-8 text-center">
+      <div className="max-w-2xl mx-auto bg-canvas border border-hairline rounded-lg p-8 text-center">
         <div className="text-6xl font-bold text-blue-400 mb-4">78</div>
         <h2 className="text-2xl font-bold mb-4">Assessment Complete!</h2>
-        <p className="text-slate-300 mb-8">Your Leadership Index score reflects your competency across 8 dimensions.</p>
+        <p className="text-slate-600 mb-8">Your Leadership Index score reflects your competency across 8 dimensions.</p>
         <div className="space-y-2 text-left bg-slate-700/50 rounded p-4 mb-8">
           <div className="flex justify-between">
             <span>Communication</span>
@@ -101,7 +101,7 @@ export default function AssessmentTaker({ params }: { params: { sessionId: strin
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Progress */}
       <div className="space-y-2">
-        <div className="flex justify-between text-sm text-slate-400">
+        <div className="flex justify-between text-sm text-subtle">
           <span>Question {currentQuestion + 1} of {questions.length}</span>
           <span className="flex items-center gap-1">
             <Clock size={16} />
@@ -117,7 +117,7 @@ export default function AssessmentTaker({ params }: { params: { sessionId: strin
       </div>
 
       {/* Question Card */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-8">
+      <div className="bg-canvas border border-hairline rounded-lg p-8">
         <div className="text-sm text-blue-400 mb-3">
           {question.competency}
         </div>
@@ -131,8 +131,8 @@ export default function AssessmentTaker({ params }: { params: { sessionId: strin
               onClick={() => handleAnswer(option)}
               className={`w-full p-4 text-left border rounded-lg transition ${
                 answers[question.id] === option
-                  ? 'bg-blue-500/20 border-blue-500 text-white'
-                  : 'bg-slate-700/50 border-slate-600 hover:border-slate-500 text-slate-300'
+                  ? 'bg-blue-500/20 border-blue-500 text-ink'
+                  : 'bg-slate-700/50 border-hairline hover:border-slate-500 text-slate-600'
               }`}
             >
               <div className="flex items-center justify-between">

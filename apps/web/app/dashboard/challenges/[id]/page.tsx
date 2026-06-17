@@ -75,17 +75,17 @@ export default function ChallengePage() {
   };
 
   if (!problem) {
-    return <div className="p-2 text-slate-400">Loading…</div>;
+    return <div className="p-2 text-subtle">Loading…</div>;
   }
 
   return (
     <div className="max-w-3xl">
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+        <h1 className="text-3xl font-bold text-ink flex items-center gap-3">
           {problem.title}
           <span
             className={`text-xs px-2 py-0.5 rounded-full capitalize ${
-              DIFFICULTY_STYLES[problem.difficulty] ?? 'bg-slate-700 text-slate-300'
+              DIFFICULTY_STYLES[problem.difficulty] ?? 'bg-slate-700 text-slate-600'
             }`}
           >
             {problem.difficulty}
@@ -93,19 +93,19 @@ export default function ChallengePage() {
         </h1>
         <Link
           href={`/dashboard/challenges/${id}/leaderboard`}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 transition"
+          className="inline-flex items-center gap-2 rounded-lg border border-hairline px-3 py-1.5 text-sm text-slate-700 hover:bg-canvas transition"
         >
           <Trophy size={15} className="text-yellow-400" /> Leaderboard
         </Link>
       </div>
-      <p className="text-slate-300 mb-4">{problem.description}</p>
+      <p className="text-slate-600 mb-4">{problem.description}</p>
 
       <textarea
         aria-label="Code editor"
         ref={editorRef}
         defaultValue={problem.starterCode}
         spellCheck={false}
-        className="w-full h-56 font-mono text-sm p-4 rounded-xl bg-slate-950 text-slate-100 border border-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+        className="w-full h-56 font-mono text-sm p-4 rounded-xl bg-canvas text-slate-100 border border-hairline focus:outline-none focus:ring-2 focus:ring-blue-600"
       />
 
       <button
@@ -118,7 +118,7 @@ export default function ChallengePage() {
       {error && <p className="text-red-400 mt-3">{error}</p>}
 
       {result && (
-        <div className="mt-6 p-5 rounded-xl bg-slate-900 border border-slate-800">
+        <div className="mt-6 p-5 rounded-xl bg-surface border border-hairline">
           <p
             className={`inline-flex items-center gap-2 font-semibold ${
               result.passed ? 'text-green-400' : 'text-red-400'
@@ -127,11 +127,11 @@ export default function ChallengePage() {
             {result.passed ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
             {result.passed ? 'Passed' : 'Failed'}
           </p>
-          <p className="text-slate-300 mt-2">
+          <p className="text-slate-600 mt-2">
             {result.passedCases} / {result.totalCases} test cases passed
           </p>
           {result.passed && (
-            <p className="text-slate-300 mt-1">Rank #{result.rank}</p>
+            <p className="text-slate-600 mt-1">Rank #{result.rank}</p>
           )}
         </div>
       )}

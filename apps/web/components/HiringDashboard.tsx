@@ -58,19 +58,19 @@ export default function HiringDashboard() {
       <div>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
+          <h1 className="text-3xl font-bold text-ink mb-2">
             Hiring Dashboard
           </h1>
-          <p className="text-slate-400">Recruit, evaluate, and hire top talent</p>
+          <p className="text-subtle">Recruit, evaluate, and hire top talent</p>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-4 gap-6 mb-8">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-surface border border-hairline rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-400 text-sm font-medium">Open Positions</p>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className="text-subtle text-sm font-medium">Open Positions</p>
+                <p className="text-3xl font-bold text-ink mt-2">
                   {metrics.openPositions}
                 </p>
               </div>
@@ -78,13 +78,13 @@ export default function HiringDashboard() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-surface border border-hairline rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-400 text-sm font-medium">
+                <p className="text-subtle text-sm font-medium">
                   Total Candidates
                 </p>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className="text-3xl font-bold text-ink mt-2">
                   {metrics.totalCandidates}
                 </p>
               </div>
@@ -92,13 +92,13 @@ export default function HiringDashboard() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-surface border border-hairline rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-400 text-sm font-medium">
+                <p className="text-subtle text-sm font-medium">
                   Avg Time to Hire
                 </p>
-                <p className="text-3xl font-bold text-white mt-2">
+                <p className="text-3xl font-bold text-ink mt-2">
                   {metrics.avgTimeToHire}
                 </p>
               </div>
@@ -106,15 +106,15 @@ export default function HiringDashboard() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-surface border border-hairline rounded-lg p-6">
             <div>
-              <p className="text-slate-400 text-sm font-medium mb-3">
+              <p className="text-subtle text-sm font-medium mb-3">
                 Offer Acceptance
               </p>
               <div className="text-3xl font-bold text-blue-600 mb-2">
                 {metrics.offerAcceptanceRate}%
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-subtle">
                 {metrics.hiringTeamSize} team members
               </p>
             </div>
@@ -122,8 +122,8 @@ export default function HiringDashboard() {
         </div>
 
         {/* Pipeline */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-white">
+        <div className="bg-surface border border-hairline rounded-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-6 text-ink">
             Hiring Pipeline
           </h2>
 
@@ -132,80 +132,80 @@ export default function HiringDashboard() {
               <div className="text-4xl font-bold text-blue-600 mb-2">
                 {metrics.pipelineStages.screening}
               </div>
-              <p className="text-slate-400 text-sm">Screening</p>
+              <p className="text-subtle text-sm">Screening</p>
             </div>
 
             <div className="text-center">
               <div className="text-4xl font-bold text-blue-600 mb-2">
                 {metrics.pipelineStages.technical}
               </div>
-              <p className="text-slate-400 text-sm">Technical</p>
+              <p className="text-subtle text-sm">Technical</p>
             </div>
 
             <div className="text-center">
               <div className="text-4xl font-bold text-blue-600 mb-2">
                 {metrics.pipelineStages.culture_fit}
               </div>
-              <p className="text-slate-400 text-sm">Culture Fit</p>
+              <p className="text-subtle text-sm">Culture Fit</p>
             </div>
 
             <div className="text-center">
               <div className="text-4xl font-bold text-purple-600 mb-2">
                 {metrics.pipelineStages.offer}
               </div>
-              <p className="text-slate-400 text-sm">Offer</p>
+              <p className="text-subtle text-sm">Offer</p>
             </div>
 
             <div className="text-center">
               <div className="text-4xl font-bold text-green-600 mb-2">
                 {metrics.pipelineStages.hired}
               </div>
-              <p className="text-slate-400 text-sm">Hired</p>
+              <p className="text-subtle text-sm">Hired</p>
             </div>
 
             <div className="text-center">
               <div className="text-4xl font-bold text-red-600 mb-2">
                 {metrics.pipelineStages.rejected}
               </div>
-              <p className="text-slate-400 text-sm">Rejected</p>
+              <p className="text-subtle text-sm">Rejected</p>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-white mb-4">
+          <div className="bg-surface border border-hairline rounded-lg p-6">
+            <h3 className="text-xl font-bold text-ink mb-4">
               Quick Actions
             </h3>
             <div className="space-y-3">
               <button className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
                 Create New Position
               </button>
-              <button className="w-full py-2 px-4 bg-slate-800 text-slate-200 rounded-lg hover:bg-slate-700 transition text-sm font-medium">
+              <button className="w-full py-2 px-4 bg-canvas text-slate-700 rounded-lg hover:bg-canvas transition text-sm font-medium">
                 View All Candidates
               </button>
-              <button className="w-full py-2 px-4 bg-slate-800 text-slate-200 rounded-lg hover:bg-slate-700 transition text-sm font-medium">
+              <button className="w-full py-2 px-4 bg-canvas text-slate-700 rounded-lg hover:bg-canvas transition text-sm font-medium">
                 Manage Team Members
               </button>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-white mb-4">
+          <div className="bg-surface border border-hairline rounded-lg p-6">
+            <h3 className="text-xl font-bold text-ink mb-4">
               Top Candidates
             </h3>
-            <p className="text-slate-400 text-sm mb-4">
+            <p className="text-subtle text-sm mb-4">
               Showing highest-rated candidates ready for offer
             </p>
             <div className="space-y-2">
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <p className="font-medium text-white">Jane Doe</p>
-                <p className="text-xs text-slate-400">Software Engineer - 4.0/5</p>
+              <div className="p-3 bg-canvas rounded-lg">
+                <p className="font-medium text-ink">Jane Doe</p>
+                <p className="text-xs text-subtle">Software Engineer - 4.0/5</p>
               </div>
-              <div className="p-3 bg-slate-800 rounded-lg">
-                <p className="font-medium text-white">John Smith</p>
-                <p className="text-xs text-slate-400">
+              <div className="p-3 bg-canvas rounded-lg">
+                <p className="font-medium text-ink">John Smith</p>
+                <p className="text-xs text-subtle">
                   Product Manager - 3.8/5
                 </p>
               </div>

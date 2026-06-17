@@ -50,7 +50,7 @@ export default function PracticeLibraryPage() {
         action={
           <Link
             href="/dashboard/practice/badges"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 transition"
+            className="inline-flex items-center gap-2 rounded-lg border border-hairline px-4 py-2 text-sm text-slate-700 hover:bg-canvas transition"
           >
             <Award size={16} className="text-yellow-400" />
             View badges
@@ -63,12 +63,12 @@ export default function PracticeLibraryPage() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-20 rounded-xl bg-slate-900 border border-slate-800 animate-pulse"
+              className="h-20 rounded-xl bg-surface border border-hairline animate-pulse"
             />
           ))}
         </div>
       ) : questions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-800 p-12 text-center text-slate-500">
+        <div className="rounded-xl border border-dashed border-hairline p-12 text-center text-subtle">
           No practice questions available yet.
         </div>
       ) : (
@@ -77,15 +77,15 @@ export default function PracticeLibraryPage() {
             <Link
               key={q.id}
               href={`/dashboard/practice/${q.id}`}
-              className="group flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-blue-600/50 transition"
+              className="group flex items-center justify-between bg-surface border border-hairline rounded-xl p-5 hover:border-blue-600/50 transition"
             >
               <div>
-                <p className="font-semibold text-white">{q.title}</p>
+                <p className="font-semibold text-ink">{q.title}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs text-slate-400">{q.category}</span>
+                  <span className="text-xs text-subtle">{q.category}</span>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full capitalize ${
-                      DIFFICULTY_STYLES[q.difficulty] ?? 'bg-slate-700 text-slate-300'
+                      DIFFICULTY_STYLES[q.difficulty] ?? 'bg-slate-700 text-slate-600'
                     }`}
                   >
                     {q.difficulty}

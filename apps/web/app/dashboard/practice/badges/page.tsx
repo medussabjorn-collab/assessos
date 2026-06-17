@@ -41,12 +41,12 @@ export default function PracticeBadgesPage() {
         {badges.map((b) => (
           <div
             key={b.id}
-            className="flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl p-5"
+            className="flex items-center gap-3 bg-surface border border-hairline rounded-xl p-5"
           >
             <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-yellow-500/15 text-yellow-400">
               <Award size={22} />
             </span>
-            <span className="font-semibold text-white">{b.name}</span>
+            <span className="font-semibold text-ink">{b.name}</span>
           </div>
         ))}
       </div>

@@ -20,7 +20,7 @@ export default function ScheduleInterviewPage() {
   };
 
   const fieldClass =
-    'w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-600';
+    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-blue-600';
 
   return (
     <div>
@@ -33,10 +33,10 @@ export default function ScheduleInterviewPage() {
 
       <form
         onSubmit={submit}
-        className="max-w-md space-y-4 bg-slate-900 border border-slate-800 rounded-xl p-6"
+        className="max-w-md space-y-4 bg-surface border border-hairline rounded-xl p-6"
       >
         <div>
-          <label htmlFor="date" className="block text-sm text-slate-300 mb-1">
+          <label htmlFor="date" className="block text-sm text-slate-600 mb-1">
             Date
           </label>
           <input
@@ -48,7 +48,7 @@ export default function ScheduleInterviewPage() {
           />
         </div>
         <div>
-          <label htmlFor="time" className="block text-sm text-slate-300 mb-1">
+          <label htmlFor="time" className="block text-sm text-slate-600 mb-1">
             Time
           </label>
           <input

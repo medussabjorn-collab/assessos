@@ -38,21 +38,21 @@ export default function ChallengeLeaderboardPage() {
         icon={Trophy}
       />
 
-      <div className="max-w-2xl overflow-hidden rounded-xl border border-slate-800">
+      <div className="max-w-2xl overflow-hidden rounded-xl border border-hairline">
         {rows.map((r, i) => (
           <div
             key={r.username}
             className={`flex items-center justify-between px-5 py-3 ${
-              i % 2 ? 'bg-slate-900/40' : 'bg-slate-900'
+              i % 2 ? 'bg-surface/40' : 'bg-surface'
             }`}
           >
-            <div className="flex items-center gap-3 text-white">
-              <span className="text-sm text-slate-400 w-16">Rank #{r.rank}</span>
+            <div className="flex items-center gap-3 text-ink">
+              <span className="text-sm text-subtle w-16">Rank #{r.rank}</span>
               <span className="font-medium">{r.username}</span>
             </div>
             <div className="flex items-center gap-6 text-sm">
-              <span className="text-slate-300">{r.score}</span>
-              <span className="text-slate-500">{r.executionMs} ms</span>
+              <span className="text-slate-600">{r.score}</span>
+              <span className="text-subtle">{r.executionMs} ms</span>
             </div>
           </div>
         ))}

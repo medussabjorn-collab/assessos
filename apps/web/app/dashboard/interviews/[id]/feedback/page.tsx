@@ -20,7 +20,7 @@ export default function InterviewFeedbackPage() {
   };
 
   const fieldClass =
-    'w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-600';
+    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-blue-600';
 
   return (
     <div>
@@ -28,10 +28,10 @@ export default function InterviewFeedbackPage() {
 
       <form
         onSubmit={submit}
-        className="max-w-md space-y-4 bg-slate-900 border border-slate-800 rounded-xl p-6"
+        className="max-w-md space-y-4 bg-surface border border-hairline rounded-xl p-6"
       >
         <div>
-          <label htmlFor="tech" className="block text-sm text-slate-300 mb-1">
+          <label htmlFor="tech" className="block text-sm text-slate-600 mb-1">
             Technical Score
           </label>
           <input
@@ -43,7 +43,7 @@ export default function InterviewFeedbackPage() {
           />
         </div>
         <div>
-          <label htmlFor="culture" className="block text-sm text-slate-300 mb-1">
+          <label htmlFor="culture" className="block text-sm text-slate-600 mb-1">
             Culture Fit
           </label>
           <input
@@ -55,7 +55,7 @@ export default function InterviewFeedbackPage() {
           />
         </div>
         <div>
-          <label htmlFor="notes" className="block text-sm text-slate-300 mb-1">
+          <label htmlFor="notes" className="block text-sm text-slate-600 mb-1">
             Notes
           </label>
           <textarea

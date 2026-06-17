@@ -2,14 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  --color-bg: 255 255 255;
-  --color-surface: 248 250 252;
-  --color-border: 226 232 240;
+:root {
+  --color-bg: 238 241 246;
+  --color-surface: 255 255 255;
+  --color-border: 232 235 241;
 }
 
-html.dark {
-  --color-bg: 15 23 42;
-  --color-surface: 30 41 59;
-  --color-border: 51 65 85;
+@layer base {
+  html,
+  body {
+    background-color: rgb(var(--color-bg));
+    color: #0f172a;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* Frosted white card — the core SugarCRM surface */
+  .frost-card {
+    @apply bg-surface border border-hairline rounded-2xl shadow-frost;
+  }
+
+  /* Soft pastel pill used for statuses / tags */
+  .frost-pill {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+
+  /* Active segmented-control pill (black) */
+  .seg-active {
+    @apply bg-ink text-white;
+  }
+  .seg-idle {
+    @apply text-subtle hover:text-ink;
+  }
 }

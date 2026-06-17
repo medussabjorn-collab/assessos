@@ -52,7 +52,7 @@ export default function ChallengesPage() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-20 rounded-xl bg-slate-900 border border-slate-800 animate-pulse"
+              className="h-20 rounded-xl bg-surface border border-hairline animate-pulse"
             />
           ))}
         </div>
@@ -62,13 +62,13 @@ export default function ChallengesPage() {
             <Link
               key={p.id}
               href={`/dashboard/challenges/${p.id}`}
-              className="group flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-blue-600/50 transition"
+              className="group flex items-center justify-between bg-surface border border-hairline rounded-xl p-5 hover:border-blue-600/50 transition"
             >
               <div className="flex items-center gap-3">
-                <p className="font-semibold text-white">{p.title}</p>
+                <p className="font-semibold text-ink">{p.title}</p>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full capitalize ${
-                    DIFFICULTY_STYLES[p.difficulty] ?? 'bg-slate-700 text-slate-300'
+                    DIFFICULTY_STYLES[p.difficulty] ?? 'bg-slate-700 text-slate-600'
                   }`}
                 >
                   {p.difficulty}

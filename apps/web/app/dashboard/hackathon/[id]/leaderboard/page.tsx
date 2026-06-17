@@ -13,7 +13,7 @@ interface Row {
   prize: string;
 }
 
-const MEDAL = ['text-yellow-400', 'text-slate-300', 'text-amber-600'];
+const MEDAL = ['text-yellow-400', 'text-slate-600', 'text-amber-600'];
 
 export default function HackathonLeaderboardPage() {
   const params = useParams();
@@ -44,25 +44,25 @@ export default function HackathonLeaderboardPage() {
         {rows.map((r, i) => (
           <div
             key={r.rank}
-            className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-5 py-4"
+            className="flex items-center justify-between bg-surface border border-hairline rounded-xl px-5 py-4"
           >
             <div className="flex items-center gap-4">
               <span
-                className={`inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-800 font-bold ${
-                  MEDAL[i] ?? 'text-slate-400'
+                className={`inline-flex items-center justify-center w-9 h-9 rounded-full bg-canvas font-bold ${
+                  MEDAL[i] ?? 'text-subtle'
                 }`}
               >
                 {r.rank}
               </span>
               <span
                 data-testid="leaderboard-team-name"
-                className="font-semibold text-white"
+                className="font-semibold text-ink"
               >
                 {r.teamName}
               </span>
             </div>
             <div className="flex items-center gap-6">
-              <span className="text-sm text-slate-400">{r.totalScore} pts</span>
+              <span className="text-sm text-subtle">{r.totalScore} pts</span>
               <span className="font-semibold text-green-400">{r.prize}</span>
             </div>
           </div>

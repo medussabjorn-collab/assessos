@@ -27,7 +27,7 @@ export default function InterviewRoomPage() {
       <PageHeader eyebrow="Interviews" title="Interview Room" icon={Video} />
 
       <div className="max-w-3xl">
-        <div className="aspect-video rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center mb-4">
+        <div className="aspect-video rounded-xl bg-canvas border border-hairline flex items-center justify-center mb-4">
           <span className="text-slate-600">Live video room</span>
         </div>
         {proctoring && (

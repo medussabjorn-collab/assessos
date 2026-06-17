@@ -63,7 +63,7 @@ export default function InterviewsPage() {
   };
 
   const fieldClass =
-    'w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-600';
+    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-blue-600';
 
   return (
     <div>
@@ -88,15 +88,15 @@ export default function InterviewsPage() {
           {interviews.map((iv) => (
             <div
               key={iv.id}
-              className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl p-5"
+              className="flex items-center justify-between bg-surface border border-hairline rounded-xl p-5"
             >
               <div className="flex items-center gap-4">
                 <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-blue-600/15 text-blue-400 font-semibold">
                   {iv.candidateName.charAt(0)}
                 </span>
                 <div>
-                  <p className="font-semibold text-white">{iv.candidateName}</p>
-                  <p className="text-sm text-slate-400">{iv.role}</p>
+                  <p className="font-semibold text-ink">{iv.candidateName}</p>
+                  <p className="text-sm text-subtle">{iv.role}</p>
                 </div>
               </div>
               <button
@@ -111,10 +111,10 @@ export default function InterviewsPage() {
       )}
 
       {phase === 'active' && active && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-2xl">
-          <p className="text-white font-medium mb-1">{active.candidateName}</p>
-          <p className="text-sm text-slate-400 mb-4">{active.role}</p>
-          <div className="aspect-video rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center mb-4">
+        <div className="bg-surface border border-hairline rounded-xl p-6 max-w-2xl">
+          <p className="text-ink font-medium mb-1">{active.candidateName}</p>
+          <p className="text-sm text-subtle mb-4">{active.role}</p>
+          <div className="aspect-video rounded-lg bg-canvas border border-hairline flex items-center justify-center mb-4">
             <span className="text-slate-600">Live video room</span>
           </div>
           <div className="flex items-center justify-between">
@@ -137,11 +137,11 @@ export default function InterviewsPage() {
             e.preventDefault();
             submitFeedback();
           }}
-          className="max-w-md space-y-4 bg-slate-900 border border-slate-800 rounded-xl p-6"
+          className="max-w-md space-y-4 bg-surface border border-hairline rounded-xl p-6"
         >
-          <h2 className="text-xl font-bold text-white">Interview Feedback</h2>
+          <h2 className="text-xl font-bold text-ink">Interview Feedback</h2>
           <div>
-            <label htmlFor="tech" className="block text-sm text-slate-300 mb-1">
+            <label htmlFor="tech" className="block text-sm text-slate-600 mb-1">
               Technical Score
             </label>
             <input
@@ -153,7 +153,7 @@ export default function InterviewsPage() {
             />
           </div>
           <div>
-            <label htmlFor="culture" className="block text-sm text-slate-300 mb-1">
+            <label htmlFor="culture" className="block text-sm text-slate-600 mb-1">
               Culture Fit
             </label>
             <input
@@ -165,7 +165,7 @@ export default function InterviewsPage() {
             />
           </div>
           <div>
-            <label htmlFor="notes" className="block text-sm text-slate-300 mb-1">
+            <label htmlFor="notes" className="block text-sm text-slate-600 mb-1">
               Notes
             </label>
             <textarea
@@ -185,7 +185,7 @@ export default function InterviewsPage() {
       )}
 
       {phase === 'done' && (
-        <div className="max-w-md bg-slate-900 border border-slate-800 rounded-xl p-6">
+        <div className="max-w-md bg-surface border border-hairline rounded-xl p-6">
           <p className="inline-flex items-center gap-2 text-green-400 font-semibold">
             <ShieldCheck size={18} /> Feedback submitted
           </p>

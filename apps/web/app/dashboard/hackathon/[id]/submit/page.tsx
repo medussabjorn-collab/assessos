@@ -19,7 +19,7 @@ export default function HackathonSubmitPage() {
   };
 
   const fieldClass =
-    'w-full rounded-lg bg-slate-950 border border-slate-800 p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-600';
+    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-blue-600';
 
   return (
     <div>
@@ -32,10 +32,10 @@ export default function HackathonSubmitPage() {
 
       <form
         onSubmit={submit}
-        className="max-w-xl space-y-4 bg-slate-900 border border-slate-800 rounded-xl p-6"
+        className="max-w-xl space-y-4 bg-surface border border-hairline rounded-xl p-6"
       >
         <div>
-          <label htmlFor="projectTitle" className="block text-sm text-slate-300 mb-1">
+          <label htmlFor="projectTitle" className="block text-sm text-slate-600 mb-1">
             Project Title
           </label>
           <input
@@ -46,7 +46,7 @@ export default function HackathonSubmitPage() {
           />
         </div>
         <div>
-          <label htmlFor="repo" className="block text-sm text-slate-300 mb-1">
+          <label htmlFor="repo" className="block text-sm text-slate-600 mb-1">
             Repo URL
           </label>
           <input
@@ -57,7 +57,7 @@ export default function HackathonSubmitPage() {
           />
         </div>
         <div>
-          <label htmlFor="demo" className="block text-sm text-slate-300 mb-1">
+          <label htmlFor="demo" className="block text-sm text-slate-600 mb-1">
             Demo URL
           </label>
           <input

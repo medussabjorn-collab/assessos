@@ -68,8 +68,8 @@ export default function PracticeQuestionPage() {
     <div>
       <PageHeader eyebrow="Practice" title="Practice Question" icon={BookOpen} />
 
-      <div className="max-w-2xl bg-slate-900 border border-slate-800 rounded-xl p-6">
-        <p className="text-xl text-white mb-6">{body}</p>
+      <div className="max-w-2xl bg-surface border border-hairline rounded-xl p-6">
+        <p className="text-xl text-ink mb-6">{body}</p>
 
         <div className="space-y-2 mb-6">
           {options.map((o) => (
@@ -79,7 +79,7 @@ export default function PracticeQuestionPage() {
               className={`block w-full text-left p-3 rounded-lg border-2 transition ${
                 selected === o.text
                   ? 'border-blue-600 bg-blue-950'
-                  : 'border-slate-700 hover:border-slate-600'
+                  : 'border-hairline hover:border-hairline'
               }`}
             >
               {o.text}
@@ -96,7 +96,7 @@ export default function PracticeQuestionPage() {
       </div>
 
       {feedback && (
-        <div className="mt-4 max-w-2xl p-5 rounded-xl bg-slate-900 border border-slate-800">
+        <div className="mt-4 max-w-2xl p-5 rounded-xl bg-surface border border-hairline">
           <p
             className={`inline-flex items-center gap-2 font-semibold ${
               feedback.correct ? 'text-green-400' : 'text-red-400'
@@ -109,11 +109,11 @@ export default function PracticeQuestionPage() {
             )}
             {feedback.correct ? 'Correct' : 'Incorrect'}
           </p>
-          <p className="text-slate-300 mt-2">{feedback.explanation}</p>
+          <p className="text-slate-600 mt-2">{feedback.explanation}</p>
           {feedback.correct && feedback.nextReviewAt && (
-            <p className="text-slate-400 text-sm mt-2">Next review scheduled</p>
+            <p className="text-subtle text-sm mt-2">Next review scheduled</p>
           )}
-          <p className="inline-flex items-center gap-1.5 text-slate-400 text-sm mt-2">
+          <p className="inline-flex items-center gap-1.5 text-subtle text-sm mt-2">
             <Flame size={14} className="text-orange-400" />
             Current streak: {feedback.streakCount}
           </p>
