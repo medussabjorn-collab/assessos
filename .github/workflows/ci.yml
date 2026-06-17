@@ -2,12 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [master, develop]
 
 jobs:
-  lint-test:
+  lint-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +18,57 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      # Firebase Auth emulator needs a JRE
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: pnpm install --frozen-lockfile
+      - run: npm install -g firebase-tools
+      - name: Install Playwright browser
+        run: pnpm --filter @assessos/web exec playwright install --with-deps chromium
+
+      - name: Start Firebase Auth emulator
+        run: |
+          firebase emulators:start --only auth --project dev-project &
+          npx --yes wait-on -t 60000 http-get://127.0.0.1:9099
+
+      - name: Seed emulator users
+        run: |
+          for u in user manager; do
+            curl -s -X POST "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=dev-key" \
+              -H "Content-Type: application/json" \
+              -d "{\"email\":\"${u}@assessos.test\",\"password\":\"TestPass123!\",\"returnSecureToken\":true}" -o /dev/null
+          done
+
+      - name: Start web (dev mode — connects to emulator)
+        run: |
+          pnpm --filter @assessos/web exec next dev -p 3001 &
+          npx --yes wait-on -t 120000 http-get://127.0.0.1:3001
+
+      - name: Run Playwright E2E
+        run: pnpm --filter @assessos/web run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: apps/web/e2e-report
+          retention-days: 7

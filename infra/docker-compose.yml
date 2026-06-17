@@ -1,8 +1,13 @@
-version: '3.8'
+# ─── AssessOS — full local stack ──────────────────────────────────────────────
+# Run from the repo root:
+#   docker compose -f infra/docker-compose.yml up -d --build
+#   docker compose -f infra/docker-compose.yml logs -f api
+#   docker compose -f infra/docker-compose.yml down -v
 
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: assessos_user
       POSTGRES_PASSWORD: assessos_pass
@@ -19,13 +24,52 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://assessos_user:assessos_pass@postgres:5432/assessos_dev
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: dev-jwt-secret-change-me-32-chars-min
+      CORS_ORIGIN: http://localhost:3001
+    ports:
+      - "3000:3000"
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # Browser-facing API URL (lib/api.ts)
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    ports:
+      - "3001:3001"
+
 volumes:
   postgres_data:
+  redis_data:

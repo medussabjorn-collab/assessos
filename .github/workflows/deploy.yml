@@ -1,12 +1,39 @@
 name: Deploy
 
+# Production runs on Railway. Railway's GitHub integration already redeploys
+# on push to master; this workflow is an explicit CLI deploy that runs only
+# when a RAILWAY_TOKEN secret is configured (otherwise it no-ops, so forks and
+# unconfigured repos don't fail).
+
 on:
   push:
-    branches: [main]
+    branches: [master]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "Deploy to AWS ECS (to be implemented in Phase 6)"
+
+      - name: Check for Railway token
+        id: gate
+        run: |
+          if [ -n "${{ secrets.RAILWAY_TOKEN }}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "RAILWAY_TOKEN not set — skipping deploy (Railway git integration handles it)."
+          fi
+
+      - name: Deploy API to Railway
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: npx --yes @railway/cli up --service "@assessos/api" --detach
+
+      - name: Deploy Web to Railway
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: npx --yes @railway/cli up --service "@assessos/web" --detach
