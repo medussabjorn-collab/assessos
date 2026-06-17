@@ -1,5 +1,10 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import {
+  getAuth,
+  connectAuthEmulator,
+  setPersistence,
+  browserLocalPersistence,
+} from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'dev-key',
@@ -13,11 +18,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  try {
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-  } catch (error) {
-    // Emulator already connected
+if (typeof window !== 'undefined') {
+  // Persist auth in localStorage so it survives reloads and is captured by
+  // Playwright storageState (the default IndexedDB persistence is not).
+  setPersistence(auth, browserLocalPersistence).catch(() => {
+    // Non-fatal: fall back to default persistence.
+  });
+
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    } catch (error) {
+      // Emulator already connected
+    }
   }
 }
 

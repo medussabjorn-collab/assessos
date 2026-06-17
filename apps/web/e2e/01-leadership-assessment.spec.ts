@@ -35,15 +35,19 @@ test.describe('Leadership Assessment Flow', () => {
     await mockAssessmentFlow(page);
     await page.goto(`/dashboard/assessment?configId=${MOCK_CONFIG_ID}`);
 
-    // Progress bar starts narrow
-    const bar = page.locator('.bg-blue-600.h-2.rounded-full');
-    await expect(bar).toBeVisible();
-    const initialWidth = await bar.evaluate((el) => el.style.width);
+    // Progress bar starts narrow (scope to the header track to avoid matching
+    // other blue pills; the fill is an empty decorative div so assert presence
+    // via count rather than visibility).
+    const bar = page.locator(
+      '.bg-gray-200.rounded-full.h-2 > .bg-blue-600.h-2.rounded-full',
+    );
+    await expect(bar).toHaveCount(1);
+    const initialWidth = await bar.evaluate((el) => (el as HTMLElement).style.width);
 
     await page.getByRole('button', { name: 'Moderately' }).click();
     await page.getByRole('button', { name: /Next/ }).click();
 
-    const nextWidth = await bar.evaluate((el) => el.style.width);
+    const nextWidth = await bar.evaluate((el) => (el as HTMLElement).style.width);
     expect(parseFloat(nextWidth) > parseFloat(initialWidth)).toBeTruthy();
   });
 
@@ -76,10 +80,10 @@ test.describe('Leadership Assessment Flow', () => {
     await mockAssessmentFlow(page);
     await page.goto('/dashboard/reports');
 
-    await expect(page.getByText('Assessment Report')).toBeVisible();
+    await expect(page.getByText('Assessment Report', { exact: true })).toBeVisible();
     await expect(page.getByText('Ready to view')).toBeVisible();
 
-    await page.getByText('Assessment Report').click();
+    await page.getByText('Assessment Report', { exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/dashboard/reports/${MOCK_REPORT_ID}`));
   });
 });

@@ -15,7 +15,10 @@ test.describe('Hiring Candidate Evaluation Flow', () => {
 
     await expect(page.getByText('Hiring Dashboard')).toBeVisible();
     await expect(page.getByText('Open Positions')).toBeVisible();
-    await expect(page.getByText('5')).toBeVisible();           // openPositions
+    // Scope the metric to its KPI card; bare '5' matches several nodes.
+    await expect(
+      page.getByText('Open Positions').locator('..').getByText('5', { exact: true }),
+    ).toBeVisible();                                           // openPositions
     await expect(page.getByText('32')).toBeVisible();          // totalCandidates
     await expect(page.getByText('18 days')).toBeVisible();     // avgTimeToHire
     await expect(page.getByText('85%')).toBeVisible();         // offerAcceptanceRate
@@ -31,7 +34,7 @@ test.describe('Hiring Candidate Evaluation Flow', () => {
     await expect(page.getByText('Screening')).toBeVisible();
     await expect(page.getByText('Technical')).toBeVisible();
     await expect(page.getByText('Culture Fit')).toBeVisible();
-    await expect(page.getByText('Offer')).toBeVisible();
+    await expect(page.getByText('Offer', { exact: true })).toBeVisible();
     await expect(page.getByText('Hired')).toBeVisible();
     await expect(page.getByText('Rejected')).toBeVisible();
   });
