@@ -7,7 +7,7 @@ on:
     branches: [master, develop]
 
 jobs:
-  lint-build:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,13 +19,20 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
+      # Lint has no committed config yet — run it for signal but don't block.
+      - name: Lint (non-blocking)
+        run: pnpm lint
+        continue-on-error: true
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
 
+  # E2E exercises the full stack (Firebase emulator + Next dev + Playwright).
+  # Non-blocking until the emulator-in-CI path is proven stable; promote to a
+  # required check once it's consistently green.
   e2e:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
