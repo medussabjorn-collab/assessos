@@ -105,7 +105,7 @@ export default function ChallengePage() {
         ref={editorRef}
         defaultValue={problem.starterCode}
         spellCheck={false}
-        className="w-full h-56 font-mono text-sm p-4 rounded-xl bg-canvas text-slate-100 border border-hairline focus:outline-none focus:ring-2 focus:ring-blue-600"
+        className="w-full h-56 font-mono text-sm p-4 rounded-xl bg-canvas text-ink border border-hairline focus:outline-none focus:ring-2 focus:ring-blue-600"
       />
 
       <button
