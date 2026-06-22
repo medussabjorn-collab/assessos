@@ -101,20 +101,18 @@ export default function SignupPage() {
 
       const idToken = await userCredential.user.getIdToken();
 
-      // Create tenant and subscription via backend
-      const response = await axios.post(
-        'http://localhost:3000/api/auth/register',
-        {
-          email,
-          plan: selectedPlan,
-          companyName,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        },
-      );
+      // Create tenant and subscription via backend. Non-fatal: the account
+      // already exists in Firebase, so a backend hiccup shouldn't block
+      // onboarding (the API provisions the tenant lazily on first call).
+      try {
+        await axios.post(
+          'http://localhost:3000/api/auth/register',
+          { email, plan: selectedPlan, companyName },
+          { headers: { Authorization: `Bearer ${idToken}` } },
+        );
+      } catch {
+        // continue to onboarding regardless
+      }
 
       // Redirect based on plan
       if (selectedPlan === 'enterprise') {
