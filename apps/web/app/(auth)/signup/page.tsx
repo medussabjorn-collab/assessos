@@ -161,7 +161,7 @@ export default function SignupPage() {
                   onClick={() => setSelectedPlan(plan.id)}
                   className={`border-2 rounded-lg p-8 text-left transition ${
                     selectedPlan === plan.id
-                      ? `${plan.color} bg-blue-50 border-2 border-blue-500`
+                      ? `${plan.color} bg-brand-50 border-2 border-blue-500`
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
@@ -190,7 +190,7 @@ export default function SignupPage() {
                   </ul>
 
                   {selectedPlan === plan.id && (
-                    <div className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium text-sm text-center">
+                    <div className="w-full py-2 bg-brand-600 text-white rounded-lg font-medium text-sm text-center">
                       Selected
                     </div>
                   )}
@@ -201,7 +201,7 @@ export default function SignupPage() {
             <div className="flex justify-end">
               <button
                 onClick={() => setStep('details')}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+                className="px-8 py-3 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium"
               >
                 Continue
               </button>
@@ -284,7 +284,7 @@ export default function SignupPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition font-medium"
+                  className="w-full py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 transition font-medium"
                 >
                   {loading ? 'Creating account...' : 'Create Account'}
                 </button>
@@ -292,7 +292,7 @@ export default function SignupPage() {
 
               <p className="text-center text-gray-600 text-sm mt-6">
                 Already have an account?{' '}
-                <a href="/login" className="text-blue-600 hover:underline">
+                <a href="/login" className="text-brand-600 hover:underline">
                   Sign in
                 </a>
               </p>

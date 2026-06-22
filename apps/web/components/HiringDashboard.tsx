@@ -74,7 +74,7 @@ export default function HiringDashboard() {
                   {metrics.openPositions}
                 </p>
               </div>
-              <Briefcase className="w-12 h-12 text-blue-400" />
+              <Briefcase className="w-12 h-12 text-brand-500" />
             </div>
           </div>
 
@@ -111,7 +111,7 @@ export default function HiringDashboard() {
               <p className="text-subtle text-sm font-medium mb-3">
                 Offer Acceptance
               </p>
-              <div className="text-3xl font-bold text-blue-600 mb-2">
+              <div className="text-3xl font-bold text-brand-600 mb-2">
                 {metrics.offerAcceptanceRate}%
               </div>
               <p className="text-xs text-subtle">
@@ -129,21 +129,21 @@ export default function HiringDashboard() {
 
           <div className="grid grid-cols-6 gap-4">
             <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">
+              <div className="text-4xl font-bold text-brand-600 mb-2">
                 {metrics.pipelineStages.screening}
               </div>
               <p className="text-subtle text-sm">Screening</p>
             </div>
 
             <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">
+              <div className="text-4xl font-bold text-brand-600 mb-2">
                 {metrics.pipelineStages.technical}
               </div>
               <p className="text-subtle text-sm">Technical</p>
             </div>
 
             <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">
+              <div className="text-4xl font-bold text-brand-600 mb-2">
                 {metrics.pipelineStages.culture_fit}
               </div>
               <p className="text-subtle text-sm">Culture Fit</p>
@@ -179,7 +179,7 @@ export default function HiringDashboard() {
               Quick Actions
             </h3>
             <div className="space-y-3">
-              <button className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+              <button className="w-full py-2 px-4 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition text-sm font-medium">
                 Create New Position
               </button>
               <button className="w-full py-2 px-4 bg-canvas text-slate-700 rounded-lg hover:bg-canvas transition text-sm font-medium">

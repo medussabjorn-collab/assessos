@@ -93,7 +93,7 @@ export default function DashboardLayout({
       >
         {/* Brand */}
         <div className="h-16 flex items-center gap-2 px-5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-accent-violet flex items-center justify-center font-bold text-white">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-accent-teal flex items-center justify-center font-bold text-white">
             A
           </div>
           <span className="text-lg font-semibold tracking-tight text-ink">
@@ -132,7 +132,7 @@ export default function DashboardLayout({
                       onClick={() => setSidebarOpen(false)}
                       className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition ${
                         active
-                          ? 'bg-ink text-white'
+                          ? 'bg-brand-600 text-white'
                           : 'text-subtle hover:bg-canvas hover:text-ink'
                       }`}
                     >
@@ -197,7 +197,7 @@ export default function DashboardLayout({
                   onClick={() => setUserMenuOpen((o) => !o)}
                   className="flex items-center gap-2 rounded-full hover:bg-canvas pl-1 pr-2 py-1 transition"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-accent-violet flex items-center justify-center text-sm font-semibold text-white">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-accent-teal flex items-center justify-center text-sm font-semibold text-white">
                     {initial}
                   </div>
                   <span className="hidden sm:block text-sm max-w-[140px] truncate text-ink">

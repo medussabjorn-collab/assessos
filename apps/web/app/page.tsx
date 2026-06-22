@@ -16,7 +16,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/auth/register"
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition"
+              className="bg-brand-600 hover:bg-brand-700 px-4 py-2 rounded transition"
             >
               Sign Up
             </Link>
@@ -35,7 +35,7 @@ export default function LandingPage() {
         <div className="space-x-4">
           <Link
             href="/auth/register"
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition"
+            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 px-6 py-3 rounded-lg transition"
           >
             Get Started <ArrowRight size={20} />
           </Link>
@@ -88,7 +88,7 @@ export default function LandingPage() {
               key={feature.title}
               className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 hover:border-slate-600 transition"
             >
-              <feature.icon className="text-blue-400 mb-4" size={32} />
+              <feature.icon className="text-brand-500 mb-4" size={32} />
               <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
               <p className="text-slate-400">{feature.desc}</p>
             </div>
@@ -121,7 +121,7 @@ export default function LandingPage() {
         <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
         <Link
           href="/auth/register"
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-lg transition"
+          className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 px-8 py-4 rounded-lg text-lg transition"
         >
           Sign Up Now <ArrowRight size={24} />
         </Link>

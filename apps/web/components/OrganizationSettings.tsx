@@ -238,7 +238,7 @@ export default function OrganizationSettings() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition font-medium"
+          className="w-full flex items-center justify-center gap-2 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 transition font-medium"
         >
           <Save className="w-4 h-4" />
           {saving ? 'Saving...' : 'Save Settings'}

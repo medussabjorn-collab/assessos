@@ -109,7 +109,7 @@ export default function ReportsPage() {
                     </div>
                     {report.benchmarkPercentile && (
                       <div className="text-right">
-                        <div className="text-3xl font-bold text-blue-600">
+                        <div className="text-3xl font-bold text-brand-600">
                           {report.benchmarkPercentile}%
                         </div>
                         <p className="text-xs text-gray-600">Percentile</p>

@@ -84,7 +84,7 @@ export default function ReportView({ reportId }: ReportViewProps) {
             </h1>
             <button
               onClick={handleDownloadPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
             >
               <Download className="w-4 h-4" />
               Download PDF
@@ -107,7 +107,7 @@ export default function ReportView({ reportId }: ReportViewProps) {
 
         {report.status === 'pending' ? (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <Loader className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
+            <Loader className="w-12 h-12 animate-spin mx-auto mb-4 text-brand-600" />
             <p className="text-gray-600">
               Your report is being generated. This typically takes 1-2 minutes.
               Please refresh the page in a moment.
@@ -132,14 +132,14 @@ export default function ReportView({ reportId }: ReportViewProps) {
                         {dimension}
                       </h3>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-blue-600">
+                        <span className="text-3xl font-bold text-brand-600">
                           {score.toFixed(1)}
                         </span>
                         <span className="text-gray-600">/5.0</span>
                       </div>
                       <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-blue-600 h-2 rounded-full"
+                          className="bg-brand-600 h-2 rounded-full"
                           style={{ width: `${(score / 5) * 100}%` }}
                         />
                       </div>
@@ -167,7 +167,7 @@ export default function ReportView({ reportId }: ReportViewProps) {
                 Benchmark Percentile
               </h2>
               <div className="text-center py-6">
-                <div className="text-5xl font-bold text-blue-600 mb-2">
+                <div className="text-5xl font-bold text-brand-600 mb-2">
                   {report.benchmarkPercentile}%
                 </div>
                 <p className="text-gray-600">

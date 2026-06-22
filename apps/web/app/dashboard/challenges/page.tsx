@@ -76,7 +76,7 @@ export default function ChallengesPage() {
               </div>
               <ChevronRight
                 size={18}
-                className="text-slate-600 group-hover:text-blue-400 transition"
+                className="text-slate-600 group-hover:text-brand-500 transition"
               />
             </Link>
           ))}

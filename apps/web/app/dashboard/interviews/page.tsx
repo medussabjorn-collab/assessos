@@ -63,7 +63,7 @@ export default function InterviewsPage() {
   };
 
   const fieldClass =
-    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-blue-600';
+    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-brand-600';
 
   return (
     <div>
@@ -75,7 +75,7 @@ export default function InterviewsPage() {
         action={
           <Link
             href="/dashboard/interviews/schedule"
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 transition"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 transition"
           >
             <CalendarPlus size={16} />
             Schedule
@@ -91,7 +91,7 @@ export default function InterviewsPage() {
               className="flex items-center justify-between bg-surface border border-hairline rounded-xl p-5"
             >
               <div className="flex items-center gap-4">
-                <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-blue-600/15 text-blue-400 font-semibold">
+                <span className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-brand-600/15 text-brand-500 font-semibold">
                   {iv.candidateName.charAt(0)}
                 </span>
                 <div>
@@ -101,7 +101,7 @@ export default function InterviewsPage() {
               </div>
               <button
                 onClick={() => start(iv)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
               >
                 Start Interview
               </button>
@@ -177,7 +177,7 @@ export default function InterviewsPage() {
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
           >
             Submit Feedback
           </button>

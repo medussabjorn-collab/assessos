@@ -20,7 +20,7 @@ export default function InterviewFeedbackPage() {
   };
 
   const fieldClass =
-    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-blue-600';
+    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-brand-600';
 
   return (
     <div>
@@ -67,7 +67,7 @@ export default function InterviewFeedbackPage() {
         </div>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
         >
           Submit Feedback
         </button>

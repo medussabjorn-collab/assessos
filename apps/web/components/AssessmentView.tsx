@@ -207,7 +207,7 @@ export default function AssessmentView({
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-brand-600 h-2 rounded-full transition-all duration-300"
                 style={{
                   width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
                 }}
@@ -244,7 +244,7 @@ export default function AssessmentView({
             ) : (
               <button
                 onClick={handleNext}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
               >
                 Next →
               </button>

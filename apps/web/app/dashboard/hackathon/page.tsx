@@ -96,7 +96,7 @@ export default function HackathonPage() {
                   }}
                   className={`w-full text-left p-3 rounded border transition ${
                     selectedHackathon?.id === hackathon.id
-                      ? 'bg-blue-100 border-blue-600'
+                      ? 'bg-brand-100 border-blue-600'
                       : 'bg-white border-gray-200 hover:border-gray-400'
                   }`}
                 >
@@ -116,9 +116,9 @@ export default function HackathonPage() {
                 <p className="text-gray-600 mb-4">{selectedHackathon.description}</p>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-blue-50 p-4 rounded">
+                  <div className="bg-brand-50 p-4 rounded">
                     <div className="text-sm text-gray-600">Prize Pool</div>
-                    <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-2xl font-bold text-brand-600">
                       ${selectedHackathon.prizePool?.toLocaleString()}
                     </div>
                   </div>
@@ -154,7 +154,7 @@ export default function HackathonPage() {
                   <div className="space-y-2">
                     <button
                       onClick={() => setShowTeamForm(!showTeamForm)}
-                      className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                      className="w-full bg-brand-600 text-white px-4 py-2 rounded hover:bg-brand-700"
                     >
                       Register Team
                     </button>

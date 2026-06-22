@@ -94,7 +94,7 @@ export default function HiringPipelinePage() {
                       <div className="text-xs text-subtle mb-2">{candidate.role}</div>
                       <div className="flex gap-3 text-xs mb-3">
                         <span className="flex items-center gap-1">
-                          <Star size={12} className="text-blue-400" />
+                          <Star size={12} className="text-brand-500" />
                           Tech {candidate.technicalScore}
                         </span>
                         <span className="flex items-center gap-1">
@@ -105,7 +105,7 @@ export default function HiringPipelinePage() {
                       {next && (
                         <button
                           onClick={() => moveCandidate(candidate.id, next)}
-                          className="w-full text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded transition"
+                          className="w-full text-xs bg-brand-600 hover:bg-brand-700 px-2 py-1 rounded transition"
                         >
                           Advance →
                         </button>

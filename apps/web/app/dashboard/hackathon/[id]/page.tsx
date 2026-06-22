@@ -71,9 +71,9 @@ export default function HackathonPage() {
   };
 
   const fieldClass =
-    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-blue-600';
+    'w-full rounded-lg bg-canvas border border-hairline p-2.5 text-ink focus:outline-none focus:ring-2 focus:ring-brand-600';
   const primaryBtn =
-    'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition';
+    'px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition';
 
   return (
     <div>
@@ -150,7 +150,7 @@ export default function HackathonPage() {
         {mode === 'team' && team && (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-600/15 text-blue-400">
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-brand-600/15 text-brand-500">
                 <Users size={18} />
               </span>
               <p className="text-ink font-semibold">{team.name}</p>
@@ -160,7 +160,7 @@ export default function HackathonPage() {
             </button>
             <Link
               href={`/dashboard/hackathon/${id}/leaderboard`}
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300"
+              className="inline-flex items-center gap-2 text-brand-500 hover:text-brand-500"
             >
               <Trophy size={15} /> Leaderboard
             </Link>
@@ -221,7 +221,7 @@ export default function HackathonPage() {
             </p>
             <Link
               href={`/dashboard/hackathon/${id}/leaderboard`}
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300"
+              className="inline-flex items-center gap-2 text-brand-500 hover:text-brand-500"
             >
               <Trophy size={15} /> Leaderboard
             </Link>

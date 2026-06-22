@@ -39,7 +39,7 @@ test.describe('Leadership Assessment Flow', () => {
     // other blue pills; the fill is an empty decorative div so assert presence
     // via count rather than visibility).
     const bar = page.locator(
-      '.bg-gray-200.rounded-full.h-2 > .bg-blue-600.h-2.rounded-full',
+      '.bg-gray-200.rounded-full.h-2 > .bg-brand-600.h-2.rounded-full',
     );
     await expect(bar).toHaveCount(1);
     const initialWidth = await bar.evaluate((el) => (el as HTMLElement).style.width);

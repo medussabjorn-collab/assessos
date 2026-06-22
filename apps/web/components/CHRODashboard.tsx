@@ -73,7 +73,7 @@ export default function CHRODashboard() {
       case 'exceptional':
         return 'bg-purple-100 text-purple-900';
       case 'strong':
-        return 'bg-blue-100 text-blue-900';
+        return 'bg-brand-100 text-blue-900';
       case 'solid':
         return 'bg-yellow-100 text-yellow-900';
       case 'emerging':
@@ -88,7 +88,7 @@ export default function CHRODashboard() {
       case 'Exceptional':
         return 'text-purple-600';
       case 'Strong':
-        return 'text-blue-600';
+        return 'text-brand-600';
       case 'Healthy':
         return 'text-green-600';
       case 'Needs Attention':
@@ -140,7 +140,7 @@ export default function CHRODashboard() {
                   {summary.totalLeaders}
                 </p>
               </div>
-              <Users className="w-12 h-12 text-blue-400" />
+              <Users className="w-12 h-12 text-brand-500" />
             </div>
           </div>
 
@@ -177,7 +177,7 @@ export default function CHRODashboard() {
                 <p className="text-purple-600">
                   <strong>{summary.distribution.exceptional}</strong> Exceptional
                 </p>
-                <p className="text-blue-600">
+                <p className="text-brand-600">
                   <strong>{summary.distribution.strong}</strong> Strong
                 </p>
                 <p className="text-yellow-600">
@@ -207,7 +207,7 @@ export default function CHRODashboard() {
                     <p className="text-xs text-gray-600">{leader.department}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-2xl font-bold text-brand-600">
                       {leader.leadershipIndex.toFixed(2)}
                     </p>
                     <span
@@ -249,13 +249,13 @@ export default function CHRODashboard() {
               <div>
                 <div className="flex justify-between mb-1">
                   <span className="text-sm font-medium text-gray-700">Ready in 2 Years</span>
-                  <span className="text-sm font-bold text-blue-600">
+                  <span className="text-sm font-bold text-brand-600">
                     {succession.ready_2yr.length}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full"
+                    className="bg-brand-600 h-2 rounded-full"
                     style={{
                       width: `${Math.min(100, (succession.ready_2yr.length / leadershipData.length) * 100)}%`,
                     }}

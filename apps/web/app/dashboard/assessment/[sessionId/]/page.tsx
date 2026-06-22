@@ -73,24 +73,24 @@ export default function AssessmentTaker({ params }: { params: { sessionId: strin
   if (submitted) {
     return (
       <div className="max-w-2xl mx-auto bg-canvas border border-hairline rounded-lg p-8 text-center">
-        <div className="text-6xl font-bold text-blue-400 mb-4">78</div>
+        <div className="text-6xl font-bold text-brand-500 mb-4">78</div>
         <h2 className="text-2xl font-bold mb-4">Assessment Complete!</h2>
         <p className="text-slate-600 mb-8">Your Leadership Index score reflects your competency across 8 dimensions.</p>
         <div className="space-y-2 text-left bg-slate-700/50 rounded p-4 mb-8">
           <div className="flex justify-between">
             <span>Communication</span>
-            <span className="text-blue-400">8/10</span>
+            <span className="text-brand-500">8/10</span>
           </div>
           <div className="flex justify-between">
             <span>Strategic Thinking</span>
-            <span className="text-blue-400">7/10</span>
+            <span className="text-brand-500">7/10</span>
           </div>
           <div className="flex justify-between">
             <span>Decision Making</span>
-            <span className="text-blue-400">8/10</span>
+            <span className="text-brand-500">8/10</span>
           </div>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 px-8 py-3 rounded-lg transition">
+        <button className="bg-brand-600 hover:bg-brand-700 px-8 py-3 rounded-lg transition">
           View Full Report
         </button>
       </div>
@@ -110,7 +110,7 @@ export default function AssessmentTaker({ params }: { params: { sessionId: strin
         </div>
         <div className="w-full bg-slate-700 rounded-full h-2">
           <div
-            className="bg-blue-600 h-2 rounded-full transition-all"
+            className="bg-brand-600 h-2 rounded-full transition-all"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -118,7 +118,7 @@ export default function AssessmentTaker({ params }: { params: { sessionId: strin
 
       {/* Question Card */}
       <div className="bg-canvas border border-hairline rounded-lg p-8">
-        <div className="text-sm text-blue-400 mb-3">
+        <div className="text-sm text-brand-500 mb-3">
           {question.competency}
         </div>
         <h2 className="text-2xl font-bold mb-8">{question.text}</h2>
@@ -164,7 +164,7 @@ export default function AssessmentTaker({ params }: { params: { sessionId: strin
           ) : (
             <button
               onClick={handleNext}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-lg transition flex items-center justify-center gap-2"
+              className="flex-1 bg-brand-600 hover:bg-brand-700 px-4 py-3 rounded-lg transition flex items-center justify-center gap-2"
             >
               Next <ChevronRight size={20} />
             </button>

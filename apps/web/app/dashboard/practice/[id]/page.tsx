@@ -89,7 +89,7 @@ export default function PracticeQuestionPage() {
 
         <button
           onClick={submit}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
         >
           Submit Answer
         </button>

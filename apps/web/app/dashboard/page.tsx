@@ -44,7 +44,7 @@ export default function DashboardHome() {
   return (
     <div className="space-y-8">
       {/* Welcome */}
-      <div className="bg-gradient-to-r from-brand-600 to-accent-violet rounded-2xl p-8 text-white shadow-frost">
+      <div className="bg-gradient-to-r from-brand-600 to-accent-teal rounded-2xl p-8 text-white shadow-frost">
         <h1 className="text-3xl font-bold mb-1">
           Welcome back, {user.email?.split('@')[0]}
         </h1>

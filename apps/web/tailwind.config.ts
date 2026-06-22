@@ -1,5 +1,8 @@
 import type { Config } from 'tailwindcss';
 
+// Design language synthesized from HackerRank, HackerEarth and Mercer|Mettl:
+// white canvas, deep teal/charcoal ink, a green primary (the assessment-
+// platform signal), clean Inter type, and crisp (8–14px) corners.
 const config: Config = {
   content: [
     './app/**/*.{ts,tsx}',
@@ -9,37 +12,37 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // SugarCRM "frost" light system
-        canvas: '#eef1f6', // app background
+        canvas: '#f4f7f9', // cool off-white app background
         surface: '#ffffff', // cards
-        ink: '#0f172a', // primary text
-        subtle: '#64748b', // secondary text
-        hairline: '#e8ebf1', // borders
+        ink: '#0b1f24', // headings / nav anchor (deep teal-charcoal)
+        subtle: '#5a6b72', // secondary text
+        hairline: '#e4eaee', // borders
         brand: {
-          50: '#eff4ff',
-          100: '#dbe6ff',
-          500: '#3b6ef5',
-          600: '#2f5fe0',
-          700: '#264dbd',
+          50: '#ecfdf3',
+          100: '#d1fadf',
+          500: '#19aa59', // HackerRank/Mettl green
+          600: '#13934c',
+          700: '#0e7a3e',
         },
         accent: {
           coral: '#ff7a59',
-          mint: '#34d399',
-          amber: '#fbbf24',
-          violet: '#8b5cf6',
+          mint: '#19aa59',
+          amber: '#f59e0b',
+          violet: '#9fb1fe', // HackerEarth periwinkle
+          teal: '#0e7490',
         },
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        xl: '1rem',
-        '2xl': '1.5rem',
-        '3xl': '2rem',
+        xl: '0.625rem', // 10px
+        '2xl': '0.875rem', // 14px
+        '3xl': '1.25rem', // 20px
       },
       boxShadow: {
-        frost: '0 1px 2px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06)',
-        'frost-lg': '0 2px 4px rgba(15,23,42,0.04), 0 16px 40px rgba(15,23,42,0.08)',
+        frost: '0 1px 2px rgba(11,31,36,0.05), 0 4px 16px rgba(11,31,36,0.06)',
+        'frost-lg': '0 2px 4px rgba(11,31,36,0.05), 0 12px 32px rgba(11,31,36,0.10)',
       },
     },
   },

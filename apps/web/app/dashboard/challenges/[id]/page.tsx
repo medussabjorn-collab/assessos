@@ -105,12 +105,12 @@ export default function ChallengePage() {
         ref={editorRef}
         defaultValue={problem.starterCode}
         spellCheck={false}
-        className="w-full h-56 font-mono text-sm p-4 rounded-xl bg-canvas text-ink border border-hairline focus:outline-none focus:ring-2 focus:ring-blue-600"
+        className="w-full h-56 font-mono text-sm p-4 rounded-xl bg-canvas text-ink border border-hairline focus:outline-none focus:ring-2 focus:ring-brand-600"
       />
 
       <button
         onClick={submit}
-        className="mt-3 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        className="mt-3 px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
       >
         Submit
       </button>

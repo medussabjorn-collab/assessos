@@ -91,7 +91,7 @@ export default function PracticeLibraryPage() {
                     {q.difficulty}
                   </span>
                   {q.dueAt && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-brand-500">
                       Due for review
                     </span>
                   )}
@@ -99,7 +99,7 @@ export default function PracticeLibraryPage() {
               </div>
               <ChevronRight
                 size={18}
-                className="text-slate-600 group-hover:text-blue-400 transition"
+                className="text-slate-600 group-hover:text-brand-500 transition"
               />
             </Link>
           ))}

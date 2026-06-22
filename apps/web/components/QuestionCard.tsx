@@ -27,7 +27,7 @@ export default function QuestionCard({
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
       <div className="mb-6">
-        <div className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-3">
+        <div className="inline-block px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium mb-3">
           {question.dimensionId}
         </div>
         <h2 className="text-2xl font-bold text-slate-900">{question.text}</h2>
@@ -40,7 +40,7 @@ export default function QuestionCard({
             onClick={() => onSelectOption(option.id)}
             className={`w-full p-4 rounded-lg border-2 transition ${
               selectedOptionId === option.id
-                ? 'border-blue-600 bg-blue-50'
+                ? 'border-blue-600 bg-brand-50'
                 : 'border-gray-200 bg-white hover:border-gray-300'
             }`}
           >
@@ -51,7 +51,7 @@ export default function QuestionCard({
               <div
                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                   selectedOptionId === option.id
-                    ? 'border-blue-600 bg-blue-600'
+                    ? 'border-blue-600 bg-brand-600'
                     : 'border-gray-300'
                 }`}
               >
