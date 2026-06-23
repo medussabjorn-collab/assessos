@@ -29,5 +29,7 @@ USER nodejs
 EXPOSE 3000
 
 ENTRYPOINT ["dumb-init", "--"]
-# Apply pending migrations before booting so a fresh DB is provisioned automatically.
-CMD ["sh", "-c", "apps/api/node_modules/.bin/prisma migrate deploy --schema=apps/api/prisma/schema.prisma && node apps/api/dist/main.js"]
+# Apply pending migrations before booting so a fresh DB is provisioned
+# automatically. When SEED_ON_START=true (local/demo only — never set in prod),
+# also load idempotent demo data. Seed failures are non-fatal.
+CMD ["sh", "-c", "apps/api/node_modules/.bin/prisma migrate deploy --schema=apps/api/prisma/schema.prisma && { if [ \"$SEED_ON_START\" = \"true\" ]; then node apps/api/prisma/seed.js || true; fi; } && node apps/api/dist/main.js"]
