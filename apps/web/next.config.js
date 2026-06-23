@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// API_URL is server-only (no NEXT_PUBLIC_ prefix) — used only in rewrites.
+// Set in .env.local when the API runs somewhere other than localhost:3000
+// (e.g. inside WSL: API_URL=http://172.21.194.208:3000).
+// NEXT_PUBLIC_API_URL stays unset so lib/api.ts uses relative /api/* paths,
+// which keeps the browser on-origin and avoids CORS entirely.
+const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 const nextConfig = {
   reactStrictMode: true,
