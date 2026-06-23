@@ -1,0 +1,32 @@
+# Railway config — API service.
+# In Railway dashboard: create two services from this repo.
+#   Service "api":  Root Dir = /,  Dockerfile = infra/docker/Dockerfile.api
+#   Service "web":  Root Dir = /,  Dockerfile = infra/docker/Dockerfile.web
+# Each service gets its own env vars (see below).
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "infra/docker/Dockerfile.api"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Required env vars for the API service — set in Railway dashboard:
+#
+#   DATABASE_URL          postgresql://... (Railway Postgres plugin auto-sets this)
+#   REDIS_URL             redis://...      (Railway Redis plugin auto-sets this)
+#   FIREBASE_PROJECT_ID   your-firebase-project
+#   FIREBASE_CLIENT_EMAIL firebase-adminsdk-xxx@your-project.iam.gserviceaccount.com
+#   FIREBASE_PRIVATE_KEY  -----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n
+#   JWT_SECRET            min 32 random chars  (openssl rand -hex 32)
+#   CORS_ORIGIN           https://your-web-service.railway.app  (or custom domain)
+#   NODE_ENV              production
+#
+# Optional (disable features when not set):
+#   STRIPE_SECRET_KEY
+#   STRIPE_WEBHOOK_SECRET
+#   STRIPE_PRICE_FREE / STRIPE_PRICE_PRO / STRIPE_PRICE_ENTERPRISE
+#   AI_SIDECAR_URL        (defaults to http://localhost:8000 — sidecar not deployed yet)
