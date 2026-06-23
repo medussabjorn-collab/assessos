@@ -19,10 +19,8 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      # Lint has no committed config yet — run it for signal but don't block.
-      - name: Lint (non-blocking)
+      - name: Lint
         run: pnpm lint
-        continue-on-error: true
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build

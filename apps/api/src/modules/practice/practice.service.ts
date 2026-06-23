@@ -2,7 +2,7 @@ import { Injectable, BadRequestException, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { QuestionLibraryService } from './question-library.service';
-import { SpacedRepetitionService, CardState } from './spaced-repetition.service';
+import { SpacedRepetitionService } from './spaced-repetition.service';
 import { BadgeService } from './badge.service';
 import { PerformanceService } from './performance.service';
 

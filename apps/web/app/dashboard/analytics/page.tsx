@@ -1,14 +1,9 @@
 'use client';
 
-import { useAuth } from '@/lib/auth-context';
 import CHRODashboard from '@/components/CHRODashboard';
-import { ForbiddenError } from '@/lib/errors';
 
 export default function AnalyticsPage() {
-  const { user } = useAuth();
-
-  // Only org admins can view this page
-  // TODO: Verify role from backend
+  // TODO: Verify org-admin role from backend before rendering
 
   return <CHRODashboard />;
 }

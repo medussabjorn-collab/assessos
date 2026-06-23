@@ -42,7 +42,7 @@ export class SpacedRepetitionService {
 
     // Correct response - apply SM-2 algorithm
     let interval: number;
-    let repetitions = currentCard.repetitions + 1;
+    const repetitions = currentCard.repetitions + 1;
 
     if (repetitions === 1) {
       interval = 1; // First review tomorrow

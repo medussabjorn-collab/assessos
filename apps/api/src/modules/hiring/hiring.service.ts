@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Scope } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
@@ -123,7 +123,7 @@ export class HiringService {
         cultureFitScore: c.scores?.culture_fit || 0,
         overallScore: c.scores?.overall || 0,
         recommendation: 'yes',
-        readyForOffer: c.scores?.overall! >= 4.0,
+        readyForOffer: (c.scores?.overall ?? 0) >= 4.0,
       })),
     };
   }

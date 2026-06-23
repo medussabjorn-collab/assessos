@@ -53,7 +53,7 @@ export class ReportingService {
 
     // Trigger report generation via AI sidecar
     try {
-      const response = await axios.post(
+      await axios.post(
         `${this.aiServiceUrl}/reports/generate`,
         {
           session_id: sessionId,

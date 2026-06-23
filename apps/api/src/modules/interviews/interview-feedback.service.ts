@@ -45,7 +45,7 @@ export class InterviewFeedbackService {
       100;
 
     // Determine recommendation based on scores
-    const recommendation = this.getRecommendation(overallScore);
+    const _recommendation = this.getRecommendation(overallScore);
 
     return {
       feedbackId,

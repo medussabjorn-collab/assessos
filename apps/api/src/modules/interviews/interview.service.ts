@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Scope } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { VideoRoomService } from './video-room.service';

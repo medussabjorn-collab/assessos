@@ -5,7 +5,6 @@ import {
   Param,
   Body,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { InterviewService } from './interview.service';

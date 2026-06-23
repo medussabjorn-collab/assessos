@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/lib/auth-context';
 import { ChevronRight, Clock } from 'lucide-react';
 
 interface Question {
@@ -11,8 +10,8 @@ interface Question {
   competency: string;
 }
 
-export default function AssessmentTaker({ params }: { params: { sessionId: string } }) {
-  const { user } = useAuth();
+export default function AssessmentTaker({ params: _params }: { params: { sessionId: string } }) {
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);

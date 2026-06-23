@@ -22,7 +22,7 @@ export abstract class BaseRepository {
   }
 
   protected getSelectWithoutTenantId(fields: Record<string, boolean>) {
-    const { tenantId, ...rest } = fields;
+    const { tenantId: _tenantId, ...rest } = fields;
     return rest;
   }
 }

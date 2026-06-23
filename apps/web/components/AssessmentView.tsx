@@ -26,7 +26,7 @@ interface Answer {
 
 export default function AssessmentView({
   sessionId,
-  configId,
+  configId: _configId,
 }: AssessmentViewProps) {
   const { user, tenantId } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
