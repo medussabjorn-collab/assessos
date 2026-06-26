@@ -6,8 +6,6 @@ import { AssessmentModuleId, IrtParams } from '../types';
 import {
   estimateTheta,
   computeSE,
-  selectNextQuestion,
-  shouldTerminate,
   buildAbility,
 } from './irtService';
 import { generateReportInsights } from './reportService';
@@ -170,7 +168,7 @@ export async function submitSession(sessionId: string, userId: string) {
   const config = await prisma.assessmentConfig.findUnique({ where: { id: session.configId } });
   if (!config) throw new AppError(500, 'Config not found');
 
-  let rawScore = 0;
+  let _rawScore = 0;
   let correct = 0, wrong = 0, skipped = 0;
 
   const responses: { correct: boolean; params: IrtParams }[] = [];
@@ -183,16 +181,16 @@ export async function submitSession(sessionId: string, userId: string) {
       skipped++;
     } else if (answer.isCorrect) {
       correct++;
-      rawScore += 1;
+      _rawScore += 1;
       responses.push({ correct: true,  params: { a: q.discrimination, b: q.difficulty, c: q.guessing } });
     } else {
       wrong++;
-      if (config.negativeMarking) rawScore -= config.negativePenalty;
+      if (config.negativeMarking) _rawScore -= config.negativePenalty;
       responses.push({ correct: false, params: { a: q.discrimination, b: q.difficulty, c: q.guessing } });
     }
   }
 
-  const totalAnswered = correct + wrong;
+  const _totalAnswered = correct + wrong;
   const scorePercent  = (correct / questionIds.length) * 100;
   const passed        = scorePercent >= config.passMark;
 
