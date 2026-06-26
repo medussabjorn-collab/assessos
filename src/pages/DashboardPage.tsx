@@ -27,7 +27,7 @@ const moduleColors: Record<AssessmentModuleId, string> = {
   communication: 'from-pink-400 to-rose-400',
 };
 
-const moduleBg: Record<AssessmentModuleId, string> = {
+const _moduleBg: Record<AssessmentModuleId, string> = {
   technical:     'bg-blue-50 dark:bg-blue-900/20',
   attitude:      'bg-amber-50 dark:bg-amber-900/20',
   behavioral:    'bg-emerald-50 dark:bg-emerald-900/20',
@@ -35,7 +35,7 @@ const moduleBg: Record<AssessmentModuleId, string> = {
   communication: 'bg-pink-50 dark:bg-pink-900/20',
 };
 
-const moduleTextColor: Record<AssessmentModuleId, string> = {
+const _moduleTextColor: Record<AssessmentModuleId, string> = {
   technical:     'text-accent-blue',
   attitude:      'text-amber-500',
   behavioral:    'text-emerald-500',
@@ -135,7 +135,7 @@ const stagger = {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t: _t } = useTranslation();
   const [results, setResults] = useState<SessionResult[]>([]);
 
   useEffect(() => {

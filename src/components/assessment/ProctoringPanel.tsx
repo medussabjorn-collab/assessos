@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Camera, CameraOff, AlertTriangle, CheckCircle2, Eye } from 'lucide-react';
+import { CameraOff, AlertTriangle, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from '../common/Badge';
 import { proctoringApi } from '../../services/proctoringApi';
 
 interface Props {

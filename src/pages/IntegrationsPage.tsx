@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Globe, CheckCircle2, AlertCircle, Clock, ChevronRight, Plus, Zap, RefreshCw } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock, Plus, Zap, RefreshCw } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';

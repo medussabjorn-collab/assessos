@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Flag, ChevronLeft, ChevronRight, Clock, AlertTriangle,
-  CheckCircle2, Send, Eye, EyeOff, Camera, CameraOff, Wifi, WifiOff
+  CheckCircle2, Send, Eye
 } from 'lucide-react';
 import { Button } from '../common/Button';
 import { ProgressBar } from '../common/ProgressBar';
@@ -15,7 +15,7 @@ import { getRandomQuestions } from '../../data/questions';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import { ProctoringPanel } from './ProctoringPanel';
 import { CodeEditor } from './CodeEditor';
-import type { AssessmentConfig, Question, AssessmentSession } from '../../types';
+import type { AssessmentConfig, AssessmentSession } from '../../types';
 
 interface Props {
   config: AssessmentConfig;
@@ -31,7 +31,7 @@ export function AssessmentEngine({ config, onComplete }: Props) {
     [config.moduleId, config.totalQuestions]
   );
 
-  const [session, setSession]   = useState<AssessmentSession | null>(null);
+  const [session, _setSession] = useState<AssessmentSession | null>(null);
   const [backendSessionId, setBackendSessionId] = useState<string | null>(null);
 
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -39,9 +39,9 @@ export function AssessmentEngine({ config, onComplete }: Props) {
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
   const [timeLeft, setTimeLeft] = useState(config.timeLimit * 60);
   const [showSubmit, setShowSubmit] = useState(false);
-  const [showNav, setShowNav] = useState(false);
+  const [_showNav, setShowNav] = useState(false);
   const [proctoringActive, setProctoringActive] = useState(config.proctoring);
-  const [proctoringWarnings, setProctoringWarnings] = useState(0);
+  const [_proctoringWarnings, setProctoringWarnings] = useState(0);
   const startTime = useRef(Date.now());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -79,7 +79,7 @@ export function AssessmentEngine({ config, onComplete }: Props) {
     });
   }, []);
 
-  const handleSubmit = useCallback(async (auto = false) => {
+  const handleSubmit = useCallback(async (_auto = false) => {
     if (timerRef.current) clearInterval(timerRef.current);
 
     // Local score calculation for immediate UI feedback

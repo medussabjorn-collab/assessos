@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Server, Database, Shield, Cpu, Globe, Zap, MessageSquare,
-  FileText, Activity, Cloud, Lock, GitBranch, ChevronRight,
+  FileText, Activity, Cloud, Lock, GitBranch,
   Layers, Radio, BarChart3, Search, HardDrive, Wifi, Box
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../components/common/Card';
@@ -383,7 +383,7 @@ export default function ArchitecturePage() {
               { step: 'Sync', desc: 'Auto-sync on reconnect with conflict resolution', icon: Radio },
               { step: 'Resolve', desc: 'Server-wins merge strategy + audit log of conflicts', icon: GitBranch },
               { step: 'Clean', desc: 'Pruned synced entries to free IndexedDB storage', icon: Zap },
-            ].map((s, i) => (
+            ].map((s, _i) => (
               <div key={s.step} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center flex-shrink-0">
                   <s.icon size={14} className="text-emerald-600 dark:text-emerald-400" />

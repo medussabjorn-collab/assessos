@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Activity, AlertTriangle, CheckCircle2, Clock, Server, Database,
-  Cpu, TrendingUp, TrendingDown, Minus, Radio, Zap, BarChart3
+  AlertTriangle, Clock,
+  Cpu, TrendingUp, TrendingDown, Minus, Radio, Zap
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';

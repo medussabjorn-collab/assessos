@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  Users, ClipboardCheck, TrendingUp, UserCheck,
+  Users, ClipboardCheck, UserCheck,
   Calendar, MoreHorizontal, ChevronRight, Plus,
   Clock, CheckCircle2, AlertCircle, XCircle, ArrowRight,
   Code2, Brain, MessageCircle, Zap,

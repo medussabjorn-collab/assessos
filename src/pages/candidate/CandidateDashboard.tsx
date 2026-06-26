@@ -27,7 +27,7 @@ const moduleGradients: Record<AssessmentModuleId, string> = {
   communication: 'from-pink-500 to-rose-400',
 };
 
-const moduleBg: Record<AssessmentModuleId, string> = {
+const _moduleBg: Record<AssessmentModuleId, string> = {
   technical:     'bg-blue-50   dark:bg-blue-900/20',
   attitude:      'bg-amber-50  dark:bg-amber-900/20',
   behavioral:    'bg-emerald-50 dark:bg-emerald-900/20',
@@ -148,7 +148,7 @@ export default function CandidateDashboard() {
             {journeyStages.map((stage, idx) => {
               const done    = idx < CURRENT_STAGE_IDX;
               const current = idx === CURRENT_STAGE_IDX;
-              const future  = idx > CURRENT_STAGE_IDX;
+              const _future  = idx > CURRENT_STAGE_IDX;
               return (
                 <React.Fragment key={stage.id}>
                   {/* Step node */}

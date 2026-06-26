@@ -7,7 +7,6 @@ import { defaultConfigs } from '../data/configs';
 import { Card } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
-import { useAuth } from '../contexts/AuthContext';
 import type { AssessmentModuleId } from '../types';
 
 const moduleIcons: Record<AssessmentModuleId, LucideIcon> = {
@@ -33,7 +32,6 @@ const moduleDescriptions: Record<AssessmentModuleId, string> = {
 
 export default function AssessmentsPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
 
   // Per-module status is now derived from results fetched on ResultsPage/DashboardPage;
   // here we just show "Start" / "Retake" based on local nav context.

@@ -60,7 +60,7 @@ interface Props {
   availableLanguages: ProgrammingLanguage[];
 }
 
-let MonacoEditor: React.ComponentType<{
+const MonacoEditor: React.ComponentType<{
   height: string; language: string; value: string;
   onChange: (v: string | undefined) => void; theme: string;
   options: Record<string, unknown>;
@@ -83,7 +83,7 @@ export function CodeEditor({ availableLanguages }: Props) {
   const [output, setOutput] = useState<string | null>(null);
   const [outputClass, setOutputClass] = useState('text-green-400');
   const [running, setRunning] = useState(false);
-  const isDark = document.documentElement.classList.contains('dark');
+  const _isDark = document.documentElement.classList.contains('dark');
 
   const handleLangChange = (l: ProgrammingLanguage) => {
     setLang(l);

@@ -31,7 +31,7 @@ const RISK_WEIGHTS: Record<string, number> = {
 // Models must be served from public/models (face-api tiny weights)
 const MODELS_URL = '/models';
 
-export function useAIProctoring({ videoRef, sessionId, enabled, onViolation }: Options) {
+export function useAIProctoring({ videoRef, sessionId: _sessionId, enabled, onViolation }: Options) {
   const workerRef  = useRef<Worker | null>(null);
   const rafRef     = useRef<number>(0);
   const riskRef    = useRef(0);

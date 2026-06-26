@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Shield, Lock, Key, Fingerprint, Globe, AlertTriangle,
-  CheckCircle2, Eye, Server, Cpu, FileText, Users
+  Shield, AlertTriangle, CheckCircle2
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../components/common/Card';
 import { Badge } from '../components/common/Badge';

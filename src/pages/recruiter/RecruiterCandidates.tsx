@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Search, Filter, Plus, ChevronDown, MoreHorizontal,
-  Calendar, Mail, CheckCircle2, Clock, AlertCircle,
+  Search, Plus, ChevronDown, MoreHorizontal,
+  Calendar, Mail, CheckCircle2, Clock,
   Code2, Brain, MessageCircle, Zap, Users,
   ArrowRight, Download,
 } from 'lucide-react';

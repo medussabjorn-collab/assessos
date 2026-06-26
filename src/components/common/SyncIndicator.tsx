@@ -5,7 +5,7 @@ import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 
 export function SyncIndicator() {
   const isOnline = useOnlineStatus();
-  const { pendingCount, syncing, lastSynced } = useOfflineSync();
+  const { pendingCount, syncing, lastSynced: _lastSynced } = useOfflineSync();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
