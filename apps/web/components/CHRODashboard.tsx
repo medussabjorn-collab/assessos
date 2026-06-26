@@ -2,14 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import axios from 'axios';
-import {
-  Users,
-  TrendingUp,
-  Award,
-  AlertCircle,
-  Loader,
-} from 'lucide-react';
+import { api } from '@/lib/api';
+import { Users, TrendingUp, Award, AlertCircle, Loader } from 'lucide-react';
 
 interface DashboardData {
   summary: {
@@ -37,6 +31,21 @@ interface DashboardData {
   };
 }
 
+const TIER_PILL: Record<string, string> = {
+  exceptional: 'bg-violet-100 text-violet-800',
+  strong:      'bg-brand-100 text-brand-700',
+  solid:       'bg-amber-100 text-amber-800',
+  emerging:    'bg-orange-100 text-orange-800',
+};
+
+const HEALTH_COLOR: Record<string, string> = {
+  Exceptional:     'text-violet-600',
+  Strong:          'text-brand-600',
+  Healthy:         'text-green-600',
+  'Needs Attention': 'text-amber-600',
+  'At Risk':       'text-red-600',
+};
+
 export default function CHRODashboard() {
   const { user, tenantId } = useAuth();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -45,272 +54,160 @@ export default function CHRODashboard() {
 
   useEffect(() => {
     if (!user) return;
-
     const fetchDashboard = async () => {
       try {
-        const response = await axios.get(
-          'http://localhost:3000/api/analytics/dashboard',
-          {
-            headers: {
-              'x-tenant-id': tenantId,
-              Authorization: `Bearer ${await user.getIdToken()}`,
-            },
-          },
-        );
+        const response = await api.get('/api/analytics/dashboard');
         setDashboard(response.data.data);
-        setLoading(false);
-      } catch (err) {
+      } catch {
         setError('Failed to load dashboard');
+      } finally {
         setLoading(false);
       }
     };
-
     fetchDashboard();
   }, [user, tenantId]);
 
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'exceptional':
-        return 'bg-purple-100 text-purple-900';
-      case 'strong':
-        return 'bg-brand-100 text-blue-900';
-      case 'solid':
-        return 'bg-yellow-100 text-yellow-900';
-      case 'emerging':
-        return 'bg-orange-100 text-orange-900';
-      default:
-        return 'bg-gray-100 text-gray-900';
-    }
-  };
-
-  const getHealthColor = (rating: string) => {
-    switch (rating) {
-      case 'Exceptional':
-        return 'text-purple-600';
-      case 'Strong':
-        return 'text-brand-600';
-      case 'Healthy':
-        return 'text-green-600';
-      case 'Needs Attention':
-        return 'text-yellow-600';
-      case 'At Risk':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center h-96">
+        <Loader className="w-8 h-8 animate-spin text-brand-500" />
       </div>
     );
   }
+  if (error) return <div className="p-8 text-red-500">{error}</div>;
+  if (!dashboard) return <div className="p-8 text-subtle">No data available</div>;
 
-  if (error) {
-    return <div className="p-8 text-red-500">{error}</div>;
-  }
-
-  if (!dashboard) {
-    return <div className="p-8">No data available</div>;
-  }
-
-  const { summary, leadershipData, topPerformers, developmentPriorities, succession } =
-    dashboard;
+  const { summary, leadershipData, topPerformers, developmentPriorities, succession } = dashboard;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">
-            Organization Leadership Health
-          </h1>
-          <p className="text-gray-600">CHRO Dashboard & Succession Pipeline</p>
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-ink">Organization Leadership Health</h1>
+        <p className="text-subtle">CHRO Dashboard &amp; Succession Pipeline</p>
+      </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Leaders</p>
-                <p className="text-3xl font-bold text-slate-900 mt-2">
-                  {summary.totalLeaders}
-                </p>
-              </div>
-              <Users className="w-12 h-12 text-brand-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Avg Leadership Index
-                </p>
-                <p className="text-3xl font-bold text-slate-900 mt-2">
-                  {summary.avgLeadershipIndex.toFixed(2)}
-                </p>
-              </div>
-              <TrendingUp className="w-12 h-12 text-green-400" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Health Status</p>
-                <p className={`text-3xl font-bold mt-2 ${getHealthColor(summary.healthRating)}`}>
-                  {summary.healthRating}
-                </p>
-              </div>
-              <Award className="w-12 h-12 text-yellow-400" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="frost-card p-5">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm font-medium mb-3">Distribution</p>
-              <div className="space-y-1 text-xs">
-                <p className="text-purple-600">
-                  <strong>{summary.distribution.exceptional}</strong> Exceptional
-                </p>
-                <p className="text-brand-600">
-                  <strong>{summary.distribution.strong}</strong> Strong
-                </p>
-                <p className="text-yellow-600">
-                  <strong>{summary.distribution.solid}</strong> Solid
-                </p>
-                <p className="text-orange-600">
-                  <strong>{summary.distribution.emerging}</strong> Emerging
-                </p>
-              </div>
+              <p className="text-subtle text-sm font-medium">Total Leaders</p>
+              <p className="text-3xl font-bold text-ink mt-2">{summary.totalLeaders}</p>
             </div>
+            <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-brand-50 text-brand-500">
+              <Users className="w-5 h-5" />
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 mb-8">
-          {/* Top Performers */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4 text-slate-900">
-              Top Performers
-            </h2>
-            <div className="space-y-3">
-              {topPerformers.map((leader, idx) => (
-                <div key={leader.userId} className="flex items-center justify-between pb-3 border-b last:border-b-0">
-                  <div>
-                    <p className="font-semibold text-slate-900">
-                      {idx + 1}. {leader.userName}
-                    </p>
-                    <p className="text-xs text-gray-600">{leader.department}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-brand-600">
-                      {leader.leadershipIndex.toFixed(2)}
-                    </p>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${getTierColor(
-                        leader.tier,
-                      )}`}
-                    >
-                      {leader.tier}
-                    </span>
-                  </div>
-                </div>
-              ))}
+        <div className="frost-card p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-subtle text-sm font-medium">Avg Leadership Index</p>
+              <p className="text-3xl font-bold text-ink mt-2">{summary.avgLeadershipIndex.toFixed(2)}</p>
             </div>
-          </div>
-
-          {/* Succession Pipeline */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4 text-slate-900">
-              Succession Pipeline
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Ready Now</span>
-                  <span className="text-sm font-bold text-green-600">
-                    {succession.ready_now.length}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-600 h-2 rounded-full"
-                    style={{
-                      width: `${Math.min(100, (succession.ready_now.length / leadershipData.length) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Ready in 2 Years</span>
-                  <span className="text-sm font-bold text-brand-600">
-                    {succession.ready_2yr.length}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-brand-600 h-2 rounded-full"
-                    style={{
-                      width: `${Math.min(100, (succession.ready_2yr.length / leadershipData.length) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">Ready in 5 Years</span>
-                  <span className="text-sm font-bold text-yellow-600">
-                    {succession.ready_5yr.length}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-yellow-600 h-2 rounded-full"
-                    style={{
-                      width: `${Math.min(100, (succession.ready_5yr.length / leadershipData.length) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
+            <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-teal-50 text-accent-teal">
+              <TrendingUp className="w-5 h-5" />
+            </span>
           </div>
         </div>
 
-        {/* Development Priorities */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertCircle className="w-6 h-6 text-orange-500" />
-            <h2 className="text-2xl font-bold text-slate-900">
-              Development Priorities
-            </h2>
+        <div className="frost-card p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-subtle text-sm font-medium">Health Status</p>
+              <p className={`text-2xl font-bold mt-2 ${HEALTH_COLOR[summary.healthRating] ?? 'text-ink'}`}>
+                {summary.healthRating}
+              </p>
+            </div>
+            <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50 text-amber-500">
+              <Award className="w-5 h-5" />
+            </span>
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            {developmentPriorities.map((leader) => (
-              <div
-                key={leader.userId}
-                className="border-l-4 border-orange-500 pl-4 py-3"
-              >
-                <p className="font-semibold text-slate-900">{leader.userName}</p>
-                <p className="text-sm text-gray-600 mb-2">{leader.department}</p>
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs px-2 py-1 rounded-full ${getTierColor(leader.tier)}`}>
+        <div className="frost-card p-5">
+          <p className="text-subtle text-sm font-medium mb-3">Distribution</p>
+          <div className="space-y-1 text-xs">
+            <p className="text-violet-600"><strong>{summary.distribution.exceptional}</strong> Exceptional</p>
+            <p className="text-brand-600"><strong>{summary.distribution.strong}</strong> Strong</p>
+            <p className="text-amber-600"><strong>{summary.distribution.solid}</strong> Solid</p>
+            <p className="text-orange-600"><strong>{summary.distribution.emerging}</strong> Emerging</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Top Performers */}
+        <div className="frost-card p-6">
+          <h2 className="text-lg font-bold text-ink mb-4">Top Performers</h2>
+          <div className="space-y-3">
+            {topPerformers.map((leader, idx) => (
+              <div key={leader.userId} className="flex items-center justify-between pb-3 border-b border-hairline last:border-b-0">
+                <div>
+                  <p className="font-semibold text-ink text-sm">{idx + 1}. {leader.userName}</p>
+                  <p className="text-xs text-subtle">{leader.department}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xl font-bold text-brand-600">{leader.leadershipIndex.toFixed(2)}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${TIER_PILL[leader.tier] ?? 'bg-hairline text-subtle'}`}>
                     {leader.tier}
-                  </span>
-                  <span className="text-sm font-bold text-slate-900">
-                    Index: {leader.leadershipIndex.toFixed(2)}/5
                   </span>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Succession Pipeline */}
+        <div className="frost-card p-6">
+          <h2 className="text-lg font-bold text-ink mb-4">Succession Pipeline</h2>
+          <div className="space-y-4">
+            {[
+              { label: 'Ready Now',       key: 'ready_now', bar: 'bg-green-500',      text: 'text-green-600' },
+              { label: 'Ready in 2 Yrs',  key: 'ready_2yr', bar: 'bg-brand-500',      text: 'text-brand-600' },
+              { label: 'Ready in 5 Yrs',  key: 'ready_5yr', bar: 'bg-amber-500',      text: 'text-amber-600' },
+            ].map(({ label, key, bar, text }) => {
+              const count = succession[key as keyof typeof succession].length;
+              const pct = leadershipData.length ? Math.min(100, (count / leadershipData.length) * 100) : 0;
+              return (
+                <div key={key}>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-sm text-subtle">{label}</span>
+                    <span className={`text-sm font-bold ${text}`}>{count}</span>
+                  </div>
+                  <div className="w-full bg-hairline rounded-full h-2">
+                    <div className={`${bar} h-2 rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Development Priorities */}
+      <div className="frost-card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertCircle className="w-5 h-5 text-accent-coral" />
+          <h2 className="text-lg font-bold text-ink">Development Priorities</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {developmentPriorities.map((leader) => (
+            <div key={leader.userId} className="border-l-4 border-accent-coral pl-4 py-2">
+              <p className="font-semibold text-ink text-sm">{leader.userName}</p>
+              <p className="text-xs text-subtle mb-2">{leader.department}</p>
+              <div className="flex items-center justify-between">
+                <span className={`text-xs px-2 py-0.5 rounded-full ${TIER_PILL[leader.tier] ?? 'bg-hairline text-subtle'}`}>
+                  {leader.tier}
+                </span>
+                <span className="text-xs font-bold text-ink">
+                  {leader.leadershipIndex.toFixed(2)}/5
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

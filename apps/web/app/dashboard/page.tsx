@@ -53,10 +53,10 @@ export default function DashboardHome() {
 
       {/* Quick Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Assessments" value={stats.assessmentsCompleted} icon={BarChart3} />
-        <StatCard label="Average Score" value={`${stats.averageScore}%`} icon={TrendingUp} />
-        <StatCard label="Learning Streak" value={`${stats.learningStreak} days`} icon={Clock} />
-        <StatCard label="Problems Solved" value={stats.practiceProblems} icon={Code} />
+        <StatCard label="Assessments" value={stats.assessmentsCompleted} icon={BarChart3} color="green" />
+        <StatCard label="Average Score" value={`${stats.averageScore}%`} icon={TrendingUp} color="teal" />
+        <StatCard label="Learning Streak" value={`${stats.learningStreak} days`} icon={Clock} color="amber" />
+        <StatCard label="Problems Solved" value={stats.practiceProblems} icon={Code} color="violet" />
       </div>
 
       {/* Pillars */}
