@@ -1,0 +1,21 @@
+# Nixpacks config — fallback when Railway uses auto-detection instead of the Dockerfiles.
+# Preferred deploy path: configure each Railway service to use its Dockerfile explicitly:
+#   api → infra/docker/Dockerfile.api
+#   web → infra/docker/Dockerfile.web
+#
+# If a service falls back to Nixpacks, this installs pnpm and builds the web app.
+# For the API service, set Build Command in Railway dashboard to:
+#   pnpm --filter @assessos/api exec prisma generate && pnpm --filter @assessos/api build
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+cmds = ["npm install -g pnpm@9"]
+
+[phases.install]
+cmds = ["pnpm install"]
+
+[phases.build]
+cmds = ["pnpm --filter @assessos/web build"]
+
+[start]
+cmd = "node apps/web/.next/standalone/apps/web/server.js"
