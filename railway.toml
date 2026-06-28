@@ -4,10 +4,6 @@
 #   Service "web":  Root Dir = /,  Dockerfile = infra/docker/Dockerfile.web
 # Each service gets its own env vars (see below).
 
-[build]
-builder = "DOCKERFILE"
-dockerfilePath = "infra/docker/Dockerfile.api"
-
 [deploy]
 healthcheckPath = "/health"
 healthcheckTimeout = 300
