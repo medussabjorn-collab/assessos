@@ -1,25 +1,20 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { Candidate, PipelineStage } from '@prisma/client';
+import { JobRoleService } from './job-role.service';
 
-export interface CandidateRecord {
-  id: string;
-  tenantId: string;
-  jobRoleId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  linkedinUrl?: string;
-  resumeUrl?: string;
-  stage: 'screening' | 'technical' | 'culture_fit' | 'offer' | 'hired' | 'rejected';
-  assessmentSessionId?: string;
-  scores?: Record<string, number>;
-  notes?: string;
-  createdAt: Date;
-  createdBy: string;
-}
+export type CandidateRecord = Candidate;
+
+const STAGES: PipelineStage[] = [
+  'screening',
+  'technical',
+  'culture_fit',
+  'offer',
+  'hired',
+  'rejected',
+];
 
 @Injectable({ scope: Scope.REQUEST })
 export class CandidateService {
@@ -27,6 +22,7 @@ export class CandidateService {
 
   constructor(
     private prisma: PrismaService,
+    private jobRoleService: JobRoleService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
@@ -44,23 +40,22 @@ export class CandidateService {
     },
     createdBy: string,
   ): Promise<CandidateRecord> {
-    // Create candidate record (stored in AiReport with custom metadata for now)
-    // TODO: Create proper Candidate table in Prisma schema for Phase 8
+    const role = this.jobRoleService.getJobRole(jobRoleId);
 
-    return {
-      id: `candidate_${Date.now()}`,
-      tenantId: this.tenantId,
-      jobRoleId,
-      firstName: candidateData.firstName,
-      lastName: candidateData.lastName,
-      email: candidateData.email,
-      phone: candidateData.phone,
-      linkedinUrl: candidateData.linkedinUrl,
-      resumeUrl: candidateData.resumeUrl,
-      stage: 'screening',
-      createdAt: new Date(),
-      createdBy,
-    };
+    return this.prisma.candidate.create({
+      data: {
+        tenantId: this.tenantId,
+        jobRoleId,
+        roleTitle: role?.title ?? jobRoleId,
+        firstName: candidateData.firstName,
+        lastName: candidateData.lastName,
+        email: candidateData.email,
+        phone: candidateData.phone,
+        linkedinUrl: candidateData.linkedinUrl,
+        resumeUrl: candidateData.resumeUrl,
+        createdBy,
+      },
+    });
   }
 
   async startCandidateAssessment(
@@ -68,14 +63,14 @@ export class CandidateService {
     jobRoleId: string,
     assessmentType: 'technical' | 'culture_fit',
   ): Promise<{ sessionId: string }> {
-    // Start assessment session for candidate
-    // Links to existing assessment infrastructure
-
     const sessionId = `hiring_${candidateId}_${assessmentType}_${Date.now()}`;
 
-    return {
-      sessionId,
-    };
+    await this.prisma.candidate.update({
+      where: { id: candidateId },
+      data: { assessmentSessionId: sessionId },
+    });
+
+    return { sessionId };
   }
 
   async updateCandidateStage(
@@ -83,50 +78,84 @@ export class CandidateService {
     newStage: string,
     notes?: string,
   ): Promise<CandidateRecord> {
-    // Update candidate pipeline stage
-    // Moves through: screening → technical → culture_fit → offer → hired/rejected
+    if (!STAGES.includes(newStage as PipelineStage)) {
+      throw new NotFoundException(`Unknown pipeline stage: ${newStage}`);
+    }
 
-    return {
-      id: candidateId,
-      tenantId: this.tenantId,
-      jobRoleId: '',
-      firstName: '',
-      lastName: '',
-      email: '',
-      stage: newStage as any,
-      notes,
-      createdAt: new Date(),
-      createdBy: '',
-    };
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { id: candidateId, tenantId: this.tenantId },
+    });
+    if (!candidate) {
+      throw new NotFoundException('Candidate not found');
+    }
+
+    return this.prisma.candidate.update({
+      where: { id: candidateId },
+      data: {
+        stage: newStage as PipelineStage,
+        ...(notes !== undefined ? { notes } : {}),
+      },
+    });
+  }
+
+  async getCandidate(candidateId: string): Promise<CandidateRecord> {
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { id: candidateId, tenantId: this.tenantId },
+    });
+    if (!candidate) {
+      throw new NotFoundException('Candidate not found');
+    }
+    return candidate;
   }
 
   async getCandidatesForRole(jobRoleId: string): Promise<CandidateRecord[]> {
-    // Get all candidates for a specific job role
-    // Grouped by stage for pipeline view
-
-    return [];
+    return this.prisma.candidate.findMany({
+      where: { tenantId: this.tenantId, jobRoleId },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async getCandidatesForTenant(): Promise<CandidateRecord[]> {
-    // Get all candidates for the tenant
-    // Across all job roles and stages
+    return this.prisma.candidate.findMany({
+      where: { tenantId: this.tenantId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 
-    return [];
+  async getStageCounts(): Promise<Record<PipelineStage, number>> {
+    const groups = await this.prisma.candidate.groupBy({
+      by: ['stage'],
+      where: { tenantId: this.tenantId },
+      _count: { _all: true },
+    });
+
+    const counts = Object.fromEntries(STAGES.map((s) => [s, 0])) as Record<
+      PipelineStage,
+      number
+    >;
+    for (const g of groups) {
+      counts[g.stage] = g._count._all;
+    }
+    return counts;
   }
 
   async compareCandidates(candidateIds: string[]): Promise<any> {
-    // Compare multiple candidates side-by-side
-    // Shows scores, skills, feedback, interview notes
+    const candidates = await this.prisma.candidate.findMany({
+      where: { id: { in: candidateIds }, tenantId: this.tenantId },
+    });
 
     return {
-      candidates: candidateIds.map((id) => ({
-        id,
-        technicalScore: 0,
-        cultureFitScore: 0,
-        overallScore: 0,
-        strengths: [],
-        gaps: [],
-        recommendations: '',
+      candidates: candidates.map((c) => ({
+        id: c.id,
+        name: `${c.firstName} ${c.lastName}`,
+        roleTitle: c.roleTitle,
+        stage: c.stage,
+        technicalScore: c.technicalScore ?? 0,
+        cultureFitScore: c.cultureFitScore ?? 0,
+        overallScore:
+          c.technicalScore != null && c.cultureFitScore != null
+            ? Math.round(((c.technicalScore + c.cultureFitScore) / 2) * 10) / 10
+            : 0,
       })),
     };
   }
@@ -135,23 +164,45 @@ export class CandidateService {
     candidateId: string,
     reason: string,
     notes?: string,
-  ): Promise<void> {
-    // Reject candidate and close hiring loop
-    // Send notification email
-    // Archive from active pipeline
+  ): Promise<CandidateRecord> {
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { id: candidateId, tenantId: this.tenantId },
+    });
+    if (!candidate) {
+      throw new NotFoundException('Candidate not found');
+    }
+
+    return this.prisma.candidate.update({
+      where: { id: candidateId },
+      data: {
+        stage: 'rejected',
+        rejectionReason: reason,
+        ...(notes !== undefined ? { notes } : {}),
+      },
+    });
   }
 
   async makeOffer(
     candidateId: string,
-    offerDetails: {
+    _offerDetails: {
       role: string;
       salary: string;
       startDate: string;
       benefits: string[];
     },
-  ): Promise<void> {
-    // Generate offer letter
-    // Move to offer stage
-    // Track offer status (pending, accepted, declined)
+  ): Promise<CandidateRecord> {
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { id: candidateId, tenantId: this.tenantId },
+    });
+    if (!candidate) {
+      throw new NotFoundException('Candidate not found');
+    }
+
+    // Offer letter generation / e-signature is a later phase — for now the
+    // pipeline stage transition is the source of truth.
+    return this.prisma.candidate.update({
+      where: { id: candidateId },
+      data: { stage: 'offer' },
+    });
   }
 }

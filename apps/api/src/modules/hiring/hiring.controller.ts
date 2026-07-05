@@ -9,10 +9,75 @@ import {
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { HiringService } from './hiring.service';
+import { CandidateService } from './candidate.service';
 
 @Controller('api/hiring')
 export class HiringController {
-  constructor(private hiringService: HiringService) {}
+  constructor(
+    private hiringService: HiringService,
+    private candidateService: CandidateService,
+  ) {}
+
+  @Get('candidates')
+  @UseGuards(FirebaseAuthGuard)
+  async listCandidates() {
+    const candidates = await this.candidateService.getCandidatesForTenant();
+    return {
+      success: true,
+      data: candidates.map((c) => ({
+        id: c.id,
+        name: `${c.firstName} ${c.lastName}`,
+        role: c.roleTitle,
+        stage: c.stage,
+        technicalScore: c.technicalScore ?? 0,
+        cultureFitScore: c.cultureFitScore ?? 0,
+      })),
+    };
+  }
+
+  @Post('candidates')
+  @UseGuards(FirebaseAuthGuard)
+  async createCandidate(
+    @Request() req: any,
+    @Body()
+    body: {
+      jobRoleId: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone?: string;
+      linkedinUrl?: string;
+      resumeUrl?: string;
+    },
+  ) {
+    const { jobRoleId, ...candidateData } = body;
+    const candidate = await this.candidateService.createCandidate(
+      jobRoleId,
+      candidateData,
+      req.user.uid,
+    );
+    return {
+      success: true,
+      data: candidate,
+    };
+  }
+
+  @Post('candidates/:candidateId/stage')
+  @UseGuards(FirebaseAuthGuard)
+  async updateCandidateStage(
+    @Param('candidateId') candidateId: string,
+    @Body() body: { stage: string; notes?: string },
+  ) {
+    const candidate = await this.candidateService.updateCandidateStage(
+      candidateId,
+      body.stage,
+      body.notes,
+    );
+    return {
+      success: true,
+      data: candidate,
+    };
+  }
 
   @Get('dashboard')
   @UseGuards(FirebaseAuthGuard)

@@ -21,33 +21,64 @@ export class HiringService {
   }
 
   async getHiringDashboard() {
-    // Return hiring metrics and pipeline overview
+    const [pipelineStages, hiredCandidates, teamSize] = await Promise.all([
+      this.candidateService.getStageCounts(),
+      this.prisma.candidate.findMany({
+        where: { tenantId: this.tenantId, stage: 'hired' },
+        select: { createdAt: true, updatedAt: true },
+      }),
+      this.prisma.user.count({ where: { tenantId: this.tenantId } }),
+    ]);
+
+    const totalCandidates = Object.values(pipelineStages).reduce(
+      (sum, n) => sum + n,
+      0,
+    );
+
+    // Time-to-hire: creation → last update on hired candidates.
+    const avgDays = hiredCandidates.length
+      ? Math.round(
+          hiredCandidates.reduce(
+            (sum, c) =>
+              sum +
+              (c.updatedAt.getTime() - c.createdAt.getTime()) / 86_400_000,
+            0,
+          ) / hiredCandidates.length,
+        )
+      : null;
+
+    const offersExtended = pipelineStages.offer + pipelineStages.hired;
+    const offerAcceptanceRate = offersExtended
+      ? Math.round((pipelineStages.hired / offersExtended) * 100)
+      : null;
+
     return {
-      openPositions: 5,
-      totalCandidates: 24,
-      pipelineStages: {
-        screening: 8,
-        technical: 4,
-        culture_fit: 6,
-        offer: 2,
-        hired: 3,
-        rejected: 1,
-      },
-      avgTimeToHire: '18 days',
-      offerAcceptanceRate: 85,
-      hiringTeamSize: 3,
+      openPositions: this.jobRoleService.listJobRoles().length,
+      totalCandidates,
+      pipelineStages,
+      avgTimeToHire: avgDays != null ? `${avgDays} days` : '—',
+      offerAcceptanceRate: offerAcceptanceRate ?? 0,
+      hiringTeamSize: teamSize,
     };
   }
 
   async getJobPositions() {
-    // Get all open positions for tenant
+    const roleCounts = await this.prisma.candidate.groupBy({
+      by: ['jobRoleId'],
+      where: { tenantId: this.tenantId },
+      _count: { _all: true },
+    });
+    const countByRole = new Map(
+      roleCounts.map((r) => [r.jobRoleId, r._count._all]),
+    );
+
     return this.jobRoleService.listJobRoles().map((role) => ({
       id: role.id,
       title: role.title,
       department: role.department,
       description: role.description,
       openPositions: 1,
-      candidatesInPipeline: 5,
+      candidatesInPipeline: countByRole.get(role.id) ?? 0,
     }));
   }
 
@@ -69,49 +100,41 @@ export class HiringService {
   }
 
   async getCandidateProfile(candidateId: string) {
-    // Get full candidate profile with scores, notes, feedback
+    const c = await this.candidateService.getCandidate(candidateId);
+    const overall = this.overallScore(c.technicalScore, c.cultureFitScore);
+
     return {
-      id: candidateId,
-      name: 'Jane Doe',
-      email: 'jane@example.com',
-      position: 'Software Engineer',
-      stage: 'technical',
-      appliedDate: '2024-01-15',
+      id: c.id,
+      name: `${c.firstName} ${c.lastName}`,
+      email: c.email,
+      position: c.roleTitle,
+      stage: c.stage,
+      appliedDate: c.createdAt.toISOString().slice(0, 10),
       scores: {
-        technicalScore: 4.2,
-        cultureFitScore: 3.8,
-        overallScore: 4.0,
+        technicalScore: c.technicalScore ?? 0,
+        cultureFitScore: c.cultureFitScore ?? 0,
+        overallScore: overall ?? 0,
       },
-      assessmentResults: {
-        technicalAssessment: {
-          problemSolving: 4.5,
-          systemDesign: 4.0,
-          codeQuality: 4.0,
-        },
-        leadershipAssessment: {
-          collaboration: 4.0,
-          innovation: 3.5,
-          communication: 3.8,
-        },
-      },
-      strengths: ['Problem solving', 'System design', 'Collaboration'],
-      gaps: ['Mentoring experience'],
-      interviewFeedback: [],
-      notes: [],
-      recommendation: 'yes',
-      nextSteps: ['Culture fit round', 'Team interviews'],
+      phone: c.phone,
+      linkedinUrl: c.linkedinUrl,
+      resumeUrl: c.resumeUrl,
+      assessmentSessionId: c.assessmentSessionId,
+      notes: c.notes ? [c.notes] : [],
+      rejectionReason: c.rejectionReason,
     };
   }
 
   async compareTopCandidates(jobRoleId: string, count = 3) {
-    // Get top candidates for a position for comparison
     const candidates = await this.candidateService.getCandidatesForRole(
       jobRoleId,
     );
 
-    // Sort by overall score (would calculate from assessments)
     const topCandidates = candidates
-      .sort((a, b) => (b.scores?.overall || 0) - (a.scores?.overall || 0))
+      .map((c) => ({
+        ...c,
+        overall: this.overallScore(c.technicalScore, c.cultureFitScore) ?? 0,
+      }))
+      .sort((a, b) => b.overall - a.overall)
       .slice(0, count);
 
     return {
@@ -119,13 +142,20 @@ export class HiringService {
       topCandidates: topCandidates.map((c) => ({
         id: c.id,
         name: `${c.firstName} ${c.lastName}`,
-        technicalScore: c.scores?.technical || 0,
-        cultureFitScore: c.scores?.culture_fit || 0,
-        overallScore: c.scores?.overall || 0,
-        recommendation: 'yes',
-        readyForOffer: (c.scores?.overall ?? 0) >= 4.0,
+        technicalScore: c.technicalScore ?? 0,
+        cultureFitScore: c.cultureFitScore ?? 0,
+        overallScore: c.overall,
+        readyForOffer: c.overall >= 4.0,
       })),
     };
+  }
+
+  private overallScore(
+    technical: number | null,
+    cultureFit: number | null,
+  ): number | null {
+    if (technical == null || cultureFit == null) return null;
+    return Math.round(((technical + cultureFit) / 2) * 10) / 10;
   }
 
   async getHiringAnalytics() {

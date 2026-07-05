@@ -15,6 +15,15 @@ interface DashboardMetrics {
   hiringTeamSize: number;
 }
 
+interface CandidateRow {
+  id: string;
+  name: string;
+  role: string;
+  stage: string;
+  technicalScore: number;
+  cultureFitScore: number;
+}
+
 const PIPELINE_STAGES = [
   { key: 'screening',   label: 'Screening',   color: 'text-blue-600'   },
   { key: 'technical',   label: 'Technical',   color: 'text-purple-600' },
@@ -27,6 +36,7 @@ const PIPELINE_STAGES = [
 export default function HiringDashboard() {
   const { user, tenantId } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [topCandidates, setTopCandidates] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,8 +44,22 @@ export default function HiringDashboard() {
     if (!user) return;
     const fetchDashboard = async () => {
       try {
-        const response = await api.get('/api/hiring/dashboard');
-        setMetrics(response.data.data);
+        const [dashRes, candRes] = await Promise.all([
+          api.get('/api/hiring/dashboard'),
+          api.get('/api/hiring/candidates'),
+        ]);
+        setMetrics(dashRes.data.data);
+        const candidates: CandidateRow[] = candRes.data.data ?? [];
+        setTopCandidates(
+          candidates
+            .filter((c) => !['hired', 'rejected'].includes(c.stage))
+            .sort(
+              (a, b) =>
+                b.technicalScore + b.cultureFitScore -
+                (a.technicalScore + a.cultureFitScore),
+            )
+            .slice(0, 3),
+        );
       } catch {
         setError('Failed to load hiring dashboard');
       } finally {
@@ -153,17 +177,23 @@ export default function HiringDashboard() {
 
         <div className="frost-card p-6">
           <h3 className="text-base font-bold text-ink mb-1">Top Candidates</h3>
-          <p className="text-subtle text-xs mb-4">Highest-rated candidates ready for offer</p>
-          <div className="space-y-2">
-            <div className="p-3 bg-canvas rounded-xl">
-              <p className="font-medium text-ink text-sm">Jane Doe</p>
-              <p className="text-xs text-subtle">Software Engineer · 4.0/5</p>
+          <p className="text-subtle text-xs mb-4">Highest-rated active candidates</p>
+          {topCandidates.length ? (
+            <div className="space-y-2">
+              {topCandidates.map((c) => (
+                <div key={c.id} className="p-3 bg-canvas rounded-xl">
+                  <p className="font-medium text-ink text-sm">{c.name}</p>
+                  <p className="text-xs text-subtle">
+                    {c.role} · Tech {c.technicalScore} · Fit {c.cultureFitScore}
+                  </p>
+                </div>
+              ))}
             </div>
-            <div className="p-3 bg-canvas rounded-xl">
-              <p className="font-medium text-ink text-sm">John Smith</p>
-              <p className="text-xs text-subtle">Product Manager · 3.8/5</p>
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm text-subtle">
+              No active candidates yet. Add candidates to see rankings here.
+            </p>
+          )}
         </div>
       </div>
     </div>

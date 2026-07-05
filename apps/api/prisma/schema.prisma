@@ -23,6 +23,7 @@ model Tenant {
   assessmentConfigs AssessmentConfig[]
   aiReports         AiReport[]
   subscriptions     Subscription[]
+  candidates        Candidate[]
 
   @@map("tenants")
 }
@@ -149,4 +150,43 @@ model Subscription {
   updatedAt         DateTime  @updatedAt
 
   @@map("subscriptions")
+}
+
+enum PipelineStage {
+  screening
+  technical
+  culture_fit
+  offer
+  hired
+  rejected
+}
+
+model Candidate {
+  id                String    @id @default(cuid())
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  // JobRole lives in the in-memory JobRoleService — plain string id + denormalized
+  // title until roles are persisted.
+  jobRoleId         String
+  roleTitle         String
+  firstName         String
+  lastName          String
+  email             String
+  phone             String?
+  linkedinUrl       String?
+  resumeUrl         String?
+  stage             PipelineStage @default(screening)
+  technicalScore    Float?
+  cultureFitScore   Float?
+  assessmentSessionId String?
+  notes             String?
+  rejectionReason   String?
+  createdBy         String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, jobRoleId])
+  @@index([tenantId, stage])
+  @@map("candidates")
 }

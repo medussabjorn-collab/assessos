@@ -18,12 +18,12 @@ Audited against the codebase (2026-07-05):
 | Feature | Status | Gap |
 |---------|--------|-----|
 | Leadership assessment | ✅ Shipped | Sessions, configs, AI reports persisted in Postgres; deployed on Railway |
-| Tech hiring | 🟡 Partial | Hiring module works but candidates are in-memory only — no `Candidate` table in Prisma (`candidate.service.ts` TODO). Data lost on restart |
+| Tech hiring | ✅ Shipped | `Candidate` table in Postgres (2026-07-05); pipeline CRUD, stage transitions, dashboard counts, and top-candidates all read real rows. Offer letters / background checks still stubbed |
 | DISC | ❌ Not built | Only passing mentions in seed data and question library. No DISC assessment engine, scoring, or profile output |
 | Basic AI scoring | 🟡 Partial | AI report pipeline exists (`dimensionScores`, percentile, narrative) but the AI sidecar is **not deployed** — `AI_SIDECAR_URL` defaults to localhost |
 | Code compiler | ❌ Mock | `code-execution.service.ts` returns `Math.random()` pass/fail. Needs Judge0 API or Docker sandbox for real execution |
 
-**Phase 1 exit criteria:** Candidate table migrated, DISC engine shipped, AI sidecar deployed, real code execution wired.
+**Phase 1 exit criteria:** ~~Candidate table migrated~~ ✅, DISC engine shipped, AI sidecar deployed, real code execution wired.
 
 ## Phase 2 (Compliance) — notes
 
@@ -42,7 +42,7 @@ Audited against the codebase (2026-07-05):
 
 | Item | Phase |
 |------|-------|
-| Candidate table in Prisma ([candidate.service.ts:48](apps/api/src/modules/hiring/candidate.service.ts)) | 1 |
+| ~~Candidate table in Prisma~~ — done 2026-07-05 | 1 |
 | Deploy AI sidecar to Railway | 1 |
 | Real code execution (Judge0/sandbox) | 1 |
 | PDF report download ([ReportView.tsx:53](apps/web/components/ReportView.tsx)) | 1 |

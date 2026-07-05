@@ -24,14 +24,15 @@ const STAGES = [
 export default function HiringPipelinePage() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
         const res = await api.get('/api/hiring/candidates');
-        setCandidates(res.data.data || FALLBACK_CANDIDATES);
+        setCandidates(res.data.data ?? []);
       } catch {
-        setCandidates(FALLBACK_CANDIDATES);
+        setError('Failed to load candidates');
       } finally {
         setLoading(false);
       }
@@ -58,9 +59,13 @@ export default function HiringPipelinePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader className="w-8 h-8 animate-spin text-brand-500" />
       </div>
     );
+  }
+
+  if (error) {
+    return <div className="p-8 text-red-500">{error}</div>;
   }
 
   return (
@@ -127,9 +132,3 @@ export default function HiringPipelinePage() {
   );
 }
 
-const FALLBACK_CANDIDATES: Candidate[] = [
-  { id: 'c1', name: 'Jane Doe', role: 'Software Engineer', stage: 'technical', technicalScore: 8.5, cultureFitScore: 9.0 },
-  { id: 'c2', name: 'John Smith', role: 'Product Manager', stage: 'screening', technicalScore: 7.2, cultureFitScore: 8.1 },
-  { id: 'c3', name: 'Aisha Khan', role: 'Data Analyst', stage: 'offer', technicalScore: 9.1, cultureFitScore: 8.8 },
-  { id: 'c4', name: 'Carlos Reyes', role: 'Sales Lead', stage: 'culture_fit', technicalScore: 6.9, cultureFitScore: 9.3 },
-];
