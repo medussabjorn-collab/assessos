@@ -28,7 +28,11 @@ export class CodingService {
     const problem = this.problems.getProblem(problemId);
     if (!problem) throw new Error('Problem not found');
 
-    return this.execution.validateSolution(problemId, code, language);
+    return this.execution.validateSolution(
+      code,
+      language as 'python' | 'javascript' | 'java' | 'cpp',
+      problem.testCases,
+    );
   }
 
   getDashboard() {

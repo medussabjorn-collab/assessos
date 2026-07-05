@@ -19,11 +19,11 @@ Audited against the codebase (2026-07-05):
 |---------|--------|-----|
 | Leadership assessment | ✅ Shipped | Sessions, configs, AI reports persisted in Postgres; deployed on Railway |
 | Tech hiring | ✅ Shipped | `Candidate` table in Postgres (2026-07-05); pipeline CRUD, stage transitions, dashboard counts, and top-candidates all read real rows. Offer letters / background checks still stubbed |
-| DISC | ❌ Not built | Only passing mentions in seed data and question library. No DISC assessment engine, scoring, or profile output |
+| DISC | ✅ Shipped | Short-form engine (2026-07-05): 12 forced-choice groups, most/least scoring, 16 profile labels, results persisted in `disc_results`, quiz + profile UI at `/dashboard/disc` |
 | Basic AI scoring | 🟡 Partial | AI report pipeline exists (`dimensionScores`, percentile, narrative) but the AI sidecar is **not deployed** — `AI_SIDECAR_URL` defaults to localhost |
-| Code compiler | ❌ Mock | `code-execution.service.ts` returns `Math.random()` pass/fail. Needs Judge0 API or Docker sandbox for real execution |
+| Code compiler | 🟡 Wired | Judge0 integration shipped (2026-07-05) — real execution for Python/JS/Java/C++, fails loudly when unconfigured. **Set `JUDGE0_URL` (+ `JUDGE0_API_KEY` for RapidAPI) in Railway to activate** |
 
-**Phase 1 exit criteria:** ~~Candidate table migrated~~ ✅, DISC engine shipped, AI sidecar deployed, real code execution wired.
+**Phase 1 exit criteria:** ~~Candidate table migrated~~ ✅, ~~DISC engine shipped~~ ✅, AI sidecar deployed, ~~real code execution wired~~ ✅ (needs `JUDGE0_URL` env in prod).
 
 ## Phase 2 (Compliance) — notes
 

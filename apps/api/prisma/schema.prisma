@@ -24,6 +24,7 @@ model Tenant {
   aiReports         AiReport[]
   subscriptions     Subscription[]
   candidates        Candidate[]
+  discResults       DiscResult[]
 
   @@map("tenants")
 }
@@ -49,6 +50,7 @@ model User {
 
   assessmentSessions AssessmentSession[]
   aiReports         AiReport[]
+  discResults       DiscResult[]
 
   @@index([tenantId])
   @@index([role])
@@ -189,4 +191,22 @@ model Candidate {
   @@index([tenantId, jobRoleId])
   @@index([tenantId, stage])
   @@map("candidates")
+}
+
+model DiscResult {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Normalized 0-100 per dimension: { "D": n, "I": n, "S": n, "C": n }
+  scores        Json
+  primaryType   String
+  secondaryType String?
+  profileLabel  String
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("disc_results")
 }

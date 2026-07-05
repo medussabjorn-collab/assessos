@@ -54,6 +54,7 @@ export default function DashboardHome() {
 
   const pillars = [
     { title: 'Leadership Assessment', desc: 'Track your competencies', icon: BarChart3, href: '/dashboard/assessment', tint: 'text-brand-500 bg-brand-50' },
+    { title: 'DISC Profile', desc: 'Discover your work style', icon: Users, href: '/dashboard/disc', tint: 'text-accent-teal bg-teal-50' },
     { title: 'Hiring', desc: 'View candidates & pipeline', icon: Users, href: '/dashboard/hiring', tint: 'text-accent-violet bg-violet-50' },
     { title: 'Practice', desc: 'Spaced-repetition learning', icon: BookOpen, href: '/dashboard/practice', tint: 'text-accent-mint bg-emerald-50' },
     { title: 'Live Interviews', desc: 'Schedule & conduct', icon: Video, href: '/dashboard/interviews', tint: 'text-accent-coral bg-orange-50' },
