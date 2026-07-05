@@ -3,6 +3,9 @@ builder = "DOCKERFILE"
 dockerfilePath = "infra/docker/Dockerfile.web"
 
 [deploy]
+# Explicit start command — overrides any stale "pnpm start" set in the
+# dashboard from an earlier Nixpacks build (config-as-code wins).
+startCommand = "node apps/web/server.js"
 healthcheckPath = "/"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"

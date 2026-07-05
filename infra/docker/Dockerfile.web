@@ -12,7 +12,10 @@ RUN pnpm --filter @assessos/web build
 # Runtime stage
 FROM node:20-alpine
 WORKDIR /app
-RUN apk add --no-cache dumb-init
+# pnpm in runtime: Railway sometimes carries a "pnpm start" start-command
+# override from an earlier Nixpacks build; with pnpm present + the start
+# script injected below, that override works instead of crash-looping.
+RUN apk add --no-cache dumb-init && npm install -g pnpm@9
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3001
@@ -20,6 +23,10 @@ ENV PORT=3001
 # Standalone output in a pnpm monorepo nests the server under apps/web/.
 COPY --from=builder /app/apps/web/.next/standalone ./
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+
+# Inject a start script so `pnpm start` / `npm start` resolve to the
+# standalone server, same as the Dockerfile CMD.
+RUN node -e "const fs=require('fs');const p=fs.existsSync('package.json')?JSON.parse(fs.readFileSync('package.json','utf8')):{};p.scripts=Object.assign({},p.scripts,{start:'node apps/web/server.js'});fs.writeFileSync('package.json',JSON.stringify(p,null,2))"
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 USER nodejs
