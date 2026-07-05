@@ -74,6 +74,10 @@ model AssessmentSession {
   config            AssessmentConfig @relation(fields: [configId], references: [id])
   pillar            String    @default("leadership")
   status            SessionStatus @default(pending)
+  // [{ questionId, selectedOptionId, timeTakenSec }] captured at submission
+  answers           Json?
+  // { totalTimeTakenSec, answeredCount, skippedCount }
+  answersMetadata   Json?
   startedAt         DateTime?
   submittedAt       DateTime?
   createdAt         DateTime  @default(now())
@@ -135,6 +139,7 @@ model AiReport {
 enum ReportStatus {
   pending
   ready
+  failed
   archived
 }
 

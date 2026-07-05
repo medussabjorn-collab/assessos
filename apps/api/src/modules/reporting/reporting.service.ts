@@ -2,15 +2,15 @@ import { Injectable, BadRequestException, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import axios from 'axios';
+import { ReportGeneratorService } from './report-generator.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ReportingService {
   private tenantId: string;
-  private aiServiceUrl = process.env.AI_SIDECAR_URL || 'http://localhost:8000';
 
   constructor(
     private prisma: PrismaService,
+    private generator: ReportGeneratorService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
@@ -51,35 +51,21 @@ export class ReportingService {
       return existingReport;
     }
 
-    // Trigger report generation via AI sidecar
-    try {
-      await axios.post(
-        `${this.aiServiceUrl}/reports/generate`,
-        {
-          session_id: sessionId,
-          tenant_id: this.tenantId,
-          user_id: userId,
-          answers: [], // TODO: Fetch from answers table (Phase 3 expansion)
-          config: session.config,
-        },
-      );
+    const report = await this.prisma.aiReport.create({
+      data: {
+        tenantId: this.tenantId,
+        sessionId,
+        userId,
+        dimensionScores: {},
+        status: 'pending',
+      },
+    });
 
-      // Report will be generated asynchronously
-      // Create pending report record
-      const report = await this.prisma.aiReport.create({
-        data: {
-          tenantId: this.tenantId,
-          sessionId,
-          userId,
-          dimensionScores: {},
-          status: 'pending',
-        },
-      });
+    // Generation runs in the background; the row flips to ready/failed.
+    // Not awaited — the client polls the report status.
+    void this.generator.generateInBackground(report.id);
 
-      return report;
-    } catch (error) {
-      throw new BadRequestException('Failed to trigger report generation');
-    }
+    return report;
   }
 
   async listReports(userId: string) {

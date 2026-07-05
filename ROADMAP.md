@@ -20,10 +20,10 @@ Audited against the codebase (2026-07-05):
 | Leadership assessment | ✅ Shipped | Sessions, configs, AI reports persisted in Postgres; deployed on Railway |
 | Tech hiring | ✅ Shipped | `Candidate` table in Postgres (2026-07-05); pipeline CRUD, stage transitions, dashboard counts, and top-candidates all read real rows. Offer letters / background checks still stubbed |
 | DISC | ✅ Shipped | Short-form engine (2026-07-05): 12 forced-choice groups, most/least scoring, 16 profile labels, results persisted in `disc_results`, quiz + profile UI at `/dashboard/disc` |
-| Basic AI scoring | 🟡 Partial | AI report pipeline exists (`dimensionScores`, percentile, narrative) but the AI sidecar is **not deployed** — `AI_SIDECAR_URL` defaults to localhost |
+| Basic AI scoring | ✅ Shipped | Sidecar plan dropped (2026-07-05) — the API calls Claude directly (`report-generator.service.ts`). Answers now persisted on submit and fed to scoring. **Set `ANTHROPIC_API_KEY` in Railway to activate**; reports mark `failed` otherwise |
 | Code compiler | 🟡 Wired | Judge0 integration shipped (2026-07-05) — real execution for Python/JS/Java/C++, fails loudly when unconfigured. **Set `JUDGE0_URL` (+ `JUDGE0_API_KEY` for RapidAPI) in Railway to activate** |
 
-**Phase 1 exit criteria:** ~~Candidate table migrated~~ ✅, ~~DISC engine shipped~~ ✅, AI sidecar deployed, ~~real code execution wired~~ ✅ (needs `JUDGE0_URL` env in prod).
+**Phase 1 exit criteria:** all code shipped ✅. Activation needs two Railway env vars: `ANTHROPIC_API_KEY` (reports) and `JUDGE0_URL` (code execution).
 
 ## Phase 2 (Compliance) — notes
 
@@ -43,10 +43,10 @@ Audited against the codebase (2026-07-05):
 | Item | Phase |
 |------|-------|
 | ~~Candidate table in Prisma~~ — done 2026-07-05 | 1 |
-| Deploy AI sidecar to Railway | 1 |
-| Real code execution (Judge0/sandbox) | 1 |
+| ~~AI report generation~~ — done 2026-07-05 (in-API Claude call, no sidecar) | 1 |
+| ~~Real code execution (Judge0)~~ — done 2026-07-05 | 1 |
 | PDF report download ([ReportView.tsx:53](apps/web/components/ReportView.tsx)) | 1 |
-| Answers table in reports ([reporting.service.ts:62](apps/api/src/modules/reporting/reporting.service.ts)) | 2 (audit trail) |
+| ~~Answers persisted with sessions~~ — done 2026-07-05 | 2 (audit trail) |
 | Usage metrics storage ([billing.service.ts:161](apps/api/src/modules/billing/billing.service.ts)) | 5 |
 | White-label DNS/SSL provisioning ([white-label.service.ts:82](apps/api/src/modules/tenant/white-label.service.ts)) | 5 |
 | Practice/coding stats persistence (progress service returns constants) | 3 |

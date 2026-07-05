@@ -76,22 +76,20 @@ export class AssessmentService {
       throw new BadRequestException('Session is not active');
     }
 
-    // Store answers (temp: in memory, later in database)
     const submittedSession = await this.prisma.assessmentSession.update({
       where: { id: sessionId },
       data: {
         status: 'done',
         submittedAt: new Date(),
+        answers: submitAnswersDto.answers,
+        answersMetadata: submitAnswersDto.metadata,
       },
     });
-
-    // Trigger AI report generation (async)
-    // TODO: Queue to SQS for Phase 3
 
     return {
       sessionId: submittedSession.id,
       status: submittedSession.status,
-      message: 'Assessment submitted. Report generation started.',
+      message: 'Assessment submitted. Request your report from the Reports page.',
     };
   }
 

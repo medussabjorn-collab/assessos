@@ -25,4 +25,8 @@ restartPolicyMaxRetries = 10
 #   STRIPE_SECRET_KEY
 #   STRIPE_WEBHOOK_SECRET
 #   STRIPE_PRICE_FREE / STRIPE_PRICE_PRO / STRIPE_PRICE_ENTERPRISE
-#   AI_SIDECAR_URL        (defaults to http://localhost:8000 — sidecar not deployed yet)
+#   ANTHROPIC_API_KEY     required for AI report generation (reports fail otherwise)
+#   REPORT_MODEL          Claude model for reports (default claude-sonnet-4-6)
+#   JUDGE0_URL            required for real code execution (e.g. https://judge0-ce.p.rapidapi.com)
+#   JUDGE0_API_KEY        RapidAPI key for Judge0 (omit for self-hosted)
+#   JUDGE0_API_HOST       RapidAPI host header (default judge0-ce.p.rapidapi.com)
