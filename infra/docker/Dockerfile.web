@@ -37,10 +37,13 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:3001/ || exit 1
 
 ENTRYPOINT ["dumb-init", "--"]
-# HOSTNAME/PORT forced inline: the hosting platform may inject its own
-# HOSTNAME env var (container id, used for internal DNS) which silently
-# overrides our ENV HOSTNAME=0.0.0.0 above — Next's standalone server then
-# tries to bind to that value and crashes before ever listening. Setting it
-# on the exec line itself wins over any inherited/platform env for this
-# specific process.
-CMD ["sh", "-c", "HOSTNAME=0.0.0.0 PORT=${PORT:-3001} node apps/web/server.js"]
+# HOSTNAME/PORT forced inline and unconditional (no ${PORT:-3001} fallback):
+# Railway injects its own PORT env var per deployment (observed: 8080),
+# which a fallback expression would respect over our default — binding the
+# app to a port that doesn't match the fixed Target Port (3001) configured
+# on the public domain. Hardcoding both here guarantees the app always
+# listens on the same port the domain is configured to route to.
+# Same reasoning applies to HOSTNAME: the platform may inject its own
+# value (e.g. container id for internal DNS), which would otherwise
+# override ENV HOSTNAME=0.0.0.0 above and crash server.listen().
+CMD ["sh", "-c", "HOSTNAME=0.0.0.0 PORT=3001 node apps/web/server.js"]

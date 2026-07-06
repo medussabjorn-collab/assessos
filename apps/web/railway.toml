@@ -5,10 +5,12 @@ dockerfilePath = "infra/docker/Dockerfile.web"
 [deploy]
 # Explicit start command — overrides any stale "pnpm start" set in the
 # dashboard from an earlier Nixpacks build (config-as-code wins). HOSTNAME
-# forced inline: Railway injects its own HOSTNAME env (container id) that
-# silently overrides the Dockerfile's ENV HOSTNAME=0.0.0.0, causing Next's
-# standalone server to crash on bind. See Dockerfile.web CMD comment.
-startCommand = "sh -c 'HOSTNAME=0.0.0.0 PORT=${PORT:-3001} node apps/web/server.js'"
+# and PORT forced inline and unconditional (no ${PORT:-3001} fallback):
+# Railway injects its own PORT (observed 8080) and HOSTNAME (container id)
+# env vars, which a fallback expression would honor over our default,
+# binding the app to a port that doesn't match the fixed Target Port (3001)
+# on the public domain, or crashing on bind. See Dockerfile.web CMD comment.
+startCommand = "sh -c 'HOSTNAME=0.0.0.0 PORT=3001 node apps/web/server.js'"
 healthcheckPath = "/"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
