@@ -30,7 +30,9 @@ COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
 # Force it at the JS runtime level instead: this wrapper overwrites
 # process.env before requiring the real server, which wins no matter what
 # the process's inherited/platform environment contains.
-RUN echo "process.env.PORT='3001';process.env.HOSTNAME='0.0.0.0';require('./apps/web/server.js');" > start.js
+# start.js is committed to apps/web/ and copied here so the file is always
+# present — no fragile inline shell escaping required.
+COPY --from=builder /app/apps/web/start.js ./start.js
 
 # Inject a start script so `pnpm start` / `npm start` resolve to the same
 # wrapper — a dashboard Custom Start Command of "pnpm start" must not be
