@@ -4,13 +4,13 @@ dockerfilePath = "infra/docker/Dockerfile.web"
 
 [deploy]
 # Explicit start command — overrides any stale "pnpm start" set in the
-# dashboard from an earlier Nixpacks build (config-as-code wins). HOSTNAME
-# and PORT forced inline and unconditional (no ${PORT:-3001} fallback):
-# Railway injects its own PORT (observed 8080) and HOSTNAME (container id)
-# env vars, which a fallback expression would honor over our default,
-# binding the app to a port that doesn't match the fixed Target Port (3001)
-# on the public domain, or crashing on bind. See Dockerfile.web CMD comment.
-startCommand = "sh -c 'HOSTNAME=0.0.0.0 PORT=3001 node apps/web/server.js'"
+# dashboard from an earlier Nixpacks build (config-as-code wins).
+# Shell-level `PORT=3001 node server.js` was NOT sufficient — Railway
+# confirmed the running process still saw PORT=8080 despite that (its
+# platform env injection wins over shell-prefixed assignments on this
+# builder). start.js forces process.env at the JS runtime level instead,
+# which cannot be overridden by anything upstream. See Dockerfile.web.
+startCommand = "node start.js"
 healthcheckPath = "/"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
