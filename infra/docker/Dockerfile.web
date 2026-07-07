@@ -3,6 +3,29 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 RUN npm install -g pnpm@9
 
+# NEXT_PUBLIC_* vars must be present at BUILD time — Next.js statically
+# inlines them into the client bundle during `next build`. Railway only
+# injects dashboard-set Variables as container runtime env by default;
+# ARG here opts these specific ones into Railway's build-arg passthrough
+# (Railway auto-forwards any service Variable whose name matches a
+# declared ARG). Without this, setting NEXT_PUBLIC_API_URL etc. in the
+# dashboard silently has no effect on the deployed bundle — confirmed:
+# it was set and redeployed with zero change to the built JS.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_FIREBASE_API_KEY
+ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ARG NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+ARG NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+ARG NEXT_PUBLIC_FIREBASE_APP_ID
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY
+ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+ENV NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID
+
 # Copy the whole monorepo (node_modules excluded via .dockerignore) so the
 # pnpm workspace resolves and Next's standalone output is produced.
 COPY . .

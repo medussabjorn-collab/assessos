@@ -26,3 +26,9 @@ restartPolicyMaxRetries = 5
 #   NEXT_PUBLIC_FIREBASE_APP_ID         ...
 #   NEXT_PUBLIC_API_URL                 https://your-api-service.railway.app
 #   NODE_ENV                            production
+#
+# All NEXT_PUBLIC_* vars above must ALSO be declared as ARG in
+# Dockerfile.web's builder stage — Railway only forwards dashboard
+# Variables into the Docker build as build-args for names matching a
+# declared ARG. Without that, they're inlined as "undefined" into the
+# client bundle regardless of what's set here (confirmed the hard way).
