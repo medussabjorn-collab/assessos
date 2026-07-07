@@ -59,7 +59,8 @@ test.describe('Hiring Candidate Evaluation Flow', () => {
     await page.goto('/dashboard/hiring');
 
     await expect(page.getByRole('button', { name: 'Create New Position' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'View All Candidates' })).toBeVisible();
+    // Renders as a Next.js <Link> (an <a>), not a <button> — role differs accordingly.
+    await expect(page.getByRole('link', { name: 'View All Candidates' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Manage Team Members' })).toBeVisible();
   });
 
