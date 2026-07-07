@@ -25,6 +25,7 @@ model Tenant {
   subscriptions     Subscription[]
   candidates        Candidate[]
   psychometricResults PsychometricResult[]
+  raterFeedback     RaterFeedback[]
 
   @@map("tenants")
 }
@@ -51,6 +52,8 @@ model User {
   assessmentSessions AssessmentSession[]
   aiReports         AiReport[]
   psychometricResults PsychometricResult[]
+  raterFeedbackGiven    RaterFeedback[] @relation("RaterFeedbackRater")
+  raterFeedbackReceived RaterFeedback[] @relation("RaterFeedbackSubject")
 
   @@index([tenantId])
   @@index([role])
@@ -83,6 +86,7 @@ model AssessmentSession {
   createdAt         DateTime  @default(now())
 
   aiReport          AiReport?
+  raterFeedback     RaterFeedback[]
 
   @@index([tenantId])
   @@index([userId])
@@ -220,4 +224,43 @@ model PsychometricResult {
   @@index([tenantId])
   @@index([userId, modelKey])
   @@map("psychometric_results")
+}
+
+enum RaterRelationship {
+  self
+  manager
+  peer
+  direct_report
+  other
+}
+
+// 360-feedback: one row per rater's submission about one subject, scoped to
+// the subject's assessment session. A rater may only submit once per session
+// (@@unique) — resubmission is an update, not a new row.
+model RaterFeedback {
+  id                String    @id @default(cuid())
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId         String
+  session           AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  subjectId         String
+  subject           User      @relation("RaterFeedbackSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  raterId           String
+  rater             User      @relation("RaterFeedbackRater", fields: [raterId], references: [id], onDelete: Cascade)
+  relationship      RaterRelationship
+  // Per-competency ratings, e.g. { "vision": 4, "execution": 3, ... }
+  ratings           Json
+  comments          String?
+  // When true, the subject's own view of this feedback must omit raterId/rater
+  // identity — enforced at the service layer, not just hidden client-side.
+  isAnonymous       Boolean   @default(true)
+  submittedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([sessionId, raterId])
+  @@index([tenantId])
+  @@index([sessionId])
+  @@index([subjectId])
+  @@map("rater_feedback")
 }

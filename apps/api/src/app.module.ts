@@ -15,6 +15,7 @@ import { InterviewsModule } from './modules/interviews/interviews.module';
 import { CodingModule } from './modules/coding/coding.module';
 import { HackathonsModule } from './modules/hackathons/hackathons.module';
 import { PsychometricModule } from './modules/psychometric/psychometric.module';
+import { RaterFeedbackModule } from './modules/rater-feedback/rater-feedback.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -35,6 +36,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     CodingModule,
     HackathonsModule,
     PsychometricModule,
+    RaterFeedbackModule,
   ],
 })
 export class AppModule implements NestModule {
