@@ -83,6 +83,27 @@ export async function mockHiringFlow(page: Page): Promise<void> {
       },
     },
   });
+
+  await mockApi(page, /\/api\/hiring\/candidates/, {
+    data: [
+      {
+        id: 'cand-001',
+        name: 'Jane Doe',
+        role: 'Software Engineer',
+        stage: 'technical',
+        technicalScore: 9,
+        cultureFitScore: 8,
+      },
+      {
+        id: 'cand-002',
+        name: 'John Smith',
+        role: 'Product Manager',
+        stage: 'screening',
+        technicalScore: 8,
+        cultureFitScore: 7,
+      },
+    ],
+  });
 }
 
 // ---------------------------------------------------------------------------
