@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, Scope } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  Scope,
+} from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
@@ -16,8 +21,19 @@ export class AssessmentService {
     this.tenantId = request.headers['x-tenant-id'];
   }
 
-  async startSession(userId: string, createSessionDto: CreateSessionDto) {
+  private async resolveUserId(firebaseUid: string): Promise<string> {
+    const user = await this.prisma.user.findFirst({
+      where: { firebaseUid, tenantId: this.tenantId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.id;
+  }
+
+  async startSession(firebaseUid: string, createSessionDto: CreateSessionDto) {
     const { configId } = createSessionDto;
+    const userId = await this.resolveUserId(firebaseUid);
 
     const config = await this.prisma.assessmentConfig.findUnique({
       where: { id: configId },
@@ -45,7 +61,8 @@ export class AssessmentService {
     };
   }
 
-  async getSession(sessionId: string, userId: string) {
+  async getSession(sessionId: string, firebaseUid: string) {
+    const userId = await this.resolveUserId(firebaseUid);
     const session = await this.prisma.assessmentSession.findUnique({
       where: { id: sessionId },
       include: { config: true },
@@ -60,9 +77,10 @@ export class AssessmentService {
 
   async submitAnswers(
     sessionId: string,
-    userId: string,
+    firebaseUid: string,
     submitAnswersDto: SubmitAnswersDto,
   ) {
+    const userId = await this.resolveUserId(firebaseUid);
     const session = await this.prisma.assessmentSession.findUnique({
       where: { id: sessionId },
       include: { config: true },
