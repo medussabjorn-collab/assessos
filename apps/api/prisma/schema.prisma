@@ -24,7 +24,7 @@ model Tenant {
   aiReports         AiReport[]
   subscriptions     Subscription[]
   candidates        Candidate[]
-  discResults       DiscResult[]
+  psychometricResults PsychometricResult[]
 
   @@map("tenants")
 }
@@ -50,7 +50,7 @@ model User {
 
   assessmentSessions AssessmentSession[]
   aiReports         AiReport[]
-  discResults       DiscResult[]
+  psychometricResults PsychometricResult[]
 
   @@index([tenantId])
   @@index([role])
@@ -198,20 +198,26 @@ model Candidate {
   @@map("candidates")
 }
 
-model DiscResult {
-  id            String   @id @default(cuid())
-  tenantId      String
-  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // Normalized 0-100 per dimension: { "D": n, "I": n, "S": n, "C": n }
-  scores        Json
-  primaryType   String
-  secondaryType String?
-  profileLabel  String
-  createdAt     DateTime @default(now())
+// One row per psychometric model submission (DISC, Big Five, MBTI, ...).
+// modelKey selects which PsychometricModel implementation produced this —
+// scores/interpretation shapes are model-specific, validated by that
+// model's own code, not by the schema. See modules/psychometric/.
+model PsychometricResult {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  modelKey       String
+  // Normalized per-dimension scores, e.g. DISC: { "D": 80, "I": 40, "S": 20, "C": 60 }
+  scores         Json
+  // Model-specific labels, e.g. DISC: { primaryType, secondaryType, profileLabel }
+  interpretation Json
+  // Audit trail of what was actually submitted, for re-scoring / disputes.
+  rawAnswers     Json?
+  createdAt      DateTime @default(now())
 
   @@index([tenantId])
-  @@index([userId])
-  @@map("disc_results")
+  @@index([userId, modelKey])
+  @@map("psychometric_results")
 }

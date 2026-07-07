@@ -19,7 +19,7 @@ Audited against the codebase (2026-07-05):
 |---------|--------|-----|
 | Leadership assessment | ✅ Shipped | Sessions, configs, AI reports persisted in Postgres; deployed on Railway |
 | Tech hiring | ✅ Shipped | `Candidate` table in Postgres (2026-07-05); pipeline CRUD, stage transitions, dashboard counts, and top-candidates all read real rows. Offer letters / background checks still stubbed |
-| DISC | ✅ Shipped | Short-form engine (2026-07-05): 12 forced-choice groups, most/least scoring, 16 profile labels, results persisted in `disc_results`, quiz + profile UI at `/dashboard/disc` |
+| DISC | ✅ Shipped | Short-form engine (2026-07-05), generalized into a pluggable psychometric model layer (2026-07-07) — `PsychometricModel` interface + registry so Big Five/MBTI/Enneagram/Hogan/16PF can be added as one file each with no controller/schema change. Results in `psychometric_results` (modelKey-scoped), quiz + profile UI at `/dashboard/disc` calling `/api/psych/disc/*` |
 | Basic AI scoring | ✅ Shipped | Sidecar plan dropped (2026-07-05) — the API calls Claude directly (`report-generator.service.ts`). Answers now persisted on submit and fed to scoring. **Set `ANTHROPIC_API_KEY` in Railway to activate**; reports mark `failed` otherwise |
 | Code compiler | 🟡 Wired | Judge0 integration shipped (2026-07-05) — real execution for Python/JS/Java/C++, fails loudly when unconfigured. **Set `JUDGE0_URL` (+ `JUDGE0_API_KEY` for RapidAPI) in Railway to activate** |
 

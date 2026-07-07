@@ -48,8 +48,8 @@ export default function DiscPage() {
     (async () => {
       try {
         const [resultRes, questionsRes] = await Promise.all([
-          api.get('/api/disc/result'),
-          api.get('/api/disc/questions'),
+          api.get('/api/psych/disc/result'),
+          api.get('/api/psych/disc/questions'),
         ]);
         setResult(resultRes.data.data);
         setGroups(questionsRes.data.data ?? []);
@@ -86,7 +86,7 @@ export default function DiscPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await api.post('/api/disc/submit', {
+      const res = await api.post('/api/psych/disc/submit', {
         answers: groups.map((g) => ({
           groupId: g.id,
           most: answers[g.id].most,
