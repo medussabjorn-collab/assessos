@@ -32,3 +32,8 @@ restartPolicyMaxRetries = 5
 # Variables into the Docker build as build-args for names matching a
 # declared ARG. Without that, they're inlined as "undefined" into the
 # client bundle regardless of what's set here (confirmed the hard way).
+#
+# 2026-07-07: touched to force a fresh Railway build — resurrecting a
+# SKIPPED deployment (from a Watch Paths miss on infra/docker/**) reused
+# an identical cached image/snapshot rather than rebuilding from that
+# commit's actual source.
