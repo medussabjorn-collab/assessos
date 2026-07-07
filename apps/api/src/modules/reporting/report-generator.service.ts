@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 /**
@@ -13,10 +14,16 @@ import { PrismaService } from '../../database/prisma.service';
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
+interface CoachingGoal {
+  goal: string;
+  actions: string[];
+}
+
 interface GeneratedReport {
   dimensionScores: Record<string, number>;
   narrative: string;
   recommendation: string;
+  coachingPlan: { goals: CoachingGoal[] };
 }
 
 @Injectable()
@@ -74,10 +81,12 @@ export class ReportGeneratorService {
       '{',
       '  "dimensionScores": { "<dimension name>": <0-100>, ... },',
       '  "narrative": "<3-5 sentence assessment of strengths and growth areas, grounded in the answer data>",',
-      '  "recommendation": "<1-2 sentence development recommendation>"',
+      '  "recommendation": "<1-2 sentence development recommendation>",',
+      '  "coachingPlan": { "goals": [ { "goal": "<growth-area goal tied to the lowest-scoring dimensions>", "actions": ["<concrete 90-day action>", "..."] }, ... ] }',
       '}',
       '',
       'If the answer data is too sparse to assess a dimension, score it 50 and say so in the narrative. Do not invent specifics that the data does not support.',
+      'coachingPlan should have 2-3 goals, each with 2-3 concrete actions, targeting the lowest-scoring dimensions.',
     ].join('\n');
 
     const res = await fetch(ANTHROPIC_URL, {
@@ -111,6 +120,7 @@ export class ReportGeneratorService {
         dimensionScores: parsed.dimensionScores,
         narrative: parsed.narrative,
         recommendation: parsed.recommendation,
+        coachingPlan: parsed.coachingPlan as unknown as Prisma.InputJsonValue,
         status: 'ready',
       },
     });
@@ -125,7 +135,8 @@ export class ReportGeneratorService {
     if (
       typeof parsed.dimensionScores !== 'object' ||
       typeof parsed.narrative !== 'string' ||
-      typeof parsed.recommendation !== 'string'
+      typeof parsed.recommendation !== 'string' ||
+      !Array.isArray(parsed.coachingPlan?.goals)
     ) {
       throw new Error('Model response missing required fields');
     }
