@@ -26,6 +26,15 @@ ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
 ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
 ENV NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID
 
+# Cache-buster: Railway's builder has repeatedly reused cached layers for
+# COPY . . / pnpm build even when Dockerfile content changed above them
+# (confirmed: a build after adding the ARGs above still showed
+# "RUN pnpm --filter @assessos/web build  cached  0ms"). RAILWAY_GIT_COMMIT_SHA
+# changes on every push, so referencing it here forces Docker to treat
+# every subsequent layer as new — no manual toggle needed on future deploys.
+ARG RAILWAY_GIT_COMMIT_SHA
+RUN echo "Building commit ${RAILWAY_GIT_COMMIT_SHA}"
+
 # Copy the whole monorepo (node_modules excluded via .dockerignore) so the
 # pnpm workspace resolves and Next's standalone output is produced.
 COPY . .
