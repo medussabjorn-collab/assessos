@@ -1,5 +1,6 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { HealthController } from './health.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantModule } from './modules/tenant/tenant.module';
@@ -18,12 +19,18 @@ import { PsychometricModule } from './modules/psychometric/psychometric.module';
 import { RaterFeedbackModule } from './modules/rater-feedback/rater-feedback.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { QuestionBankModule } from './modules/question-bank/question-bank.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
   controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Mongo powers the question item bank (merged from leadership-assessment).
+    MongooseModule.forRoot(
+      process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/assessos',
+      { retryAttempts: 3, retryDelay: 2000 },
+    ),
     AuthModule,
     TenantModule,
     UsersModule,
@@ -41,6 +48,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     RaterFeedbackModule,
     ComplianceModule,
     WebhooksModule,
+    QuestionBankModule,
   ],
 })
 export class AppModule implements NestModule {
