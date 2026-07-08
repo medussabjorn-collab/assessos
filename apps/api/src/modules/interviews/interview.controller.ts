@@ -17,10 +17,11 @@ export class InterviewController {
   @UseGuards(FirebaseAuthGuard)
   async startInterview(
     @Param('interviewId') interviewId: string,
-    @Body() body: { candidateName: string },
+    @Body() body: { candidateId: string; candidateName: string },
   ) {
     const result = await this.interviewService.startInterview(
       interviewId,
+      body.candidateId,
       body.candidateName,
     );
     return { success: true, data: result };

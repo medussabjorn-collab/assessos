@@ -4,6 +4,7 @@ import { HiringController } from './hiring.controller';
 import { JobRoleService } from './job-role.service';
 import { CandidateService } from './candidate.service';
 import { HiringScoreService } from './hiring-score.service';
+import { JobMatchService } from './job-match.service';
 import { AnalyticsModule } from '../analytics/analytics.module';
 import { PrismaService } from '../../database/prisma.service';
 
@@ -15,6 +16,7 @@ import { PrismaService } from '../../database/prisma.service';
     JobRoleService,
     CandidateService,
     HiringScoreService,
+    JobMatchService,
     PrismaService,
   ],
   exports: [
@@ -22,6 +24,7 @@ import { PrismaService } from '../../database/prisma.service';
     JobRoleService,
     CandidateService,
     HiringScoreService,
+    JobMatchService,
   ],
 })
 export class HiringModule {}

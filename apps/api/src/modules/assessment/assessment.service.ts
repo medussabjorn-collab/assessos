@@ -9,6 +9,7 @@ import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { SubmitAnswersDto } from './dto/submit-answers.dto';
+import { WebhookDispatchService } from '../webhooks/webhook-dispatch.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AssessmentService {
@@ -16,6 +17,7 @@ export class AssessmentService {
 
   constructor(
     private prisma: PrismaService,
+    private webhookDispatch: WebhookDispatchService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
@@ -102,6 +104,13 @@ export class AssessmentService {
         answers: submitAnswersDto.answers,
         answersMetadata: submitAnswersDto.metadata,
       },
+    });
+
+    // Fire-and-forget — a slow/down subscriber must never block submission.
+    void this.webhookDispatch.dispatch(this.tenantId, 'assessment.completed', {
+      sessionId: submittedSession.id,
+      userId,
+      pillar: submittedSession.pillar,
     });
 
     return {

@@ -6,8 +6,10 @@ import { ProctoringService } from './proctoring.service';
 import { InterviewFeedbackService } from './interview-feedback.service';
 import { SchedulingService } from './scheduling.service';
 import { PrismaService } from '../../database/prisma.service';
+import { ComplianceModule } from '../compliance/compliance.module';
 
 @Module({
+  imports: [ComplianceModule],
   controllers: [InterviewController],
   providers: [
     InterviewService,

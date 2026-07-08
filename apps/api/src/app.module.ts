@@ -16,6 +16,8 @@ import { CodingModule } from './modules/coding/coding.module';
 import { HackathonsModule } from './modules/hackathons/hackathons.module';
 import { PsychometricModule } from './modules/psychometric/psychometric.module';
 import { RaterFeedbackModule } from './modules/rater-feedback/rater-feedback.module';
+import { ComplianceModule } from './modules/compliance/compliance.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -37,13 +39,21 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     HackathonsModule,
     PsychometricModule,
     RaterFeedbackModule,
+    ComplianceModule,
+    WebhooksModule,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
-      .exclude('health', 'api/auth/register', 'api/auth/tenant', 'api/billing/webhooks/stripe')
+      .exclude(
+        'health',
+        'api/auth/register',
+        'api/auth/tenant',
+        'api/auth/sso/discover',
+        'api/billing/webhooks/stripe',
+      )
       .forRoutes('*');
   }
 }

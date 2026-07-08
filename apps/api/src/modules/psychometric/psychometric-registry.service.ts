@@ -4,16 +4,18 @@ import {
   UnknownPsychometricModelException,
 } from './psychometric-model.interface';
 import { DiscModel } from './models/disc.model';
+import { BigFiveModel } from './models/big-five.model';
 
 @Injectable()
 export class PsychometricRegistry {
   private readonly models: Map<string, PsychometricModel>;
 
-  constructor(discModel: DiscModel) {
+  constructor(discModel: DiscModel, bigFiveModel: BigFiveModel) {
     // Register new models here as they're implemented — no controller or
     // schema change needed alongside them.
     this.models = new Map<string, PsychometricModel>([
       [discModel.key, discModel],
+      [bigFiveModel.key, bigFiveModel],
     ]);
   }
 

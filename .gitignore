@@ -13,6 +13,10 @@ __pycache__/
 *.swo
 .turbo/
 
+# Next.js / TypeScript generated — machine-specific, regenerated on every build
+next-env.d.ts
+*.tsbuildinfo
+
 # Local Claude/agent config
 .claude/
 

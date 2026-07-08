@@ -37,6 +37,13 @@ export class CandidateService {
       phone?: string;
       linkedinUrl?: string;
       resumeUrl?: string;
+      // ISO 3166-1 alpha-2 / ISO 3166-2 subdivision. Feeds the EU/EEA +
+      // California jurisdiction gate in SelfIdService.
+      country?: string;
+      usState?: string;
+      // Recruiting channel, e.g. "LinkedIn"/"Referral"/"Careers Page".
+      // Feeds the source breakdown in HiringService.getHiringAnalytics.
+      source?: string;
     },
     createdBy: string,
   ): Promise<CandidateRecord> {
@@ -53,6 +60,9 @@ export class CandidateService {
         phone: candidateData.phone,
         linkedinUrl: candidateData.linkedinUrl,
         resumeUrl: candidateData.resumeUrl,
+        country: candidateData.country,
+        usState: candidateData.usState,
+        source: candidateData.source,
         createdBy,
       },
     });
@@ -89,13 +99,30 @@ export class CandidateService {
       throw new NotFoundException('Candidate not found');
     }
 
-    return this.prisma.candidate.update({
+    const updated = await this.prisma.candidate.update({
       where: { id: candidateId },
       data: {
         stage: newStage as PipelineStage,
         ...(notes !== undefined ? { notes } : {}),
       },
     });
+
+    // Bias-audit trail: one immutable row per stage transition, snapshotting
+    // the scores the decision was made on. See BiasAuditService for the
+    // adverse-impact (four-fifths rule) computation this feeds.
+    await this.prisma.hiringDecisionAudit.create({
+      data: {
+        tenantId: this.tenantId,
+        candidateId,
+        fromStage: candidate.stage,
+        toStage: updated.stage,
+        outcome: updated.stage === 'rejected' ? 'rejected' : 'advanced',
+        technicalScore: updated.technicalScore,
+        cultureFitScore: updated.cultureFitScore,
+      },
+    });
+
+    return updated;
   }
 
   async getCandidate(candidateId: string): Promise<CandidateRecord> {

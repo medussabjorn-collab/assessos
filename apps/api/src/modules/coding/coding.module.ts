@@ -5,6 +5,8 @@ import { ProblemService } from './problem.service';
 import { CodeExecutionService } from './code-execution.service';
 import { LeaderboardService } from './leaderboard.service';
 import { ProgressService } from './progress.service';
+import { PlagiarismService } from './plagiarism.service';
+import { LockdownViolationService } from './lockdown-violation.service';
 import { PrismaService } from '../../database/prisma.service';
 
 @Module({
@@ -15,6 +17,8 @@ import { PrismaService } from '../../database/prisma.service';
     CodeExecutionService,
     LeaderboardService,
     ProgressService,
+    PlagiarismService,
+    LockdownViolationService,
     PrismaService,
   ],
   exports: [
@@ -22,6 +26,7 @@ import { PrismaService } from '../../database/prisma.service';
     ProblemService,
     CodeExecutionService,
     LeaderboardService,
+    PlagiarismService,
   ],
 })
 export class CodingModule {}

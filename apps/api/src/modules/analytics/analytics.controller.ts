@@ -8,12 +8,14 @@ import {
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { AnalyticsService } from './analytics.service';
+import { RetentionRiskService } from './retention-risk.service';
 import { PrismaService } from '../../database/prisma.service';
 
 @Controller('api/analytics')
 export class AnalyticsController {
   constructor(
     private analyticsService: AnalyticsService,
+    private retentionRisk: RetentionRiskService,
     private prisma: PrismaService,
   ) {}
 
@@ -54,5 +56,28 @@ export class AnalyticsController {
       success: true,
       data: report,
     };
+  }
+
+  // #19: heuristic retention-risk proxy (not a trained model — see
+  // RetentionRiskService's top-of-file comment). Admin-gated since it's
+  // effectively a risk assessment about another employee.
+  @Get('retention-risk/:userId')
+  @UseGuards(FirebaseAuthGuard)
+  async getRetentionRisk(
+    @Request() req: any,
+    @Param('userId') userId: string,
+  ) {
+    const tenantId = req.headers['x-tenant-id'];
+    const requester = await this.prisma.user.findFirst({
+      where: { firebaseUid: req.user.uid, tenantId },
+    });
+    if (!requester || !['manager', 'org_admin', 'super_admin'].includes(requester.role)) {
+      throw new ForbiddenException(
+        'Only managers and org admins can view retention-risk data',
+      );
+    }
+
+    const result = await this.retentionRisk.computeRiskScore(userId);
+    return { success: true, data: result };
   }
 }

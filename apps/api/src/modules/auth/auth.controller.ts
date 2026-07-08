@@ -10,13 +10,30 @@ import { AuthService } from './auth.service';
 import { FirebaseAuthGuard } from './auth.guard';
 import { RegisterDto } from './dto/register.dto';
 import { PrismaService } from '../../database/prisma.service';
+import { SsoConfigService } from '../tenant/sso-config.service';
 
 @Controller('api/auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private prisma: PrismaService
+    private prisma: PrismaService,
+    private ssoConfigService: SsoConfigService,
   ) {}
+
+  // #23 SSO discovery: given a work email, is there a tenant with SSO
+  // configured for that domain? Public — runs before the user has any
+  // session, that's the entire point (login page: "enter your work email"
+  // → auto-redirect to the right IdP). Excluded from TenantMiddleware in
+  // app.module.ts since there's no tenant context yet at this point.
+  @Post('sso/discover')
+  async discoverSso(@Body() body: { email: string }) {
+    const domain = body.email?.split('@')[1]?.toLowerCase();
+    if (!domain) {
+      return { success: true, data: null };
+    }
+    const result = await this.ssoConfigService.discoverByDomain(domain);
+    return { success: true, data: result };
+  }
 
   @Post('register')
   @UseGuards(FirebaseAuthGuard)

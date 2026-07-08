@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { FirebaseAuthGuard } from './auth.guard';
 import { PrismaService } from '../../database/prisma.service';
+import { TenantModule } from '../tenant/tenant.module';
 
 @Global()
 @Module({
@@ -15,6 +16,7 @@ import { PrismaService } from '../../database/prisma.service';
       secret: process.env.JWT_SECRET || 'dev-insecure-secret-change-me',
       signOptions: { expiresIn: '24h' },
     }),
+    TenantModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, FirebaseAuthGuard, PrismaService],

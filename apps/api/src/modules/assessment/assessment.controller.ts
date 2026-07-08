@@ -6,15 +6,43 @@ import {
   Param,
   UseGuards,
   Request,
+  ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { AssessmentService } from './assessment.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { SubmitAnswersDto } from './dto/submit-answers.dto';
+import { ScenarioGeneratorService, GenerateScenarioParams } from './scenario-generator.service';
+import { ScenarioReviewService } from './scenario-review.service';
+import { IrtAdaptiveTestingService, GradedResponse } from './irt-adaptive-testing.service';
+import { QuestionBankService } from './question-bank.service';
+import { PrismaService } from '../../database/prisma.service';
 
 @Controller('api/assessments')
 export class AssessmentController {
-  constructor(private assessmentService: AssessmentService) {}
+  constructor(
+    private assessmentService: AssessmentService,
+    private scenarioGenerator: ScenarioGeneratorService,
+    private scenarioReview: ScenarioReviewService,
+    private irt: IrtAdaptiveTestingService,
+    private questionBank: QuestionBankService,
+    private prisma: PrismaService,
+  ) {}
+
+  private async requireOrgAdmin(req: any) {
+    const tenantId = req.headers['x-tenant-id'];
+    const user = await this.prisma.user.findFirst({
+      where: { firebaseUid: req.user.uid, tenantId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.role !== 'org_admin' && user.role !== 'super_admin') {
+      throw new ForbiddenException('Only org admins can manage generated scenarios');
+    }
+    return user;
+  }
 
   @Post('sessions/start')
   @UseGuards(FirebaseAuthGuard)
@@ -75,5 +103,75 @@ export class AssessmentController {
       success: true,
       data: config,
     };
+  }
+
+  // #20: GenAI SJT scenario generation, gated behind human review.
+  @Post('scenarios/generate')
+  @UseGuards(FirebaseAuthGuard)
+  async generateScenario(
+    @Request() req: any,
+    @Body() body: GenerateScenarioParams,
+  ) {
+    await this.requireOrgAdmin(req);
+    const scenario = await this.scenarioGenerator.generate(body);
+    return { success: true, data: scenario };
+  }
+
+  @Get('scenarios/pending-review')
+  @UseGuards(FirebaseAuthGuard)
+  async listPendingScenarios(@Request() req: any) {
+    await this.requireOrgAdmin(req);
+    const scenarios = await this.scenarioReview.listPendingReview();
+    return { success: true, data: scenarios };
+  }
+
+  @Post('scenarios/:id/approve')
+  @UseGuards(FirebaseAuthGuard)
+  async approveScenario(@Request() req: any, @Param('id') id: string) {
+    const reviewer = await this.requireOrgAdmin(req);
+    const scenario = await this.scenarioReview.approve(id, reviewer.id);
+    return { success: true, data: scenario };
+  }
+
+  @Post('scenarios/:id/reject')
+  @UseGuards(FirebaseAuthGuard)
+  async rejectScenario(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: { reason: string },
+  ) {
+    const reviewer = await this.requireOrgAdmin(req);
+    const scenario = await this.scenarioReview.reject(id, reviewer.id, body.reason);
+    return { success: true, data: scenario };
+  }
+
+  // #11: IRT/CAT engine, stateless. Not yet wired into the live session
+  // flow — AssessmentService.submitAnswers still takes a fixed answer batch,
+  // not one-item-at-a-time adaptive delivery. That session-flow rewrite is
+  // separate, larger scope than shipping a correct estimation engine.
+  @Post('irt/estimate-ability')
+  @UseGuards(FirebaseAuthGuard)
+  estimateAbility(@Body() body: { responses: GradedResponse[] }) {
+    const responses = (body.responses ?? []).map((r) => ({
+      params: this.irt.defaultParametersFor(r.questionId),
+      category: r.category,
+    }));
+    const estimate = this.irt.estimateAbility(responses);
+    return { success: true, data: estimate };
+  }
+
+  @Post('irt/next-item')
+  @UseGuards(FirebaseAuthGuard)
+  selectNextItem(
+    @Body() body: { currentTheta: number; answeredQuestionIds: string[]; dimensionId?: string },
+  ) {
+    const pool = this.questionBank.getQuestions(body.dimensionId);
+    const answered = new Set(body.answeredQuestionIds ?? []);
+    const availableParams = pool
+      .filter((q) => !answered.has(q.id))
+      .map((q) => this.irt.defaultParametersFor(q.id));
+
+    const next = this.irt.selectNextItem(body.currentTheta, availableParams);
+    return { success: true, data: next };
   }
 }

@@ -7,6 +7,18 @@ export class FirebaseAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+
+    // DEV ONLY: bypass Firebase verification while auth is being deferred.
+    // Never set AUTH_DISABLED=true in a real deployment — it grants every
+    // request the seeded manager identity with no credential check.
+    if (process.env.AUTH_DISABLED === 'true') {
+      request.user = {
+        uid: process.env.AUTH_DISABLED_UID || 'seed-manager-uid',
+        email: process.env.AUTH_DISABLED_EMAIL || 'manager@assessos.test',
+      };
+      return true;
+    }
+
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {

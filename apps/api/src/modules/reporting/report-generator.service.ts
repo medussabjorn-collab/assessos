@@ -1,6 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { WebhookDispatchService } from '../webhooks/webhook-dispatch.service';
+
+// Notable-report threshold for the score_threshold_crossed webhook.
+// Disclosed, arbitrary constants — not derived from any validated cutoff.
+const HIGH_SCORE_THRESHOLD = 85;
+const LOW_SCORE_THRESHOLD = 40;
 
 /**
  * Generates AI assessment reports by calling the Claude API directly.
@@ -30,7 +36,10 @@ interface GeneratedReport {
 export class ReportGeneratorService {
   private readonly logger = new Logger(ReportGeneratorService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private webhookDispatch: WebhookDispatchService,
+  ) {}
 
   /**
    * Fire-and-forget entry point. Generates the report and updates the
@@ -98,7 +107,10 @@ export class ReportGeneratorService {
       },
       body: JSON.stringify({
         model: process.env.REPORT_MODEL || DEFAULT_MODEL,
-        max_tokens: 1024,
+        // Headroom for the full JSON: narrative + recommendation + a
+        // 2-3 goal coaching plan. 1024 could truncate verbose responses,
+        // which then fail parseReport and mark the report failed.
+        max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -124,6 +136,19 @@ export class ReportGeneratorService {
         status: 'ready',
       },
     });
+
+    const scoreValues = Object.values(parsed.dimensionScores);
+    const avgScore = scoreValues.length
+      ? scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length
+      : 0;
+    if (avgScore >= HIGH_SCORE_THRESHOLD || avgScore <= LOW_SCORE_THRESHOLD) {
+      void this.webhookDispatch.dispatch(report.tenantId, 'report.score_threshold_crossed', {
+        reportId,
+        userId: report.userId,
+        avgScore: Math.round(avgScore * 100) / 100,
+        threshold: avgScore >= HIGH_SCORE_THRESHOLD ? 'high' : 'low',
+      });
+    }
   }
 
   private parseReport(text: string): GeneratedReport {

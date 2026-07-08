@@ -7,6 +7,7 @@ describe('AssessmentService', () => {
   const internalUserId = 'usr-cuid-real-user';
 
   let prisma: any;
+  let webhookDispatch: any;
   let service: AssessmentService;
 
   beforeEach(() => {
@@ -19,8 +20,9 @@ describe('AssessmentService', () => {
         update: jest.fn(),
       },
     };
+    webhookDispatch = { dispatch: jest.fn() };
     const request = { headers: { 'x-tenant-id': tenantId } };
-    service = new AssessmentService(prisma, request);
+    service = new AssessmentService(prisma, webhookDispatch, request);
   });
 
   describe('startSession', () => {
@@ -107,6 +109,32 @@ describe('AssessmentService', () => {
 
       expect(result.status).toBe('done');
       expect(prisma.assessmentSession.update).toHaveBeenCalled();
+    });
+
+    it('fires an assessment.completed webhook event on successful submission', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'active',
+      });
+      prisma.assessmentSession.update.mockResolvedValue({
+        id: 'sess-1',
+        status: 'done',
+        pillar: 'leadership',
+      });
+
+      await service.submitAnswers('sess-1', firebaseUid, {
+        answers: [],
+        metadata: {},
+      } as any);
+
+      expect(webhookDispatch.dispatch).toHaveBeenCalledWith(tenantId, 'assessment.completed', {
+        sessionId: 'sess-1',
+        userId: internalUserId,
+        pillar: 'leadership',
+      });
     });
   });
 });
