@@ -15,6 +15,10 @@ model Tenant {
   whiteLabel        Json?
   ssoConfig         Json?
   settings          Json?
+  // Merged from leadership-assessment Organization
+  domain            String?
+  logoUrl           String?
+  maxSeats          Int       @default(10)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -34,6 +38,13 @@ model Tenant {
   lockdownViolations LockdownViolation[]
   generatedScenarios GeneratedScenario[]
   webhookSubscriptions WebhookSubscription[]
+  // Merged from leadership-assessment
+  sessionAnswers    SessionAnswer[]
+  assessmentResults AssessmentResult[]
+  proctoringEvents  ProctoringEventLog[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  integrations      Integration[]
 
   @@map("tenants")
 }
@@ -54,6 +65,10 @@ model User {
   role              Role      @default(employee)
   department        String?
   metadata          Json?
+  // Merged from leadership-assessment (Firebase remains the auth source of
+  // truth — no passwordHash/refresh tokens; these are profile metadata only)
+  emailVerified     Boolean   @default(false)
+  lastLoginAt       DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -67,6 +82,10 @@ model User {
   codeSubmissions   CodeSubmission[]
   lockdownViolations LockdownViolation[]
   reviewedScenarios GeneratedScenario[]
+  // Merged from leadership-assessment
+  assessmentResults AssessmentResult[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
 
   @@index([tenantId])
   @@index([role])
@@ -78,6 +97,22 @@ enum Role {
   org_admin
   manager
   employee
+  // Merged in from leadership-assessment (candidate assessment flows)
+  candidate
+  recruiter
+  viewer
+}
+
+// Merged in from leadership-assessment: fixed assessment "modules" (distinct
+// from assessos's free-form `pillar` + `dimensions` JSON). A config/session
+// may be EITHER pillar-based (leadership) OR module-based — moduleId is
+// optional so both models coexist.
+enum AssessmentModuleId {
+  technical
+  attitude
+  behavioral
+  psychometric
+  communication
 }
 
 model AssessmentSession {
@@ -97,9 +132,23 @@ model AssessmentSession {
   startedAt         DateTime?
   submittedAt       DateTime?
   createdAt         DateTime  @default(now())
+  // Merged from leadership-assessment: module-based / adaptive delivery state.
+  // leadership's richer SessionStatus (not_started/in_progress/submitted/
+  // graded/expired) maps onto assessos's pending/active/done at the service
+  // layer. Per-answer rows live in SessionAnswer (below); `answers` JSON
+  // remains for the existing leadership-pillar submission path.
+  moduleId          AssessmentModuleId?
+  questionOrder     String[]
+  currentIndex      Int       @default(0)
+  expiresAt         DateTime?
+  timeSpentSec      Int       @default(0)
+  offlineToken      String?
 
   aiReport          AiReport?
   raterFeedback     RaterFeedback[]
+  sessionAnswers    SessionAnswer[]
+  assessmentResult  AssessmentResult?
+  proctoringEvents  ProctoringEventLog[]
 
   @@index([tenantId])
   @@index([userId])
@@ -122,6 +171,16 @@ model AssessmentConfig {
   passMark          Int
   aiProctoring      Boolean   @default(true)
   benchmarkGroup    String?
+  // Merged from leadership-assessment: module-based config. moduleId is
+  // optional — null = a pillar/dimensions (leadership) config; set = a
+  // fixed-module (technical/attitude/...) config.
+  moduleId          AssessmentModuleId?
+  negativeMarking   Boolean   @default(false)
+  negativePenalty   Float     @default(0.25)
+  shuffleQuestions  Boolean   @default(true)
+  shuffleOptions    Boolean   @default(true)
+  adaptiveMode      Boolean   @default(false)
+  totalQuestions    Int       @default(100)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -544,4 +603,166 @@ model LockdownViolation {
   @@index([tenantId])
   @@index([userId])
   @@map("lockdown_violations")
+}
+
+// ─── Merged from leadership-assessment ───────────────────────────────────────
+
+// Per-question answer row for module-based assessments (the leadership backend
+// stored answers per-row rather than as one JSON blob). The assessos
+// pillar/dimensions path still uses AssessmentSession.answers JSON; both
+// coexist.
+model SessionAnswer {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId      String
+  session        AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId     String
+  selectedOption Int?
+  isCorrect      Boolean?
+  isFlagged      Boolean  @default(false)
+  timeSpentSec   Int      @default(0)
+  answeredAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([sessionId, questionId])
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("session_answers")
+}
+
+// Structured, deterministic scored result for module-based assessments
+// (IRT ability estimate + item statistics). Distinct from AiReport, which is
+// the Claude-generated narrative for leadership-pillar assessments. A session
+// can have at most one of each.
+model AssessmentResult {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId      String   @unique
+  session        AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  moduleId       AssessmentModuleId?
+  score          Float
+  percentile     Float?
+  passed         Boolean
+  totalQuestions Int
+  correctAnswers Int
+  wrongAnswers   Int
+  skippedAnswers Int
+  // 3PL-IRT ability estimate + standard error + tier band
+  irtTheta       Float?
+  irtSe          Float?
+  irtTier        String?
+  subTopicScores Json?
+  aiInsights     String[]
+  proctoringRisk Int      @default(0)
+  violations     Int      @default(0)
+  warnings       Int      @default(0)
+  gradedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([moduleId])
+  @@map("assessment_results")
+}
+
+// Structured proctoring event stream (assessos previously only stored a
+// coarse LockdownViolation row; this captures the risk-scored event log the
+// leadership proctor produced).
+model ProctoringEventLog {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId   String
+  session     AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventType   String
+  riskDelta   Int      @default(0)
+  totalRisk   Int      @default(0)
+  metadata    Json?
+  occurredAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("proctoring_events")
+}
+
+enum AuditAction {
+  login
+  logout
+  register
+  assessment_started
+  assessment_submitted
+  assessment_graded
+  proctor_event
+  config_updated
+  user_created
+  user_updated
+  user_deleted
+  report_generated
+  integration_connected
+  integration_disconnected
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  tenantId    String
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      AuditAction
+  resource    String?
+  resourceId  String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+}
+
+// Tenant-scoped external integration connection (HRIS/LMS/ATS). leadership
+// modelled this globally with a unique name; scoped per-tenant here to match
+// assessos multi-tenancy.
+model Integration {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  category    String
+  status      String   @default("disconnected")
+  config      Json?
+  lastSyncAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("integrations")
 }
