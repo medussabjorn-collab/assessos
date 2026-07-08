@@ -1,0 +1,98 @@
+version: '3.9'
+
+services:
+
+  # ── API Server ──────────────────────────────────────────
+  api:
+    build: .
+    container_name: leaderassess-api
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/leaderassess
+      MONGODB_URI:  mongodb://mongo:27017/leaderassess
+      REDIS_HOST:   redis
+      REDIS_PORT:   "6379"
+      JWT_SECRET:   changeme-super-secret-32-chars-min
+      JWT_REFRESH_SECRET: changeme-refresh-secret-32-chars
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [app-net]
+
+  # ── PostgreSQL ──────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: leaderassess-postgres
+    environment:
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB:       leaderassess
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+    networks: [app-net]
+
+  # ── MongoDB ─────────────────────────────────────────────
+  mongo:
+    image: mongo:7-jammy
+    container_name: leaderassess-mongo
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+    networks: [app-net]
+
+  # ── Redis ────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: leaderassess-redis
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+    networks: [app-net]
+
+  # ── Redis Commander (dev UI) ─────────────────────────────
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: leaderassess-redis-ui
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on: [redis]
+    profiles: [dev]
+    networks: [app-net]
+
+volumes:
+  pg-data:
+  mongo-data:
+  redis-data:
+
+networks:
+  app-net:
+    driver: bridge
