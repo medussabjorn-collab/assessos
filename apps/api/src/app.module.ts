@@ -23,6 +23,7 @@ import { QuestionBankModule } from './modules/question-bank/question-bank.module
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -55,6 +56,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     NotificationsModule,
     AuditLogModule,
     IntegrationsModule,
+    RealtimeModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 
 export type NotificationType = 'info' | 'success' | 'warning' | 'error';
 
@@ -14,17 +15,19 @@ export interface CreateNotificationInput {
 }
 
 /**
- * Ported from leadership-assessment notificationService. Real-time push (the
- * leadership socket.io emit) is intentionally omitted here — it will be wired
- * when the realtime gateway module lands later in Phase 2. Until then this is
- * a durable, Prisma-backed store; nothing is lost, delivery just isn't live.
+ * Ported from leadership-assessment notificationService. Persists to Postgres
+ * and pushes live over the realtime gateway (socket room `user:<id>`) — the
+ * gateway landed with the realtime module, so delivery is now live.
  */
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly realtime: RealtimeGateway,
+  ) {}
 
   async create(input: CreateNotificationInput) {
-    return this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         tenantId: input.tenantId,
         userId: input.userId,
@@ -34,6 +37,9 @@ export class NotificationsService {
         metadata: (input.metadata as Prisma.InputJsonValue) ?? undefined,
       },
     });
+    // Fire-and-forget live push; a socket failure must not fail the write.
+    this.realtime.emitToUser(input.userId, 'notification', notification);
+    return notification;
   }
 
   async listForUser(tenantId: string, userId: string, unreadOnly = false) {

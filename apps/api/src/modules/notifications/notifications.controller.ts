@@ -1,8 +1,11 @@
 import {
+  Body,
   Controller,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
+  Post,
   Put,
   Query,
   Request,
@@ -10,7 +13,12 @@ import {
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { PrismaService } from '../../database/prisma.service';
-import { NotificationsService } from './notifications.service';
+import {
+  NotificationsService,
+  NotificationType,
+} from './notifications.service';
+
+const ADMIN_ROLES = ['org_admin', 'super_admin'];
 
 @Controller('api/notifications')
 @UseGuards(FirebaseAuthGuard)
@@ -27,6 +35,32 @@ export class NotificationsController {
     });
     if (!user) throw new NotFoundException('User not found');
     return { tenantId, userId: user.id };
+  }
+
+  // Admin sends a notification to a user in the tenant (also pushes live via
+  // the realtime gateway).
+  @Post()
+  async create(
+    @Request() req: any,
+    @Body()
+    body: { userId: string; type?: NotificationType; title: string; message: string; metadata?: Record<string, unknown> },
+  ) {
+    const { tenantId } = await this.resolve(req);
+    const sender = await this.prisma.user.findFirst({
+      where: { firebaseUid: req.user.uid, tenantId },
+    });
+    if (!sender || !ADMIN_ROLES.includes(sender.role)) {
+      throw new ForbiddenException('Only org admins can send notifications');
+    }
+    const data = await this.notifications.create({
+      tenantId,
+      userId: body.userId,
+      type: body.type ?? 'info',
+      title: body.title,
+      message: body.message,
+      metadata: body.metadata,
+    });
+    return { success: true, data };
   }
 
   @Get()
