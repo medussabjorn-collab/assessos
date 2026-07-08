@@ -32,6 +32,7 @@ async function main() {
 
   // ── Users ─────────────────────────────────────────────────────────────────
   const users = [
+    { id: 'usr-admin', firebaseUid: 'seed-admin-uid', email: 'admin@assessos.test', name: 'Alex Admin', role: 'org_admin', department: 'People' },
     { id: 'usr-manager', firebaseUid: 'seed-manager-uid', email: 'manager@assessos.test', name: 'Morgan Lee', role: 'manager', department: 'People' },
     { id: 'usr-jane', firebaseUid: 'seed-jane-uid', email: 'jane.doe@acme.test', name: 'Jane Doe', role: 'employee', department: 'Engineering' },
     { id: 'usr-john', firebaseUid: 'seed-john-uid', email: 'john.smith@acme.test', name: 'John Smith', role: 'employee', department: 'Product' },
