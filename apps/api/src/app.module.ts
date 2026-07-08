@@ -22,6 +22,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { QuestionBankModule } from './modules/question-bank/question-bank.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -53,6 +54,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     QuestionBankModule,
     NotificationsModule,
     AuditLogModule,
+    IntegrationsModule,
   ],
 })
 export class AppModule implements NestModule {
