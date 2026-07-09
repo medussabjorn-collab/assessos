@@ -10,6 +10,8 @@ import { PolicyService } from './policy.service';
 import { EvidenceController, IntegrityController } from './evidence.controller';
 import { EvidenceService } from './evidence.service';
 import { IntegrityChainService } from './integrity-chain.service';
+import { IncidentController } from './incident.controller';
+import { IncidentService } from './incident.service';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 
@@ -22,6 +24,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     PolicyController,
     EvidenceController,
     IntegrityController,
+    IncidentController,
   ],
   providers: [
     ProctoringService,
@@ -30,6 +33,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     PolicyService,
     EvidenceService,
     IntegrityChainService,
+    IncidentService,
     PrismaService,
   ],
   exports: [
@@ -39,6 +43,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     PolicyService,
     EvidenceService,
     IntegrityChainService,
+    IncidentService,
   ],
 })
 export class ProctoringModule {}

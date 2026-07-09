@@ -50,6 +50,7 @@ model Tenant {
   proctoringPolicies ProctoringPolicy[]
   evidenceArtifacts EvidenceArtifact[]
   integrityLog      IntegrityLogEntry[]
+  proctoringIncidents ProctoringIncident[]
 
   @@map("tenants")
 }
@@ -169,6 +170,7 @@ model AssessmentSession {
   environmentScans  EnvironmentScan[]
   evidenceArtifacts EvidenceArtifact[]
   integrityLog      IntegrityLogEntry[]
+  proctoringIncidents ProctoringIncident[]
 
   @@index([tenantId])
   @@index([userId])
@@ -1008,4 +1010,81 @@ model IntegrityLogEntry {
   @@index([tenantId])
   @@index([sessionId])
   @@map("integrity_log")
+}
+
+// ─── Advanced proctoring — incidents, review & appeals ───────────────────────
+
+enum IncidentSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum IncidentStatus {
+  open
+  in_review
+  resolved
+  dismissed
+}
+
+enum IncidentResolution {
+  no_action
+  warning_issued
+  result_flagged
+  result_cancelled
+  candidate_banned
+}
+
+enum AppealStatus {
+  none
+  requested
+  under_review
+  upheld
+  overturned
+}
+
+// A flagged integrity concern for human review — the "act on it & appeal"
+// layer. Opened by the system (auto, on a critical risk level) or a proctor,
+// worked through review -> resolution, with an appeal path. Every state change
+// is committed to the session integrity chain, so the decision trail is
+// tamper-evident and exportable for appeals.
+model ProctoringIncident {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId          String
+  session            AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId             String   // subject of the incident
+
+  category           String   // taxonomy slug (e.g. extra_person, phone_detected, identity_drift)
+  severity           IncidentSeverity
+  status             IncidentStatus @default(open)
+  riskScore          Int?
+  description        String?
+  openedBy           String   @default("system") // system | proctor | <userId>
+  assignedTo         String?
+  slaDueAt           DateTime?
+
+  // human review decision
+  resolution         IncidentResolution?
+  resolutionNote     String?
+  reviewedById       String?
+  reviewedAt         DateTime?
+
+  // appeal workflow
+  appealStatus       AppealStatus @default(none)
+  appealReason       String?
+  appealResolvedById String?
+  appealResolvedAt   DateTime?
+  appealNote         String?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@index([status])
+  @@index([severity])
+  @@map("proctoring_incidents")
 }

@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { IntegrityChainService } from './integrity-chain.service';
+import { IncidentService } from './incident.service';
 
 // Unified proctoring — merges the two implementations:
 //   - leadership: the strong core — per-event risk weights + exponential
@@ -113,6 +114,7 @@ export class ProctoringService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly chain: IntegrityChainService,
+    private readonly incidents: IncidentService,
   ) {}
 
   private levelOf(risk: number): RiskLevel {
@@ -174,6 +176,15 @@ export class ProctoringService {
       // Fire-and-forget alert; pushes live via the realtime gateway.
       void this.notifications
         .notifyProctoringAlert(tenantId, userId, input.sessionId, input.eventType, totalRisk)
+        .catch(() => undefined);
+    }
+
+    // Auto-escalate to a human-review incident at the critical threshold
+    // (deduped per session+category by IncidentService). This is the AI ->
+    // human handoff in the hybrid model.
+    if (level === 'critical') {
+      await this.incidents
+        .autoOpenOnCritical(tenantId, userId, input.sessionId, input.eventType, totalRisk)
         .catch(() => undefined);
     }
 
