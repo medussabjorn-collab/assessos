@@ -48,6 +48,8 @@ model Tenant {
   identityVerifications IdentityVerification[]
   environmentScans  EnvironmentScan[]
   proctoringPolicies ProctoringPolicy[]
+  evidenceArtifacts EvidenceArtifact[]
+  integrityLog      IntegrityLogEntry[]
 
   @@map("tenants")
 }
@@ -165,6 +167,8 @@ model AssessmentSession {
   proctoringEvents  ProctoringEventLog[]
   identityVerifications IdentityVerification[]
   environmentScans  EnvironmentScan[]
+  evidenceArtifacts EvidenceArtifact[]
+  integrityLog      IntegrityLogEntry[]
 
   @@index([tenantId])
   @@index([userId])
@@ -941,4 +945,67 @@ model EnvironmentScan {
   @@index([sessionId])
   @@index([status])
   @@map("environment_scans")
+}
+
+// ─── Advanced proctoring — evidence & tamper-evident audit ───────────────────
+
+enum EvidenceType {
+  face_cam
+  room_cam
+  screen
+  audio
+  snapshot
+  clip
+  document
+}
+
+// A captured piece of evidence. The blob itself lives in encrypted object
+// storage (storageRef points to it); this row holds the reference + a SHA-256
+// contentHash so tampering with the stored blob is detectable. Optionally
+// linked to the proctoring event that triggered the capture.
+model EvidenceArtifact {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId   String
+  session     AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventId     String?  // optional link to a ProctoringEventLog id
+  type        EvidenceType
+  storageRef  String   // key/URL into encrypted object storage
+  contentHash String   // SHA-256 of the artifact bytes
+  mimeType    String?
+  sizeBytes   Int?
+  durationSec Int?
+  capturedAt  DateTime @default(now())
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("evidence_artifacts")
+}
+
+// Append-only, per-session hash chain. Each entry's entryHash =
+// SHA-256(seq | entryType | prevHash | canonical(payload)); the first entry
+// chains off a fixed genesis hash. Altering or deleting any entry breaks every
+// subsequent hash, so the integrity trail is tamper-evident and verifiable
+// (see IntegrityChainService.verify). This is distinct from the general
+// AuditLog — it is the immutable evidence/decision chain for appeals.
+model IntegrityLogEntry {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId String
+  session   AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seq       Int
+  entryType String   // proctoring_event | evidence_captured | proctor_action | identity_check | scan | system
+  payload   Json
+  prevHash  String
+  entryHash String
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, seq])
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("integrity_log")
 }

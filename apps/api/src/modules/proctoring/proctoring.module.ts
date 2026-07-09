@@ -7,13 +7,38 @@ import { EnvironmentController } from './environment.controller';
 import { EnvironmentService } from './environment.service';
 import { PolicyController } from './policy.controller';
 import { PolicyService } from './policy.service';
+import { EvidenceController, IntegrityController } from './evidence.controller';
+import { EvidenceService } from './evidence.service';
+import { IntegrityChainService } from './integrity-chain.service';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [NotificationsModule],
-  controllers: [ProctoringController, IdentityController, EnvironmentController, PolicyController],
-  providers: [ProctoringService, IdentityService, EnvironmentService, PolicyService, PrismaService],
-  exports: [ProctoringService, IdentityService, EnvironmentService, PolicyService],
+  controllers: [
+    ProctoringController,
+    IdentityController,
+    EnvironmentController,
+    PolicyController,
+    EvidenceController,
+    IntegrityController,
+  ],
+  providers: [
+    ProctoringService,
+    IdentityService,
+    EnvironmentService,
+    PolicyService,
+    EvidenceService,
+    IntegrityChainService,
+    PrismaService,
+  ],
+  exports: [
+    ProctoringService,
+    IdentityService,
+    EnvironmentService,
+    PolicyService,
+    EvidenceService,
+    IntegrityChainService,
+  ],
 })
 export class ProctoringModule {}

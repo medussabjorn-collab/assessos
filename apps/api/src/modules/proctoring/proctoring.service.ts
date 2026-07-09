@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { IntegrityChainService } from './integrity-chain.service';
 
 // Unified proctoring — merges the two implementations:
 //   - leadership: the strong core — per-event risk weights + exponential
@@ -111,6 +112,7 @@ export class ProctoringService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly chain: IntegrityChainService,
   ) {}
 
   private levelOf(risk: number): RiskLevel {
@@ -157,6 +159,17 @@ export class ProctoringService {
     });
 
     const level = this.levelOf(totalRisk);
+
+    // Commit the event into the per-session tamper-evident integrity chain.
+    await this.chain
+      .append(tenantId, input.sessionId, 'proctoring_event', {
+        eventType: input.eventType,
+        riskDelta: weight.score,
+        totalRisk,
+        level,
+      })
+      .catch(() => undefined);
+
     if (level !== 'safe') {
       // Fire-and-forget alert; pushes live via the realtime gateway.
       void this.notifications
