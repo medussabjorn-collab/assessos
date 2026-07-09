@@ -46,6 +46,8 @@ model Tenant {
   notifications     Notification[]
   integrations      Integration[]
   identityVerifications IdentityVerification[]
+  environmentScans  EnvironmentScan[]
+  proctoringPolicies ProctoringPolicy[]
 
   @@map("tenants")
 }
@@ -162,6 +164,7 @@ model AssessmentSession {
   assessmentResult  AssessmentResult?
   proctoringEvents  ProctoringEventLog[]
   identityVerifications IdentityVerification[]
+  environmentScans  EnvironmentScan[]
 
   @@index([tenantId])
   @@index([userId])
@@ -834,4 +837,108 @@ model IdentityVerification {
   @@index([sessionId])
   @@index([status])
   @@map("identity_verifications")
+}
+
+// ─── Advanced proctoring — environment, device & policy ──────────────────────
+
+enum PolicyAction {
+  allow
+  flag
+  block
+}
+
+// Per-tenant (optionally per-config) proctoring policy. Drives what's required
+// before/around a session and how anomalies are treated. configId null = the
+// tenant's default policy.
+model ProctoringPolicy {
+  id                       String   @id @default(cuid())
+  tenantId                 String
+  tenant                   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  configId                 String?
+
+  // identity / continuous auth
+  requireIdentityVerification Boolean @default(false)
+  requireLiveness          Boolean  @default(false)
+  reverifyIntervalSec      Int      @default(300)
+
+  // environment
+  requireRoomScan          Boolean  @default(false)
+  maxExtraPersons          Int      @default(0)
+  allowSecondScreen        Boolean  @default(false)
+
+  // network / location
+  vpnAction                PolicyAction @default(flag)
+
+  // device
+  requireLockdownBrowser   Boolean  @default(false)
+  blockRemoteAccess        Boolean  @default(true)
+
+  // risk thresholds (override the engine defaults)
+  warningThreshold         Int      @default(30)
+  criticalThreshold        Int      @default(70)
+  autoTerminateThreshold   Int      @default(100)
+
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@unique([tenantId, configId])
+  @@index([tenantId])
+  @@map("proctoring_policies")
+}
+
+enum EnvironmentScanStatus {
+  pending
+  clear
+  flagged
+  blocked
+}
+
+// A room/device/network scan snapshot (pre-session or periodic). Detections
+// come from the client (webcam CV, network/device probes) — the backend
+// evaluates them against the ProctoringPolicy, computes a status + findings,
+// and raises proctoring events so anomalies feed the session risk score.
+model EnvironmentScan {
+  id                   String   @id @default(cuid())
+  tenantId             String
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId               String
+  sessionId            String?
+  session              AssessmentSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  scanType             String   @default("pre_session") // pre_session | periodic
+
+  // room detections (client CV)
+  personsDetected      Int      @default(1)
+  monitorsDetected     Int      @default(1)
+  phoneDetected        Boolean  @default(false)
+  notesDetected        Boolean  @default(false)
+  whiteboardDetected   Boolean  @default(false)
+
+  // environment quality
+  lightingOk           Boolean  @default(true)
+  faceVisible          Boolean  @default(true)
+  audioBaselineDb      Float?
+
+  // network / location
+  ipCountry            String?
+  declaredCountry      String?
+  vpnDetected          Boolean  @default(false)
+  proxyDetected        Boolean  @default(false)
+  torDetected          Boolean  @default(false)
+
+  // device posture
+  lockdownActive       Boolean  @default(false)
+  remoteAccessDetected Boolean  @default(false)
+  vmDetected           Boolean  @default(false)
+  screenShareDetected  Boolean  @default(false)
+
+  status               EnvironmentScanStatus @default(pending)
+  findings             String[]
+  metadata             Json?
+  createdAt            DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([status])
+  @@map("environment_scans")
 }
