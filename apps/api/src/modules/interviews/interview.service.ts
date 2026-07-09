@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { VideoRoomService } from './video-room.service';
-import { ProctoringService } from './proctoring.service';
+import { ProctoringService } from '../proctoring/proctoring.service';
 import { InterviewFeedbackService } from './interview-feedback.service';
 import { SchedulingService } from './scheduling.service';
 import { BiometricConsentService } from '../compliance/biometric-consent.service';
