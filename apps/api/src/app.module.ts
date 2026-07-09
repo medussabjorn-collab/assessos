@@ -24,6 +24,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
+import { EmailModule } from './modules/email/email.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -57,6 +58,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     AuditLogModule,
     IntegrationsModule,
     RealtimeModule,
+    EmailModule,
   ],
 })
 export class AppModule implements NestModule {
