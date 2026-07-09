@@ -45,6 +45,7 @@ model Tenant {
   auditLogs         AuditLog[]
   notifications     Notification[]
   integrations      Integration[]
+  identityVerifications IdentityVerification[]
 
   @@map("tenants")
 }
@@ -86,6 +87,7 @@ model User {
   assessmentResults AssessmentResult[]
   auditLogs         AuditLog[]
   notifications     Notification[]
+  identityVerifications IdentityVerification[]
 
   @@index([tenantId])
   @@index([role])
@@ -144,11 +146,22 @@ model AssessmentSession {
   timeSpentSec      Int       @default(0)
   offlineToken      String?
 
+  // Advanced proctoring — session binding (continuous-auth pillar). The
+  // session token is tied to a device + IP-range hash + biometric-template
+  // hash; a mismatch/anomaly sets proctoringRevoked so the client is forced
+  // to re-verify or the session is terminated. Hashes only — no raw biometric
+  // or IP is stored here.
+  deviceId          String?
+  ipHash            String?
+  biometricHash     String?
+  proctoringRevoked Boolean   @default(false)
+
   aiReport          AiReport?
   raterFeedback     RaterFeedback[]
   sessionAnswers    SessionAnswer[]
   assessmentResult  AssessmentResult?
   proctoringEvents  ProctoringEventLog[]
+  identityVerifications IdentityVerification[]
 
   @@index([tenantId])
   @@index([userId])
@@ -765,4 +778,60 @@ model Integration {
   @@unique([tenantId, name])
   @@index([tenantId])
   @@map("integrations")
+}
+
+// ─── Advanced proctoring — identity & continuous authentication ──────────────
+
+enum IdentityVerificationStatus {
+  pending
+  verified
+  failed
+  manual_review
+}
+
+enum LivenessMode {
+  passive
+  active
+}
+
+// The "who is taking the test" pillar. The backend does NOT run OCR / face
+// match / liveness itself — those run in the client or a dedicated ML/vendor
+// pipeline. This row RECORDS the results those produce (document authenticity
+// score, 1:1 face-match score, liveness pass), computes an overall status, and
+// gates session start + drives continuous re-verification. Explainable by
+// design (every score + timestamp retained) for high-stakes appeals.
+model IdentityVerification {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId        String?
+  session          AssessmentSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  // Pre-session document + biometric checks (results from client/vendor).
+  documentType     String?  // passport | national_id | drivers_license
+  documentVerified Boolean  @default(false)
+  documentScore    Float?   // authenticity confidence 0-1
+  faceMatchScore   Float?   // 1:1 document-vs-live 0-1
+  livenessPassed   Boolean  @default(false)
+  livenessMode     LivenessMode @default(passive)
+  otpVerified      Boolean  @default(false)
+
+  status           IdentityVerificationStatus @default(pending)
+
+  // Continuous authentication (in-session).
+  reverifiedAt     DateTime?
+  reverifyCount    Int      @default(0)
+  driftDetected    Boolean  @default(false)
+
+  metadata         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([status])
+  @@map("identity_verifications")
 }

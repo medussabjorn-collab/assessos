@@ -26,7 +26,29 @@ export type ProctoringEventType =
   | 'screen_switch'
   // merged in from assessos
   | 'unusual_movement'
-  | 'low_lighting';
+  | 'low_lighting'
+  // advanced taxonomy — identity & continuous auth
+  | 'identity_drift'
+  | 'impostor_suspected'
+  | 'liveness_failed'
+  // advanced taxonomy — environment & device
+  | 'extra_person'
+  | 'extra_monitor'
+  | 'notes_detected'
+  | 'book_detected'
+  | 'earpiece_detected'
+  | 'smartwatch_detected'
+  | 'remote_desktop'
+  | 'vm_detected'
+  | 'screen_share'
+  | 'proxy_or_tor'
+  // advanced taxonomy — behavior & content
+  | 'gaze_off_screen'
+  | 'head_pose_anomaly'
+  | 'second_voice'
+  | 'keystroke_anomaly'
+  | 'paste_detected'
+  | 'rapid_answer_switching';
 
 interface RiskWeight {
   score: number;
@@ -48,6 +70,28 @@ const RISK_WEIGHTS: Record<ProctoringEventType, RiskWeight> = {
   screen_switch: { score: 25, decayHalfLife: 120 },
   unusual_movement: { score: 20, decayHalfLife: 90 },
   low_lighting: { score: 10, decayHalfLife: 60 },
+  // identity & continuous auth — high weight, slow decay (integrity-critical)
+  identity_drift: { score: 60, decayHalfLife: 600 },
+  impostor_suspected: { score: 70, decayHalfLife: 600 },
+  liveness_failed: { score: 50, decayHalfLife: 300 },
+  // environment & device
+  extra_person: { score: 50, decayHalfLife: 180 },
+  extra_monitor: { score: 35, decayHalfLife: 300 },
+  notes_detected: { score: 30, decayHalfLife: 300 },
+  book_detected: { score: 30, decayHalfLife: 300 },
+  earpiece_detected: { score: 45, decayHalfLife: 300 },
+  smartwatch_detected: { score: 35, decayHalfLife: 300 },
+  remote_desktop: { score: 60, decayHalfLife: 600 },
+  vm_detected: { score: 50, decayHalfLife: 600 },
+  screen_share: { score: 45, decayHalfLife: 300 },
+  proxy_or_tor: { score: 35, decayHalfLife: 600 },
+  // behavior & content
+  gaze_off_screen: { score: 15, decayHalfLife: 60 },
+  head_pose_anomaly: { score: 15, decayHalfLife: 60 },
+  second_voice: { score: 45, decayHalfLife: 180 },
+  keystroke_anomaly: { score: 15, decayHalfLife: 120 },
+  paste_detected: { score: 25, decayHalfLife: 120 },
+  rapid_answer_switching: { score: 10, decayHalfLife: 90 },
 };
 
 const RISK_THRESHOLD_WARNING = 30;
