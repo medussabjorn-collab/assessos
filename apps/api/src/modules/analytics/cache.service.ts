@@ -1,14 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as redis from 'redis';
 
 @Injectable()
 export class CacheService {
+  private readonly logger = new Logger(CacheService.name);
   private client: redis.RedisClientType | null = null;
 
   async onModuleInit() {
     if (process.env.REDIS_URL) {
       this.client = redis.createClient({
         url: process.env.REDIS_URL,
+        // Auto-reconnect with capped backoff on transient drops
+        // (ECONNRESET, idle timeout) instead of giving up.
+        socket: { reconnectStrategy: (retries) => Math.min(retries * 200, 5000) },
+      });
+      // node-redis emits 'error' on the socket independent of any await
+      // (e.g. ECONNRESET) — without a listener, Node treats it as an
+      // unhandled error event and crashes the whole process. Log and let
+      // reconnectStrategy handle recovery; get/set/etc already degrade to
+      // a no-op cache when the client is down.
+      this.client.on('error', (err) => {
+        this.logger.error(`Redis client error: ${err.message}`);
       });
       await this.client.connect();
     }
