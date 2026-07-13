@@ -26,6 +26,7 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 import { EmailModule } from './modules/email/email.module';
 import { ProctoringModule } from './modules/proctoring/proctoring.module';
+import { OfflineSyncModule } from './modules/offline-sync/offline-sync.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -61,6 +62,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     RealtimeModule,
     EmailModule,
     ProctoringModule,
+    OfflineSyncModule,
   ],
 })
 export class AppModule implements NestModule {
