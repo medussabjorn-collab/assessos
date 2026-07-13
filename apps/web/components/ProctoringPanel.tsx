@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ShieldAlert, ShieldCheck, Video, VideoOff } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAIProctoring, ProctoringViolation } from '../lib/use-ai-proctoring';
+import { offlineSyncService } from '../lib/offline-sync';
 
 // Maps the client-side worker event kind to the backend's ProctoringEventType
 // (modules/proctoring/proctoring.service.ts) so violations feed the real,
@@ -72,7 +73,13 @@ export default function ProctoringPanel({ sessionId, enabled }: ProctoringPanelP
     api
       .post('/api/proctoring/event', { sessionId, eventType })
       .then((res) => setLastServerLevel(res.data?.data?.level ?? null))
-      .catch((err) => console.warn('[proctoring] event POST failed', err));
+      .catch(() => {
+        // Offline or unreachable — queue it. useOfflineSync (mounted in the
+        // dashboard layout) flushes this via /api/offline-sync/sync as soon
+        // as connectivity returns, so the event still reaches the risk
+        // engine instead of silently vanishing.
+        offlineSyncService.enqueue('event', sessionId, { eventType }).catch(() => undefined);
+      });
   };
 
   const { ready, faceDetected, riskScore, events } = useAIProctoring({

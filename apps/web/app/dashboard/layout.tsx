@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import SyncIndicator from '@/components/SyncIndicator';
 import {
   LayoutDashboard,
   BarChart3,
@@ -186,6 +187,8 @@ export default function DashboardLayout({
             </div>
 
             <div className="flex items-center gap-2 ml-auto">
+              <SyncIndicator />
+
               <button className="relative w-9 h-9 rounded-full hover:bg-canvas flex items-center justify-center text-subtle transition">
                 <Bell size={18} />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-accent-coral rounded-full" />
