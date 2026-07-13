@@ -54,19 +54,27 @@ export function useAIProctoring({ videoRef, sessionId: _sessionId, enabled, onVi
     events: [],
   });
 
-  const addEvent = useCallback(
-    (v: ProctoringViolation) => {
-      riskRef.current = Math.min(100, riskRef.current + v.riskDelta);
-      setState((s) => ({
-        ...s,
-        riskScore: riskRef.current,
-        faceDetected: v.kind === 'FACE_DETECTED',
-        events: [...s.events.slice(-49), v],
-      }));
-      onViolation?.(v);
-    },
-    [onViolation],
-  );
+  // Latest-ref pattern: callers (e.g. ProctoringPanel) typically pass an
+  // inline onViolation, a new function identity every render. Closing over
+  // that directly would give addEvent (and, through it, the worker-setup
+  // effect below) an unstable identity, tearing down and recreating the
+  // Worker — reloading the face-api models and resetting throttle/no-face
+  // state — on every single detected violation. Reading through a ref keeps
+  // addEvent's identity (and the effect's) stable across re-renders while
+  // still calling the latest callback.
+  const onViolationRef = useRef(onViolation);
+  onViolationRef.current = onViolation;
+
+  const addEvent = useCallback((v: ProctoringViolation) => {
+    riskRef.current = Math.min(100, riskRef.current + v.riskDelta);
+    setState((s) => ({
+      ...s,
+      riskScore: riskRef.current,
+      faceDetected: v.kind === 'FACE_DETECTED',
+      events: [...s.events.slice(-49), v],
+    }));
+    onViolationRef.current?.(v);
+  }, []);
 
   const captureFrame = useCallback(() => {
     const video = videoRef.current;

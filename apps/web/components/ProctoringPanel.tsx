@@ -34,17 +34,33 @@ export default function ProctoringPanel({ sessionId, enabled }: ProctoringPanelP
 
   useEffect(() => {
     if (!enabled) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCamError('Camera not supported in this browser');
+      return;
+    }
+
+    // Guards the async gap: if this effect is cleaned up (enabled flips
+    // false, or unmount) before getUserMedia resolves, `cancelled` makes the
+    // resolved handler stop the just-acquired stream immediately instead of
+    // leaking it — a bare `stream?.getTracks()` in cleanup only helps once
+    // `stream` has actually been assigned.
     let stream: MediaStream | null = null;
+    let cancelled = false;
 
     navigator.mediaDevices
       .getUserMedia({ video: { width: 320, height: 240 }, audio: false })
       .then((s) => {
+        if (cancelled) {
+          s.getTracks().forEach((t) => t.stop());
+          return;
+        }
         stream = s;
         if (videoRef.current) videoRef.current.srcObject = s;
       })
       .catch((err) => setCamError(err instanceof Error ? err.message : 'Camera access denied'));
 
     return () => {
+      cancelled = true;
       stream?.getTracks().forEach((t) => t.stop());
     };
   }, [enabled]);
