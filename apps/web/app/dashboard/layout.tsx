@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import SyncIndicator from '@/components/SyncIndicator';
+import NotificationToast from '@/components/NotificationToast';
 import {
   LayoutDashboard,
   BarChart3,
@@ -86,6 +87,8 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
+      <NotificationToast />
+
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-hairline flex flex-col transform transition-transform lg:translate-x-0 ${

@@ -107,6 +107,10 @@ export class AuthController {
     return {
       success: true,
       data: {
+        // userId = internal Prisma id, not the Firebase uid — this is the
+        // room key RealtimeGateway/NotificationsService use (user:<id>), so
+        // the socket client needs it to join the right room.
+        userId: user.id,
         tenantId: user.tenantId,
         role: user.role,
       },
