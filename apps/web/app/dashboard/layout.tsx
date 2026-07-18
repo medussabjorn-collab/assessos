@@ -25,6 +25,7 @@ import {
   Search,
   Bell,
   Languages,
+  Plug,
 } from 'lucide-react';
 
 interface NavItem {
@@ -64,6 +65,7 @@ const NAV: NavGroup[] = [
     title: 'Insights',
     items: [
       { labelKey: 'nav.analytics', href: '/dashboard/analytics', icon: PieChart },
+      { labelKey: 'nav.integrations', href: '/dashboard/integrations', icon: Plug },
       { labelKey: 'nav.settings', href: '/dashboard/settings', icon: Settings },
     ],
   },
