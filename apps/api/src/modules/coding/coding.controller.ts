@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Param, Body, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Post, Param, Body, Request, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { CodingService } from './coding.service';
 import { LockdownViolationService } from './lockdown-violation.service';
 import { CodeExecutionService } from './code-execution.service';
+import { CodingProblem } from './problem.service';
 
 @Controller('api/coding')
 export class CodingController {
@@ -13,14 +14,25 @@ export class CodingController {
     private execution: CodeExecutionService,
   ) {}
 
+  // testCases carries expectedOutput — the graded answer key. Never send it
+  // to the client (found while wiring up the real coding-challenge page:
+  // both list and single-problem reads returned it unfiltered, so anyone
+  // could read it from the network tab and hardcode a "solution").
+  private redact(problem: CodingProblem) {
+    const { testCases: _testCases, ...safe } = problem;
+    return safe;
+  }
+
   @Get('problems')
   listProblems() {
-    return { success: true, data: this.coding.listProblems() };
+    return { success: true, data: this.coding.listProblems().map((p) => this.redact(p)) };
   }
 
   @Get('problems/:id')
   getProblem(@Param('id') id: string) {
-    return { success: true, data: this.coding.getProblem(id) };
+    const problem = this.coding.getProblem(id);
+    if (!problem) throw new NotFoundException('Problem not found');
+    return { success: true, data: this.redact(problem) };
   }
 
   // Ported from leadership-assessment codeExecutionController.getLanguages.

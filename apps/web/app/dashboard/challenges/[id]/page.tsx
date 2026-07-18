@@ -1,35 +1,39 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle2, XCircle, Trophy } from 'lucide-react';
+import { CheckCircle2, XCircle, Trophy, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
+import CodeEditor, { SupportedLanguage } from '@/components/CodeEditor';
 
 interface Problem {
   id: string;
   title: string;
-  difficulty: string;
+  difficulty: 'easy' | 'medium' | 'hard';
   description: string;
-  starterCode: string;
+  constraints: string[];
+  examples: Array<{ input: string; output: string; explanation: string }>;
 }
 
-interface GradeResult {
+interface TestResult {
   passed: boolean;
-  passedCases: number;
-  totalCases: number;
-  score: number;
-  rank: number;
+  output: string;
+  error?: string;
 }
 
-const FALLBACK: Problem = {
-  id: 'ch-001',
-  title: 'Two Sum',
-  difficulty: 'easy',
-  description:
-    'Given an array of integers, return indices of two numbers that add to target.',
-  starterCode: 'function twoSum(nums, target) {\n  // your code here\n}',
-};
+// Real shape from CodeExecutionService.validateSolution (via
+// CodingService.submitSolution) — passed/failed are COUNTS, not a single
+// pass/fail boolean; `valid` is the overall verdict.
+interface SubmitResult {
+  valid: boolean;
+  score: number;
+  feedback: string;
+  passed: number;
+  failed: number;
+  results: TestResult[];
+  plagiarism: { flagged: boolean; similarityScore?: number };
+}
 
 const DIFFICULTY_STYLES: Record<string, string> = {
   easy: 'bg-green-500/15 text-green-400',
@@ -41,42 +45,56 @@ export default function ChallengePage() {
   const params = useParams();
   const id = String(params.id);
   const [problem, setProblem] = useState<Problem | null>(null);
-  const [result, setResult] = useState<GradeResult | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [result, setResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState('');
-  // Uncontrolled editor: value lives in the DOM. Rendered only once `problem`
-  // has loaded and never rewritten, so clear()/fill() are never undone.
-  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    setProblem(null);
+    setNotFound(false);
+    setResult(null);
     (async () => {
       try {
-        const res = await api.get(`/api/challenges/${id}`);
-        setProblem(res.data.data ?? FALLBACK);
+        // Ported from a page that was calling /api/challenges/:id, an
+        // endpoint that never existed here — this module lives at
+        // /api/coding, so it always 404'd and silently fell back to a
+        // hardcoded stub. Fixed to the real route.
+        const res = await api.get(`/api/coding/problems/${id}`);
+        setProblem(res.data.data);
       } catch {
-        setProblem(FALLBACK);
+        setNotFound(true);
       }
     })();
   }, [id]);
 
-  const submit = async () => {
-    const code = editorRef.current?.value ?? '';
+  const submit = async (code: string, language: SupportedLanguage) => {
     if (!code.trim()) {
       setError('Code cannot be empty');
       setResult(null);
       return;
     }
     setError('');
+    setSubmitting(true);
     try {
-      const res = await api.post(`/api/challenges/${id}/submit`, { code });
+      const res = await api.post(`/api/coding/problems/${id}/submit`, { code, language });
       setResult(res.data.data);
-    } catch {
-      // ignore
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'Submission failed');
+    } finally {
+      setSubmitting(false);
     }
   };
+
+  if (notFound) {
+    return <div className="p-2 text-subtle">Problem not found.</div>;
+  }
 
   if (!problem) {
     return <div className="p-2 text-subtle">Loading…</div>;
   }
+
+  const totalCases = result ? result.passed + result.failed : 0;
 
   return (
     <div className="max-w-3xl">
@@ -100,20 +118,19 @@ export default function ChallengePage() {
       </div>
       <p className="text-slate-600 mb-4">{problem.description}</p>
 
-      <textarea
-        aria-label="Code editor"
-        ref={editorRef}
-        defaultValue={problem.starterCode}
-        spellCheck={false}
-        className="w-full h-56 font-mono text-sm p-4 rounded-xl bg-canvas text-ink border border-hairline focus:outline-none focus:ring-2 focus:ring-brand-600"
-      />
+      {problem.examples?.length > 0 && (
+        <div className="mb-4 space-y-2">
+          {problem.examples.map((ex, i) => (
+            <div key={i} className="rounded-lg bg-canvas border border-hairline p-3 text-sm font-mono">
+              <div className="text-subtle">Input: <span className="text-ink">{ex.input}</span></div>
+              <div className="text-subtle">Output: <span className="text-ink">{ex.output}</span></div>
+              {ex.explanation && <div className="text-subtle mt-1">{ex.explanation}</div>}
+            </div>
+          ))}
+        </div>
+      )}
 
-      <button
-        onClick={submit}
-        className="mt-3 px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
-      >
-        Submit
-      </button>
+      <CodeEditor onSubmit={submit} submitting={submitting} />
 
       {error && <p className="text-red-400 mt-3">{error}</p>}
 
@@ -121,17 +138,41 @@ export default function ChallengePage() {
         <div className="mt-6 p-5 rounded-xl bg-surface border border-hairline">
           <p
             className={`inline-flex items-center gap-2 font-semibold ${
-              result.passed ? 'text-green-400' : 'text-red-400'
+              result.valid ? 'text-green-400' : 'text-red-400'
             }`}
           >
-            {result.passed ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
-            {result.passed ? 'Passed' : 'Failed'}
+            {result.valid ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+            {result.valid ? 'Passed' : 'Failed'}
           </p>
           <p className="text-slate-600 mt-2">
-            {result.passedCases} / {result.totalCases} test cases passed
+            {result.passed} / {totalCases} test cases passed · score {result.score}
           </p>
-          {result.passed && (
-            <p className="text-slate-600 mt-1">Rank #{result.rank}</p>
+          <p className="text-subtle text-sm mt-1">{result.feedback}</p>
+
+          {result.plagiarism.flagged && (
+            <p className="mt-3 flex items-center gap-2 text-amber-500 text-sm">
+              <AlertTriangle size={15} /> Flagged for similarity to a prior submission
+              {result.plagiarism.similarityScore != null &&
+                ` (${Math.round(result.plagiarism.similarityScore * 100)}% match)`}
+            </p>
+          )}
+
+          {result.results?.length > 0 && (
+            <div className="mt-4 space-y-1.5">
+              {result.results.map((r, i) => (
+                <div key={i} className="flex items-center gap-2 text-sm">
+                  {r.passed ? (
+                    <CheckCircle2 size={14} className="text-green-400 shrink-0" />
+                  ) : (
+                    <XCircle size={14} className="text-red-400 shrink-0" />
+                  )}
+                  <span className="text-subtle">Test case {i + 1}</span>
+                  {!r.passed && r.error && (
+                    <span className="text-red-400 font-mono text-xs truncate">{r.error}</span>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
