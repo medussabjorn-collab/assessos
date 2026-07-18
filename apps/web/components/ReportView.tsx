@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import axios from 'axios';
+import { api } from '@/lib/api';
 import { Download, Loader } from 'lucide-react';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 interface ReportViewProps {
   reportId: string;
@@ -29,15 +33,13 @@ export default function ReportView({ reportId }: ReportViewProps) {
 
     const fetchReport = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:3000/api/reports/${reportId}`,
-          {
-            headers: {
-              'x-tenant-id': tenantId,
-              Authorization: `Bearer ${await user.getIdToken()}`,
-            },
-          },
-        );
+        // Was a raw axios call to a hardcoded http://localhost:3000 with
+        // manually-attached headers, bypassing the shared `api` client
+        // (lib/api.ts) that every other real page in this app uses —
+        // broken outside local dev (no NEXT_PUBLIC_API_URL / rewrite
+        // resolution) and duplicated the token/tenant-header logic the
+        // client's interceptor already does.
+        const response = await api.get(`/api/reports/${reportId}`);
         setReport(response.data.data);
         setLoading(false);
       } catch (err) {
@@ -121,6 +123,35 @@ export default function ReportView({ reportId }: ReportViewProps) {
                 Competency Dimension Scores
               </h2>
 
+              {/* Fix vs the previous version: dimensionScores are 0-100 (see
+                  the AI prompt in report-generator.service.ts — explicitly
+                  asks for "<0-100>" per dimension), not 0-5. The old code
+                  divided by 5 and labeled it "/5.0", so a real score like 78
+                  rendered a bar at 1560% width and the label "78.0/5.0". */}
+              <div className="h-64 mb-6">
+                <Bar
+                  data={{
+                    labels: Object.keys(report.dimensionScores),
+                    datasets: [
+                      {
+                        label: 'Score',
+                        data: Object.values(report.dimensionScores),
+                        backgroundColor: '#4f46e599',
+                        borderColor: '#4f46e5',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { min: 0, max: 100, ticks: { stepSize: 20 } } },
+                  }}
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-6">
                 {Object.entries(report.dimensionScores).map(
                   ([dimension, score]) => (
@@ -133,14 +164,14 @@ export default function ReportView({ reportId }: ReportViewProps) {
                       </h3>
                       <div className="flex items-baseline gap-2">
                         <span className="text-3xl font-bold text-brand-600">
-                          {score.toFixed(1)}
+                          {Math.round(score)}
                         </span>
-                        <span className="text-gray-600">/5.0</span>
+                        <span className="text-gray-600">/100</span>
                       </div>
                       <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-brand-600 h-2 rounded-full"
-                          style={{ width: `${(score / 5) * 100}%` }}
+                          style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
                         />
                       </div>
                     </div>
