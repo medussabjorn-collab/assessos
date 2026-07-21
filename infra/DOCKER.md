@@ -1,6 +1,6 @@
 # Running AssessOS with Docker
 
-The full local stack (Postgres + Redis + API + Web) is defined in
+The full local stack (Postgres + Redis + Mongo + API + Web) is defined in
 [`infra/docker-compose.yml`](./docker-compose.yml). Images build from
 [`infra/docker/Dockerfile.api`](./docker/Dockerfile.api) and
 [`Dockerfile.web`](./docker/Dockerfile.web).
@@ -44,7 +44,7 @@ wsl -u root -e bash -lc 'nohup dockerd >/var/log/dockerd.log 2>&1 &'
 wsl -u root -e bash -lc 'cd /mnt/f/Dev/assessos && docker compose -f infra/docker-compose.yml up -d --build'
 ```
 
-Published ports (3001/3000/5432/6379) are reachable on `localhost` from inside
-the WSL shell. Verified: both images build, Postgres/Redis report healthy, the
-API applies its migration and listens on :3000, and the web app serves
-`/login` (200).
+Published ports (3001/3000/5432/6379/27017) are reachable on `localhost` from
+inside the WSL shell. Verified: both images build, Postgres/Redis/Mongo report
+healthy, the API applies its migration and listens on :3000, and the web app
+serves `/login` (200).

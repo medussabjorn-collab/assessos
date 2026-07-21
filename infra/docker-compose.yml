@@ -62,8 +62,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://assessos_user:assessos_pass@postgres:5432/assessos_dev
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379
       MONGO_URL: mongodb://mongo:27017/assessos
       JWT_SECRET: dev-jwt-secret-change-me-32-chars-min
       CORS_ORIGIN: http://localhost:3001
