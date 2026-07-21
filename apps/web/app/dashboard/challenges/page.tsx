@@ -28,7 +28,7 @@ export default function ChallengesPage() {
     if (!user) return;
     (async () => {
       try {
-        const res = await api.get('/api/challenges');
+        const res = await api.get('/api/coding/problems');
         setProblems(res.data.data ?? []);
       } catch {
         // leave empty
