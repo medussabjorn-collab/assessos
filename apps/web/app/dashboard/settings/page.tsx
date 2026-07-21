@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import OrganizationSettings from '@/components/OrganizationSettings';
+import BillingSettings from '@/components/BillingSettings';
 import { api } from '@/lib/api';
 import { Settings, Palette, CreditCard, ShieldCheck, Download } from 'lucide-react';
 
@@ -85,16 +86,7 @@ export default function SettingsPage() {
 
           {activeTab === 'branding' && <OrganizationSettings />}
 
-          {activeTab === 'billing' && (
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">
-                Billing & Subscription
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Coming soon: Manage subscription, invoices, and payment methods
-              </p>
-            </div>
-          )}
+          {activeTab === 'billing' && <BillingSettings />}
 
           {activeTab === 'privacy' && (
             <div>

@@ -18,7 +18,7 @@ export class BillingService {
 
   async createSubscription(
     tenantId: string,
-    userId: string,
+    firebaseUid: string,
     plan: string,
   ) {
     // Validate plan
@@ -27,9 +27,12 @@ export class BillingService {
       throw new BadRequestException('Invalid plan');
     }
 
-    // Get user and tenant info
+    // Get user and tenant info. The controller passes req.user.uid, which is
+    // the Firebase UID (same convention as every other module) — this was
+    // querying by Prisma's internal `id` instead, so it 400'd "User not
+    // found" for every real user, every time, regardless of Stripe config.
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, tenantId },
+      where: { firebaseUid, tenantId },
     });
 
     if (!user) {
