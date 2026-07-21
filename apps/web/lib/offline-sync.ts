@@ -13,7 +13,11 @@ export interface OfflineEntry {
   sessionId: string;
   payload: unknown;
   timestamp: string;
-  synced: boolean;
+  // IndexedDB keys/index values can't be a boolean (IDBKeyRange.only(false)
+  // throws "The parameter is not a valid key" — the spec only allows
+  // number/string/Date/binary/Array). Stored as 0 (pending) / 1 (synced) so
+  // the `synced` index actually works.
+  synced: 0 | 1;
   encrypted: boolean;
 }
 
@@ -93,7 +97,7 @@ class OfflineSyncService {
       sessionId,
       payload: this.encrypt(JSON.stringify(payload)),
       timestamp: new Date().toISOString(),
-      synced: false,
+      synced: 0,
       encrypted: true,
     };
     return new Promise((resolve, reject) => {
@@ -109,7 +113,7 @@ class OfflineSyncService {
     return new Promise((resolve) => {
       const tx = this.db!.transaction('queue', 'readonly');
       const index = tx.objectStore('queue').index('synced');
-      const req = index.count(IDBKeyRange.only(false));
+      const req = index.count(IDBKeyRange.only(0));
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => resolve(0);
     });
@@ -120,7 +124,7 @@ class OfflineSyncService {
     return new Promise((resolve) => {
       const tx = this.db!.transaction('queue', 'readonly');
       const index = tx.objectStore('queue').index('synced');
-      const req = index.getAll(IDBKeyRange.only(false));
+      const req = index.getAll(IDBKeyRange.only(0));
       req.onsuccess = () => {
         const entries = (req.result as OfflineEntry[]).map((e) => ({
           ...e,
@@ -141,7 +145,7 @@ class OfflineSyncService {
       get.onsuccess = () => {
         const entry = get.result as OfflineEntry;
         if (entry) {
-          entry.synced = true;
+          entry.synced = 1;
           store.put(entry).onsuccess = () => resolve();
         } else resolve();
       };
@@ -205,7 +209,7 @@ class OfflineSyncService {
     return new Promise((resolve) => {
       const tx = this.db!.transaction('queue', 'readwrite');
       const index = tx.objectStore('queue').index('synced');
-      const req = index.openCursor(IDBKeyRange.only(true));
+      const req = index.openCursor(IDBKeyRange.only(1));
       req.onsuccess = (e) => {
         const cursor = (e.target as IDBRequest<IDBCursorWithValue>).result;
         if (cursor) {

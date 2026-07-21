@@ -1,68 +1,79 @@
 /**
  * Flow 3: Practice Learning
- * login → question library → attempt problem → spaced-repetition feedback → badges
+ * login → practice dashboard → answer a spaced-repetition question → feedback → badges
  *
- * NOTE: The practice module is not yet implemented in the codebase. These tests
- * target the expected UI routes (/dashboard/practice) and are intentionally
- * marked fixme until the feature ships, following our flaky-test quarantine policy.
+ * The practice module is real (apps/api/src/modules/practice), but its model
+ * is a single next-question spaced-repetition flow, not a browsable list of
+ * fixed questions — GET /api/practice/dashboard (stats + suggestedDomain),
+ * GET /api/practice/question?domain=X (one question), POST /api/practice/answer
+ * (grade it). There's no per-answer streak in the response (that only lives
+ * in the dashboard stats) and no dedicated badges endpoint — recentBadges is
+ * a bare array of slugs on the dashboard payload.
  */
 import { test, expect } from './fixtures/auth.fixture';
 import { mockApi } from './fixtures/helpers';
 
-const MOCK_QUESTIONS = [
-  {
-    id: 'pq-001',
-    title: 'Situational Leadership',
-    category: 'Leadership',
-    difficulty: 'medium',
-    dueAt: new Date().toISOString(),
+const MOCK_DASHBOARD = {
+  stats: {
+    totalQuestionsAnswered: 145,
+    correctAnswers: 98,
+    accuracyRate: 67,
+    currentStreak: 5,
+    longestStreak: 12,
+    timeSpentHours: 12,
   },
-  {
-    id: 'pq-002',
-    title: 'Conflict Resolution',
-    category: 'Communication',
-    difficulty: 'easy',
-    dueAt: null,
-  },
-];
-
-const MOCK_FEEDBACK = {
-  correct: true,
-  explanation: 'Transformational leadership empowers teams through vision and inspiration.',
-  nextReviewAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-  streakCount: 3,
+  dueToday: 8,
+  suggestedDomain: 'leadership',
+  recentBadges: ['first_question', 'streak_7'],
+  nextMilestone: { name: 'Month Master', progress: 5, target: 30 },
 };
 
-const MOCK_BADGES = [{ id: 'b1', name: 'First Answer', awardedAt: new Date().toISOString() }];
+const MOCK_QUESTION = {
+  id: 'q-001',
+  domain: 'leadership',
+  topic: 'Situational Leadership',
+  difficulty: 'medium',
+  question: 'A team member is struggling. What leadership style do you adopt?',
+  options: [
+    { id: 'a', text: 'Directive' },
+    { id: 'b', text: 'Transformational' },
+    { id: 'c', text: 'Laissez-faire' },
+  ],
+  estimatedTime: 30,
+};
+
+const MOCK_CORRECT_RESULT = {
+  isCorrect: true,
+  quality: 5,
+  explanation: 'Transformational leadership empowers teams through vision and inspiration.',
+  nextReviewDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+};
+
+const MOCK_INCORRECT_RESULT = {
+  isCorrect: false,
+  quality: 1,
+  explanation: 'Transformational leadership empowers teams through vision and inspiration.',
+  nextReviewDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+};
 
 test.describe('Practice Learning Flow', () => {
   test(
     'happy path: select question → submit answer → receive spaced-repetition feedback',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
-      await mockApi(page, /\/api\/practice\/questions/, { data: MOCK_QUESTIONS });
-      await mockApi(page, /\/api\/practice\/questions\/pq-001/, {
-        data: {
-          ...MOCK_QUESTIONS[0],
-          body: 'A team member is struggling. What leadership style do you adopt?',
-          options: [
-            { id: 'a', text: 'Directive' },
-            { id: 'b', text: 'Transformational' },
-            { id: 'c', text: 'Laissez-faire' },
-          ],
-        },
-      });
-      await mockApi(page, /\/api\/practice\/submit/, { data: MOCK_FEEDBACK });
+      await mockApi(page, /\/api\/practice\/dashboard/, { success: true, data: MOCK_DASHBOARD });
+      await mockApi(page, /\/api\/practice\/question/, { success: true, data: MOCK_QUESTION });
+      await mockApi(page, /\/api\/practice\/answer/, { success: true, data: MOCK_CORRECT_RESULT });
 
       await page.goto('/dashboard/practice');
-      await expect(page.getByText('Question Library')).toBeVisible();
-      await expect(page.getByText('Situational Leadership')).toBeVisible();
+      await expect(page.getByText('Due today')).toBeVisible();
+      await expect(page.getByText('Start practice — leadership')).toBeVisible();
 
-      await page.getByText('Situational Leadership').click();
+      await page.getByText('Start practice — leadership').click();
       await expect(page.getByText('A team member is struggling')).toBeVisible();
 
       await page.getByText('Transformational').click();
-      await page.getByRole('button', { name: /Submit/ }).click();
+      await page.getByRole('button', { name: /Submit Answer/ }).click();
 
       await expect(page.getByText('Transformational leadership empowers')).toBeVisible();
       await expect(page.getByText(/next review/i)).toBeVisible();
@@ -73,35 +84,37 @@ test.describe('Practice Learning Flow', () => {
     'spaced repetition shows next review date after correct answer',
     async ({ authedPage: page }) => {
       await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
-      await mockApi(page, /\/api\/practice\/submit/, { data: MOCK_FEEDBACK });
+      await mockApi(page, /\/api\/practice\/question/, { success: true, data: MOCK_QUESTION });
+      await mockApi(page, /\/api\/practice\/answer/, { success: true, data: MOCK_CORRECT_RESULT });
 
-      await page.goto('/dashboard/practice/pq-001');
+      await page.goto('/dashboard/practice/leadership');
       await page.getByText('Transformational').click();
-      await page.getByRole('button', { name: /Submit/ }).click();
+      await page.getByRole('button', { name: /Submit Answer/ }).click();
 
-      // Streak badge
-      await expect(page.getByText('3')).toBeVisible();
+      await expect(page.getByText('Correct')).toBeVisible();
+      await expect(page.getByText(/Next review:/)).toBeVisible();
     },
   );
 
   test('badge awarded on milestone progress', async ({ authedPage: page }) => {
     await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
-    await mockApi(page, /\/api\/practice\/badges/, { data: MOCK_BADGES });
+    await mockApi(page, /\/api\/practice\/dashboard/, { success: true, data: MOCK_DASHBOARD });
 
     await page.goto('/dashboard/practice/badges');
-    await expect(page.getByText('First Answer')).toBeVisible();
+    await expect(page.getByText('First Question')).toBeVisible();
+    await expect(page.getByText('Streak 7')).toBeVisible();
   });
 
   test('wrong answer shows explanation without advancing streak', async ({ authedPage: page }) => {
-    const wrongFeedback = { ...MOCK_FEEDBACK, correct: false, streakCount: 0 };
     await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
-    await mockApi(page, /\/api\/practice\/submit/, { data: wrongFeedback });
+    await mockApi(page, /\/api\/practice\/question/, { success: true, data: MOCK_QUESTION });
+    await mockApi(page, /\/api\/practice\/answer/, { success: true, data: MOCK_INCORRECT_RESULT });
 
-    await page.goto('/dashboard/practice/pq-001');
+    await page.goto('/dashboard/practice/leadership');
     await page.getByText('Directive').click();
-    await page.getByRole('button', { name: /Submit/ }).click();
+    await page.getByRole('button', { name: /Submit Answer/ }).click();
 
-    await expect(page.getByText(/incorrect/i)).toBeVisible();
+    await expect(page.getByText('Incorrect')).toBeVisible();
     await expect(page.getByText('Transformational leadership empowers')).toBeVisible();
   });
 });
