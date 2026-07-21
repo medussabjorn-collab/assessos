@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
-import { Download, Loader } from 'lucide-react';
+import { Download, Loader, HelpCircle, FlagTriangleRight } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
 
@@ -22,11 +22,31 @@ interface Report {
   coachingPlan: any;
 }
 
+interface ContributingAnswer {
+  questionId: string;
+  questionText: string;
+  selectedOptionText: string | null;
+  timeTakenSec: number | null;
+}
+
+interface ReportExplanation {
+  reportId: string;
+  narrative: string | null;
+  recommendation: string | null;
+  dimensionBreakdown: Array<{ dimension: string; score: number | null; contributingAnswers: ContributingAnswer[] }>;
+  explanationMethod: string;
+}
+
 export default function ReportView({ reportId }: ReportViewProps) {
   const { user, tenantId } = useAuth();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [explanation, setExplanation] = useState<ReportExplanation | null>(null);
+  const [explanationLoading, setExplanationLoading] = useState(false);
+  const [reviewReason, setReviewReason] = useState('');
+  const [reviewRequested, setReviewRequested] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !reportId) return;
@@ -54,6 +74,30 @@ export default function ReportView({ reportId }: ReportViewProps) {
   const handleDownloadPDF = async () => {
     // TODO: Implement PDF download via AI sidecar
     alert('PDF download coming in Phase 3');
+  };
+
+  const loadExplanation = async () => {
+    setExplanationLoading(true);
+    try {
+      const res = await api.get(`/api/compliance/reports/${reportId}/explanation`);
+      setExplanation(res.data.data);
+    } catch {
+      // leave explanation null; button stays available to retry
+    } finally {
+      setExplanationLoading(false);
+    }
+  };
+
+  const requestReview = async () => {
+    setReviewError(null);
+    try {
+      await api.post(`/api/compliance/reports/${reportId}/review-request`, {
+        reason: reviewReason || undefined,
+      });
+      setReviewRequested(true);
+    } catch {
+      setReviewError('Could not submit review request. Try again.');
+    }
   };
 
   if (loading) {
@@ -243,6 +287,73 @@ export default function ReportView({ reportId }: ReportViewProps) {
                 </div>
               </div>
             )}
+
+            {/* Compliance: GDPR Art. 22 / CPRA — explanation of the automated
+                decision + a way to request human review. */}
+            <div className="bg-white rounded-lg shadow-md p-8 mt-8">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900">About this report</h2>
+
+              {!explanation ? (
+                <button
+                  onClick={loadExplanation}
+                  disabled={explanationLoading}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  {explanationLoading ? 'Loading…' : 'How was this score generated?'}
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">{explanation.explanationMethod}</p>
+                  {explanation.dimensionBreakdown.map((d) => (
+                    <div key={d.dimension} className="border-l-4 border-slate-300 pl-4">
+                      <p className="font-medium text-gray-900">
+                        {d.dimension} — {d.score != null ? Math.round(d.score) : '—'}/100
+                      </p>
+                      {d.contributingAnswers.length > 0 && (
+                        <ul className="mt-1 space-y-1">
+                          {d.contributingAnswers.map((a) => (
+                            <li key={a.questionId} className="text-sm text-gray-600">
+                              {a.questionText} — <span className="italic">{a.selectedOptionText ?? '—'}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                {reviewRequested ? (
+                  <p className="text-sm text-green-700">
+                    Review request submitted — an admin will follow up.
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Think this score is wrong? Request a human review.
+                    </p>
+                    <div className="flex gap-2">
+                      <input
+                        value={reviewReason}
+                        onChange={(e) => setReviewReason(e.target.value)}
+                        placeholder="Why? (optional)"
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                      />
+                      <button
+                        onClick={requestReview}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 text-white text-sm hover:bg-slate-900 transition"
+                      >
+                        <FlagTriangleRight className="w-4 h-4" />
+                        Request review
+                      </button>
+                    </div>
+                    {reviewError && <p className="text-sm text-red-500 mt-2">{reviewError}</p>}
+                  </>
+                )}
+              </div>
+            </div>
           </>
         )}
       </div>

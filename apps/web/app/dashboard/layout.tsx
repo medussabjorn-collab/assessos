@@ -26,6 +26,7 @@ import {
   Bell,
   Languages,
   Plug,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface NavItem {
@@ -66,6 +67,7 @@ const NAV: NavGroup[] = [
     items: [
       { labelKey: 'nav.analytics', href: '/dashboard/analytics', icon: PieChart },
       { labelKey: 'nav.integrations', href: '/dashboard/integrations', icon: Plug },
+      { labelKey: 'nav.compliance', href: '/dashboard/compliance', icon: ShieldAlert },
       { labelKey: 'nav.settings', href: '/dashboard/settings', icon: Settings },
     ],
   },
