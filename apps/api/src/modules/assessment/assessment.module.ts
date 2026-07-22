@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AssessmentService } from './assessment.service';
 import { AssessmentController } from './assessment.controller';
+import { AssessmentConfigService } from './assessment-config.service';
+import { AssessmentConfigController } from './assessment-config.controller';
 import { LeadershipService } from './leadership.service';
 import { QuestionBankService } from './question-bank.service';
 import { ScenarioGeneratorService } from './scenario-generator.service';
@@ -12,9 +14,10 @@ import { WebhooksModule } from '../webhooks/webhooks.module';
 
 @Module({
   imports: [TenantModule, WebhooksModule],
-  controllers: [AssessmentController],
+  controllers: [AssessmentController, AssessmentConfigController],
   providers: [
     AssessmentService,
+    AssessmentConfigService,
     LeadershipService,
     QuestionBankService,
     ScenarioGeneratorService,

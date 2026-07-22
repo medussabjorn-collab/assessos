@@ -246,9 +246,23 @@ model AssessmentConfig {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  // Versioning: rows are immutable once created. Editing an assessment never
+  // updates a row in place — it inserts a new row with the same
+  // assessmentGroupId and version + 1, then flips isCurrent over. Existing
+  // AssessmentSession.configId FKs keep pointing at the exact version they
+  // ran under, so already-graded reports never silently re-score against a
+  // changed definition. assessmentGroupId defaults to the row's own id for a
+  // brand-new assessment (version 1 is its own group).
+  assessmentGroupId String
+  version           Int       @default(1)
+  isCurrent         Boolean   @default(true)
+  publishedAt       DateTime  @default(now())
+
   sessions          AssessmentSession[]
 
+  @@unique([assessmentGroupId, version])
   @@index([tenantId])
+  @@index([assessmentGroupId])
   @@map("assessment_configs")
 }
 

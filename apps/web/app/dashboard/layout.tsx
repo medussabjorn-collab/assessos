@@ -29,6 +29,7 @@ import {
   ShieldAlert,
   Shield,
   KeyRound,
+  ClipboardList,
 } from 'lucide-react';
 
 interface NavItem {
@@ -72,6 +73,7 @@ const NAV: NavGroup[] = [
       { labelKey: 'nav.compliance', href: '/dashboard/compliance', icon: ShieldAlert },
       { labelKey: 'nav.admin', href: '/dashboard/admin', icon: Shield },
       { labelKey: 'nav.roles', href: '/dashboard/roles', icon: KeyRound },
+      { labelKey: 'nav.assessments', href: '/dashboard/assessments', icon: ClipboardList },
       { labelKey: 'nav.settings', href: '/dashboard/settings', icon: Settings },
     ],
   },

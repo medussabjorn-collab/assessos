@@ -53,6 +53,7 @@ async function main() {
     update: {},
     create: {
       id: 'cfg-leadership-001',
+      assessmentGroupId: 'cfg-leadership-001',
       tenantId: tenant.id,
       pillar: 'leadership',
       dimensions: [

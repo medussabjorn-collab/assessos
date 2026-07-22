@@ -26,6 +26,7 @@ export const PERMISSIONS = {
   RATER_FEEDBACK_REVIEW: 'rater_feedback.review',
   PLATFORM_ORGS_MANAGE: 'platform.orgs.manage',
   ROLES_MANAGE: 'roles.manage',
+  ASSESSMENT_CONFIGS_MANAGE: 'assessment.configs.manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
