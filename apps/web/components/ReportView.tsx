@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
-import { Download, Loader, HelpCircle, FlagTriangleRight } from 'lucide-react';
+import { Download, Loader, HelpCircle, FlagTriangleRight, Users } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
 
@@ -15,12 +15,31 @@ interface ReportViewProps {
 
 interface Report {
   id: string;
+  sessionId: string;
   status: string;
   dimensionScores: Record<string, number>;
   narrative: string;
   benchmarkPercentile: number;
   coachingPlan: any;
 }
+
+interface RaterFeedbackEntry {
+  id: string;
+  raterId: string | null;
+  relationship: string;
+  ratings: Record<string, number>;
+  comments: string | null;
+  isAnonymous: boolean;
+  submittedAt: string;
+}
+
+const RELATIONSHIP_OPTIONS = [
+  { value: 'self', label: 'Self' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'peer', label: 'Peer' },
+  { value: 'direct_report', label: 'Direct report' },
+  { value: 'other', label: 'Other' },
+];
 
 interface ContributingAnswer {
   questionId: string;
@@ -47,6 +66,16 @@ export default function ReportView({ reportId }: ReportViewProps) {
   const [reviewReason, setReviewReason] = useState('');
   const [reviewRequested, setReviewRequested] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+
+  const [feedbackEntries, setFeedbackEntries] = useState<RaterFeedbackEntry[]>([]);
+  const [feedbackLoaded, setFeedbackLoaded] = useState(false);
+  const [relationship, setRelationship] = useState('peer');
+  const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [comments, setComments] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   useEffect(() => {
     if (!user || !reportId) return;
@@ -97,6 +126,46 @@ export default function ReportView({ reportId }: ReportViewProps) {
       setReviewRequested(true);
     } catch {
       setReviewError('Could not submit review request. Try again.');
+    }
+  };
+
+  const loadFeedback = async (sessionId: string) => {
+    try {
+      const res = await api.get(`/api/rater-feedback/sessions/${sessionId}`);
+      setFeedbackEntries(res.data.data ?? []);
+    } catch {
+      // leave whatever was already loaded; not authorized or not found
+    } finally {
+      setFeedbackLoaded(true);
+    }
+  };
+
+  useEffect(() => {
+    if (report?.sessionId) loadFeedback(report.sessionId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [report?.sessionId]);
+
+  const setRating = (dimension: string, value: number) => {
+    setRatings((prev) => ({ ...prev, [dimension]: value }));
+  };
+
+  const submitFeedback = async () => {
+    if (!report?.sessionId) return;
+    setFeedbackError(null);
+    setSubmittingFeedback(true);
+    try {
+      await api.post(`/api/rater-feedback/sessions/${report.sessionId}`, {
+        relationship,
+        ratings,
+        comments: comments || undefined,
+        isAnonymous,
+      });
+      setFeedbackSubmitted(true);
+      loadFeedback(report.sessionId);
+    } catch (err: any) {
+      setFeedbackError(err?.response?.data?.message ?? 'Could not submit feedback.');
+    } finally {
+      setSubmittingFeedback(false);
     }
   };
 
@@ -353,6 +422,97 @@ export default function ReportView({ reportId }: ReportViewProps) {
                   </>
                 )}
               </div>
+            </div>
+
+            {/* 360° feedback: peers/managers/direct-reports rate the same
+                competency dimensions as the AI report. Subject-only viewers
+                get anonymized entries with rater identity stripped;
+                managers/admins see who submitted what — handled server-side. */}
+            <div className="bg-white rounded-lg shadow-md p-8 mt-8">
+              <h2 className="text-2xl font-bold mb-4 text-slate-900 flex items-center gap-2">
+                <Users className="w-6 h-6" /> 360° Feedback
+              </h2>
+
+              <div className="space-y-3 mb-6">
+                <select
+                  value={relationship}
+                  onChange={(e) => setRelationship(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                >
+                  {RELATIONSHIP_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {Object.keys(report.dimensionScores).map((dim) => (
+                    <div key={dim}>
+                      <label className="text-sm text-gray-700 capitalize">{dim}</label>
+                      <select
+                        value={ratings[dim] ?? ''}
+                        onChange={(e) => setRating(dim, Number(e.target.value))}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                      >
+                        <option value="" disabled>Rate 1-5…</option>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+
+                <textarea
+                  value={comments}
+                  onChange={(e) => setComments(e.target.value)}
+                  placeholder="Comments (optional)"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  rows={2}
+                />
+
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                  />
+                  Submit anonymously
+                </label>
+
+                <button
+                  onClick={submitFeedback}
+                  disabled={submittingFeedback || Object.keys(ratings).length === 0}
+                  className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm hover:bg-brand-700 disabled:opacity-50 transition"
+                >
+                  {submittingFeedback ? 'Submitting…' : 'Submit feedback'}
+                </button>
+                {feedbackSubmitted && (
+                  <p className="text-sm text-green-700">Feedback submitted.</p>
+                )}
+                {feedbackError && <p className="text-sm text-red-500">{feedbackError}</p>}
+              </div>
+
+              {feedbackLoaded && (
+                <div className="pt-6 border-t border-gray-200 space-y-3">
+                  <h3 className="font-semibold text-gray-900">
+                    {feedbackEntries.length} response{feedbackEntries.length === 1 ? '' : 's'}
+                  </h3>
+                  {feedbackEntries.map((f) => (
+                    <div key={f.id} className="border-l-4 border-slate-300 pl-4">
+                      <p className="text-sm text-gray-600 capitalize">
+                        {f.relationship.replace(/_/g, ' ')}
+                        {f.raterId ? '' : ' (anonymous)'}
+                        {' — '}
+                        {new Date(f.submittedAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-sm text-gray-800">
+                        {Object.entries(f.ratings).map(([d, r]) => `${d}: ${r}/5`).join(' · ')}
+                      </p>
+                      {f.comments && <p className="text-sm text-gray-600 italic mt-1">&quot;{f.comments}&quot;</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}
