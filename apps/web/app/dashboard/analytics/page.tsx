@@ -2,12 +2,11 @@
 
 import CHRODashboard from '@/components/CHRODashboard';
 import { useAuth } from '@/lib/auth-context';
+import { PERMISSIONS } from '@/lib/permissions';
 import { ShieldOff } from 'lucide-react';
 
-const ADMIN_ROLES = ['org_admin', 'super_admin'];
-
 export default function AnalyticsPage() {
-  const { role, loading } = useAuth();
+  const { hasPermission, loading } = useAuth();
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-[60vh] text-subtle">Loading…</div>;
@@ -15,7 +14,7 @@ export default function AnalyticsPage() {
 
   // Backend enforces this too (403 on /api/analytics/dashboard) — this is
   // the friendly UI for non-admins instead of a raw fetch error.
-  if (!role || !ADMIN_ROLES.includes(role)) {
+  if (!hasPermission(PERMISSIONS.ANALYTICS_ORG_DASHBOARD_VIEW)) {
     return (
       <div className="frost-card p-12 text-center max-w-md mx-auto mt-16">
         <ShieldOff className="w-12 h-12 text-hairline mx-auto mb-4" />

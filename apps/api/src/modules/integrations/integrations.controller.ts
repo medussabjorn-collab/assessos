@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   Param,
   Post,
@@ -9,30 +8,18 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
-import { PrismaService } from '../../database/prisma.service';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { IntegrationsService } from './integrations.service';
 
-const ADMIN_ROLES = ['org_admin', 'super_admin'];
-
 @Controller('api/integrations')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard, PermissionsGuard)
 export class IntegrationsController {
-  constructor(
-    private readonly integrations: IntegrationsService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly integrations: IntegrationsService) {}
 
   private tenantOf(req: any): string {
     return req.headers['x-tenant-id'];
-  }
-
-  private async assertAdmin(req: any) {
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId: this.tenantOf(req) },
-    });
-    if (!user || !ADMIN_ROLES.includes(user.role)) {
-      throw new ForbiddenException('Only org admins can manage integrations');
-    }
   }
 
   // Available integrations (static catalog) — any authenticated user.
@@ -49,19 +36,19 @@ export class IntegrationsController {
   }
 
   @Post(':name/connect')
+  @RequirePermission(PERMISSIONS.INTEGRATIONS_MANAGE)
   async connect(
     @Request() req: any,
     @Param('name') name: string,
     @Body() body: { config?: Record<string, unknown> },
   ) {
-    await this.assertAdmin(req);
     const data = await this.integrations.connect(this.tenantOf(req), name, body?.config);
     return { success: true, data };
   }
 
   @Post(':name/disconnect')
+  @RequirePermission(PERMISSIONS.INTEGRATIONS_MANAGE)
   async disconnect(@Request() req: any, @Param('name') name: string) {
-    await this.assertAdmin(req);
     const data = await this.integrations.disconnect(this.tenantOf(req), name);
     return { success: true, data };
   }

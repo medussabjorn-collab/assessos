@@ -31,11 +31,13 @@ async function main() {
   });
 
   // ── Users ─────────────────────────────────────────────────────────────────
+  // roleId is deterministic (see the RBAC migration): tenantId:roleName for
+  // the 6 tenant-scoped system roles, or the fixed 'global:super_admin' id.
   const users = [
-    { id: 'usr-admin', firebaseUid: 'seed-admin-uid', email: 'admin@assessos.test', name: 'Alex Admin', role: 'org_admin', department: 'People' },
-    { id: 'usr-manager', firebaseUid: 'seed-manager-uid', email: 'manager@assessos.test', name: 'Morgan Lee', role: 'manager', department: 'People' },
-    { id: 'usr-jane', firebaseUid: 'seed-jane-uid', email: 'jane.doe@acme.test', name: 'Jane Doe', role: 'employee', department: 'Engineering' },
-    { id: 'usr-john', firebaseUid: 'seed-john-uid', email: 'john.smith@acme.test', name: 'John Smith', role: 'employee', department: 'Product' },
+    { id: 'usr-admin', firebaseUid: 'seed-admin-uid', email: 'admin@assessos.test', name: 'Alex Admin', roleId: `${tenant.id}:org_admin`, department: 'People' },
+    { id: 'usr-manager', firebaseUid: 'seed-manager-uid', email: 'manager@assessos.test', name: 'Morgan Lee', roleId: `${tenant.id}:manager`, department: 'People' },
+    { id: 'usr-jane', firebaseUid: 'seed-jane-uid', email: 'jane.doe@acme.test', name: 'Jane Doe', roleId: `${tenant.id}:employee`, department: 'Engineering' },
+    { id: 'usr-john', firebaseUid: 'seed-john-uid', email: 'john.smith@acme.test', name: 'John Smith', roleId: `${tenant.id}:employee`, department: 'Product' },
   ];
   for (const u of users) {
     await prisma.user.upsert({

@@ -1,9 +1,7 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
-  NotFoundException,
   Param,
   Post,
   Put,
@@ -12,48 +10,30 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
-import { PrismaService } from '../../database/prisma.service';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import {
   NotificationsService,
   NotificationType,
 } from './notifications.service';
 
-const ADMIN_ROLES = ['org_admin', 'super_admin'];
-
 @Controller('api/notifications')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard, PermissionsGuard)
 export class NotificationsController {
-  constructor(
-    private readonly notifications: NotificationsService,
-    private readonly prisma: PrismaService,
-  ) {}
-
-  private async resolve(req: any) {
-    const tenantId = req.headers['x-tenant-id'];
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-    return { tenantId, userId: user.id };
-  }
+  constructor(private readonly notifications: NotificationsService) {}
 
   // Admin sends a notification to a user in the tenant (also pushes live via
   // the realtime gateway).
   @Post()
+  @RequirePermission(PERMISSIONS.NOTIFICATIONS_SEND)
   async create(
     @Request() req: any,
     @Body()
     body: { userId: string; type?: NotificationType; title: string; message: string; metadata?: Record<string, unknown> },
   ) {
-    const { tenantId } = await this.resolve(req);
-    const sender = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId },
-    });
-    if (!sender || !ADMIN_ROLES.includes(sender.role)) {
-      throw new ForbiddenException('Only org admins can send notifications');
-    }
     const data = await this.notifications.create({
-      tenantId,
+      tenantId: req.resolvedUser.tenantId,
       userId: body.userId,
       type: body.type ?? 'info',
       title: body.title,
@@ -65,22 +45,30 @@ export class NotificationsController {
 
   @Get()
   async list(@Request() req: any, @Query('unread') unread?: string) {
-    const { tenantId, userId } = await this.resolve(req);
-    const data = await this.notifications.listForUser(tenantId, userId, unread === 'true');
+    const data = await this.notifications.listForUser(
+      req.resolvedUser.tenantId,
+      req.resolvedUser.id,
+      unread === 'true',
+    );
     return { success: true, data };
   }
 
   @Put(':id/read')
   async markRead(@Request() req: any, @Param('id') id: string) {
-    const { tenantId, userId } = await this.resolve(req);
-    const { count } = await this.notifications.markRead(tenantId, userId, id);
+    const { count } = await this.notifications.markRead(
+      req.resolvedUser.tenantId,
+      req.resolvedUser.id,
+      id,
+    );
     return { success: true, data: { updated: count } };
   }
 
   @Put('read-all')
   async markAllRead(@Request() req: any) {
-    const { tenantId, userId } = await this.resolve(req);
-    const { count } = await this.notifications.markAllRead(tenantId, userId);
+    const { count } = await this.notifications.markAllRead(
+      req.resolvedUser.tenantId,
+      req.resolvedUser.id,
+    );
     return { success: true, data: { updated: count } };
   }
 }

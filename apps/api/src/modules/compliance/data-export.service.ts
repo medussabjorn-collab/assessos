@@ -19,6 +19,7 @@ export class DataExportService {
   async exportForUser(firebaseUid: string) {
     const user = await this.prisma.user.findFirst({
       where: { firebaseUid, tenantId: this.tenantId },
+      include: { role: true },
     });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -41,7 +42,7 @@ export class DataExportService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: user.role.name,
         department: user.department,
         createdAt: user.createdAt,
       },

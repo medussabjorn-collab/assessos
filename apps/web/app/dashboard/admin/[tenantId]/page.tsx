@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Shield, Ban, Loader } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
 import PageHeader from '@/components/PageHeader';
 
@@ -30,8 +31,8 @@ interface OrgDetail {
 export default function OrgDetailPage() {
   const params = useParams();
   const tenantId = String(params.tenantId);
-  const { role } = useAuth();
-  const isSuperAdmin = role === 'super_admin';
+  const { hasPermission } = useAuth();
+  const isSuperAdmin = hasPermission(PERMISSIONS.PLATFORM_ORGS_MANAGE);
 
   const [org, setOrg] = useState<OrgDetail | null>(null);
   const [users, setUsers] = useState<OrgUser[]>([]);

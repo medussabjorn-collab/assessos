@@ -11,6 +11,7 @@ import { FirebaseAuthGuard } from './auth.guard';
 import { RegisterDto } from './dto/register.dto';
 import { PrismaService } from '../../database/prisma.service';
 import { SsoConfigService } from '../tenant/sso-config.service';
+import { PermissionsService } from './permissions.service';
 
 @Controller('api/auth')
 export class AuthController {
@@ -18,6 +19,7 @@ export class AuthController {
     private authService: AuthService,
     private prisma: PrismaService,
     private ssoConfigService: SsoConfigService,
+    private permissionsService: PermissionsService,
   ) {}
 
   // #23 SSO discovery: given a work email, is there a tenant with SSO
@@ -59,13 +61,18 @@ export class AuthController {
       });
     }
 
+    // A brand-new tenant has no roles yet — seed the 6 system roles (same
+    // set + permission grants every existing tenant got from the RBAC
+    // migration) before assigning this signup's first user one.
+    const roleIds = await this.permissionsService.ensureTenantSystemRoles(tenant.id);
+
     const user = await this.prisma.user.create({
       data: {
         tenantId: tenant.id,
         firebaseUid: uid,
         email,
         name: email.split('@')[0],
-        role: 'org_admin',
+        roleId: roleIds['org_admin'],
       },
     });
 
@@ -97,7 +104,10 @@ export class AuthController {
 
     const user = await this.prisma.user.findFirst({
       where: { firebaseUid: uid },
-      include: { tenant: true },
+      include: {
+        tenant: true,
+        role: { include: { permissions: { include: { permission: true } } } },
+      },
     });
 
     if (!user) {
@@ -112,7 +122,11 @@ export class AuthController {
         // the socket client needs it to join the right room.
         userId: user.id,
         tenantId: user.tenantId,
-        role: user.role,
+        // Kept as a plain string for backward compatibility with existing
+        // frontend role===‘x’ checks during the RBAC frontend migration —
+        // `permissions` is the real, forward-looking authorization surface.
+        role: user.role.name,
+        permissions: user.role.permissions.map((rp) => rp.permission.key),
       },
     };
   }

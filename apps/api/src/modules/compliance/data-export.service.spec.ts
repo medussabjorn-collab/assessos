@@ -32,7 +32,7 @@ describe('DataExportService', () => {
       id: 'usr-1',
       email: 'jane@example.com',
       name: 'Jane',
-      role: 'employee',
+      role: { name: 'employee' },
       department: 'Eng',
       createdAt: new Date('2026-01-01'),
     });
@@ -52,7 +52,7 @@ describe('DataExportService', () => {
   });
 
   it('strips rater identity from anonymous feedback in the subject\'s own export', async () => {
-    prisma.user.findFirst.mockResolvedValue({ id: 'usr-1', email: 'a@b.com', name: 'A' });
+    prisma.user.findFirst.mockResolvedValue({ id: 'usr-1', email: 'a@b.com', name: 'A', role: { name: 'employee' } });
     prisma.raterFeedback.findMany.mockResolvedValue([
       {
         id: 'fb-1',
@@ -73,7 +73,7 @@ describe('DataExportService', () => {
   });
 
   it('includes rater identity when feedback is explicitly non-anonymous', async () => {
-    prisma.user.findFirst.mockResolvedValue({ id: 'usr-1', email: 'a@b.com', name: 'A' });
+    prisma.user.findFirst.mockResolvedValue({ id: 'usr-1', email: 'a@b.com', name: 'A', role: { name: 'employee' } });
     prisma.raterFeedback.findMany.mockResolvedValue([
       {
         id: 'fb-1',

@@ -1,9 +1,7 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
-  NotFoundException,
   Param,
   Post,
   Query,
@@ -12,107 +10,102 @@ import {
 } from '@nestjs/common';
 import { IncidentResolution } from '@prisma/client';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
-import { PrismaService } from '../../database/prisma.service';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { IncidentService, OpenIncidentInput } from './incident.service';
 
-const REVIEW_ROLES = ['org_admin', 'super_admin', 'manager'];
-const ADMIN_ROLES = ['org_admin', 'super_admin'];
-
 @Controller('api/proctoring/incidents')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard, PermissionsGuard)
 export class IncidentController {
-  constructor(
-    private readonly incidents: IncidentService,
-    private readonly prisma: PrismaService,
-  ) {}
-
-  private async user(req: any) {
-    const tenantId = req.headers['x-tenant-id'];
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-    return { tenantId, user };
-  }
-
-  private assertRole(role: string, allowed: string[], msg: string) {
-    if (!allowed.includes(role)) throw new ForbiddenException(msg);
-  }
+  constructor(private readonly incidents: IncidentService) {}
 
   @Get()
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_REVIEW)
   async list(
     @Request() req: any,
     @Query('status') status?: string,
     @Query('severity') severity?: string,
     @Query('sessionId') sessionId?: string,
   ) {
-    const { tenantId, user } = await this.user(req);
-    this.assertRole(user.role, REVIEW_ROLES, 'Only proctors/admins can view incidents');
-    const data = await this.incidents.list(tenantId, { status, severity, sessionId });
+    const data = await this.incidents.list(req.resolvedUser.tenantId, { status, severity, sessionId });
     return { success: true, data };
   }
 
   @Get(':id')
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_REVIEW)
   async get(@Request() req: any, @Param('id') id: string) {
-    const { tenantId, user } = await this.user(req);
-    this.assertRole(user.role, REVIEW_ROLES, 'Only proctors/admins can view incidents');
-    const data = await this.incidents.get(tenantId, id);
+    const data = await this.incidents.get(req.resolvedUser.tenantId, id);
     return { success: true, data };
   }
 
   @Post()
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_REVIEW)
   async open(@Request() req: any, @Body() body: OpenIncidentInput) {
-    const { tenantId, user } = await this.user(req);
-    this.assertRole(user.role, REVIEW_ROLES, 'Only proctors/admins can open incidents');
-    const data = await this.incidents.open(tenantId, { ...body, openedBy: user.id });
+    const data = await this.incidents.open(req.resolvedUser.tenantId, {
+      ...body,
+      openedBy: req.resolvedUser.id,
+    });
     return { success: true, data };
   }
 
   @Post(':id/assign')
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_REVIEW)
   async assign(@Request() req: any, @Param('id') id: string, @Body() body: { assignedTo: string }) {
-    const { tenantId, user } = await this.user(req);
-    this.assertRole(user.role, REVIEW_ROLES, 'Only proctors/admins can assign incidents');
-    const data = await this.incidents.assign(tenantId, id, user.id, body.assignedTo);
+    const data = await this.incidents.assign(
+      req.resolvedUser.tenantId,
+      id,
+      req.resolvedUser.id,
+      body.assignedTo,
+    );
     return { success: true, data };
   }
 
   @Post(':id/review')
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_REVIEW)
   async review(
     @Request() req: any,
     @Param('id') id: string,
     @Body() body: { resolution: IncidentResolution; note?: string; dismiss?: boolean },
   ) {
-    const { tenantId, user } = await this.user(req);
-    this.assertRole(user.role, REVIEW_ROLES, 'Only proctors/admins can review incidents');
-    const data = await this.incidents.review(tenantId, id, user.id, body);
+    const data = await this.incidents.review(req.resolvedUser.tenantId, id, req.resolvedUser.id, body);
     return { success: true, data };
   }
 
-  // Appeal request — the subject (or their advocate); any authenticated user.
+  // Appeal request — the subject (or their advocate); any authenticated user,
+  // no specific permission required.
   @Post(':id/appeal')
   async appeal(@Request() req: any, @Param('id') id: string, @Body() body: { reason: string }) {
-    const { tenantId, user } = await this.user(req);
-    const data = await this.incidents.requestAppeal(tenantId, id, user.id, body.reason);
+    const data = await this.incidents.requestAppeal(
+      req.resolvedUser.tenantId,
+      id,
+      req.resolvedUser.id,
+      body.reason,
+    );
     return { success: true, data };
   }
 
   @Post(':id/appeal/resolve')
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_APPEALS_MANAGE)
   async resolveAppeal(
     @Request() req: any,
     @Param('id') id: string,
     @Body() body: { outcome: 'upheld' | 'overturned'; note?: string },
   ) {
-    const { tenantId, user } = await this.user(req);
-    this.assertRole(user.role, ADMIN_ROLES, 'Only admins can resolve appeals');
-    const data = await this.incidents.resolveAppeal(tenantId, id, user.id, body.outcome, body.note);
+    const data = await this.incidents.resolveAppeal(
+      req.resolvedUser.tenantId,
+      id,
+      req.resolvedUser.id,
+      body.outcome,
+      body.note,
+    );
     return { success: true, data };
   }
 
   @Get(':id/evidence-export')
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_REVIEW)
   async evidenceExport(@Request() req: any, @Param('id') id: string) {
-    const { tenantId, user } = await this.user(req);
-    this.assertRole(user.role, REVIEW_ROLES, 'Only proctors/admins can export evidence');
-    const data = await this.incidents.evidenceExport(tenantId, id);
+    const data = await this.incidents.evidenceExport(req.resolvedUser.tenantId, id);
     return { success: true, data };
   }
 }

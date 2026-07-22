@@ -51,6 +51,7 @@ model Tenant {
   evidenceArtifacts EvidenceArtifact[]
   integrityLog      IntegrityLogEntry[]
   proctoringIncidents ProctoringIncident[]
+  roles             Role[]
 
   @@map("tenants")
 }
@@ -68,7 +69,8 @@ model User {
   firebaseUid       String    @unique
   email             String
   name              String
-  role              Role      @default(employee)
+  roleId            String
+  role              Role      @relation(fields: [roleId], references: [id])
   department        String?
   metadata          Json?
   // Merged from leadership-assessment (Firebase remains the auth source of
@@ -95,19 +97,57 @@ model User {
   identityVerifications IdentityVerification[]
 
   @@index([tenantId])
-  @@index([role])
+  @@index([roleId])
   @@map("users")
 }
 
-enum Role {
-  super_admin
-  org_admin
-  manager
-  employee
-  // Merged in from leadership-assessment (candidate assessment flows)
-  candidate
-  recruiter
-  viewer
+// Replaces the old fixed Role enum (super_admin/org_admin/manager/employee/
+// candidate/recruiter/viewer) with real RBAC. `super_admin` is the one
+// tenantId=null role — it's a platform-operator role that acts across every
+// tenant, not scoped to one. Every other role — the 6 former enum values,
+// now seeded per tenant as system roles, plus any custom role an org_admin
+// creates — belongs to exactly one tenant. System roles (isSystem=true)
+// can't be deleted or renamed, but their permission set can still be edited;
+// custom roles are fully free-form.
+model Role {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("roles")
+}
+
+// Fixed, code-referenced capability catalog — not user-creatable. Grouped by
+// `category` for the admin UI's permission picker.
+model Permission {
+  id          String @id @default(cuid())
+  key         String @unique
+  description String
+  category    String
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
 }
 
 // Merged in from leadership-assessment: fixed assessment "modules" (distinct

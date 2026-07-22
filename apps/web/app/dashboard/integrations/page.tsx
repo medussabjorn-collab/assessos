@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { CheckCircle2, AlertCircle, Clock, RefreshCw, Zap, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import { PERMISSIONS } from '@/lib/permissions';
 
 type IntegrationStatus = 'connected' | 'disconnected' | 'pending' | 'error';
 
@@ -23,9 +24,9 @@ interface Integration {
 // hardcoded array with fake statuses/timestamps and no connect/disconnect
 // action that did anything. This fetches the real tenant-annotated catalog
 // and actually connects/disconnects via POST /api/integrations/:id/connect|
-// disconnect, admin-gated server-side (this page also hides the actions for
-// non-admins, matching the server's ADMIN_ROLES check — UX only, the server
-// remains the real gate).
+// disconnect, gated server-side by @RequirePermission(INTEGRATIONS_MANAGE)
+// (this page also hides the actions for users without that permission —
+// UX only, the server remains the real gate).
 
 const STATUS_ICON: Record<IntegrationStatus, React.ReactNode> = {
   connected: <CheckCircle2 size={16} className="text-emerald-500" />,
@@ -53,8 +54,8 @@ const EVENT_DESCRIPTIONS: Record<string, string> = {
 };
 
 export default function IntegrationsPage() {
-  const { role } = useAuth();
-  const isAdmin = role === 'org_admin' || role === 'super_admin';
+  const { hasPermission } = useAuth();
+  const isAdmin = hasPermission(PERMISSIONS.INTEGRATIONS_MANAGE);
 
   const [integrations, setIntegrations] = useState<Integration[] | null>(null);
   const [eventTypes, setEventTypes] = useState<string[]>([]);

@@ -6,10 +6,11 @@ import {
   Param,
   UseGuards,
   Request,
-  ForbiddenException,
-  NotFoundException,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { AssessmentService } from './assessment.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { SubmitAnswersDto } from './dto/submit-answers.dto';
@@ -17,7 +18,6 @@ import { ScenarioGeneratorService, GenerateScenarioParams } from './scenario-gen
 import { ScenarioReviewService } from './scenario-review.service';
 import { IrtAdaptiveTestingService, GradedResponse } from './irt-adaptive-testing.service';
 import { QuestionBankService } from './question-bank.service';
-import { PrismaService } from '../../database/prisma.service';
 
 @Controller('api/assessments')
 export class AssessmentController {
@@ -27,22 +27,7 @@ export class AssessmentController {
     private scenarioReview: ScenarioReviewService,
     private irt: IrtAdaptiveTestingService,
     private questionBank: QuestionBankService,
-    private prisma: PrismaService,
   ) {}
-
-  private async requireOrgAdmin(req: any) {
-    const tenantId = req.headers['x-tenant-id'];
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId },
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    if (user.role !== 'org_admin' && user.role !== 'super_admin') {
-      throw new ForbiddenException('Only org admins can manage generated scenarios');
-    }
-    return user;
-  }
 
   @Post('sessions/start')
   @UseGuards(FirebaseAuthGuard)
@@ -107,41 +92,38 @@ export class AssessmentController {
 
   // #20: GenAI SJT scenario generation, gated behind human review.
   @Post('scenarios/generate')
-  @UseGuards(FirebaseAuthGuard)
-  async generateScenario(
-    @Request() req: any,
-    @Body() body: GenerateScenarioParams,
-  ) {
-    await this.requireOrgAdmin(req);
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.ASSESSMENT_SCENARIOS_MANAGE)
+  async generateScenario(@Body() body: GenerateScenarioParams) {
     const scenario = await this.scenarioGenerator.generate(body);
     return { success: true, data: scenario };
   }
 
   @Get('scenarios/pending-review')
-  @UseGuards(FirebaseAuthGuard)
-  async listPendingScenarios(@Request() req: any) {
-    await this.requireOrgAdmin(req);
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.ASSESSMENT_SCENARIOS_MANAGE)
+  async listPendingScenarios() {
     const scenarios = await this.scenarioReview.listPendingReview();
     return { success: true, data: scenarios };
   }
 
   @Post('scenarios/:id/approve')
-  @UseGuards(FirebaseAuthGuard)
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.ASSESSMENT_SCENARIOS_MANAGE)
   async approveScenario(@Request() req: any, @Param('id') id: string) {
-    const reviewer = await this.requireOrgAdmin(req);
-    const scenario = await this.scenarioReview.approve(id, reviewer.id);
+    const scenario = await this.scenarioReview.approve(id, req.resolvedUser.id);
     return { success: true, data: scenario };
   }
 
   @Post('scenarios/:id/reject')
-  @UseGuards(FirebaseAuthGuard)
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.ASSESSMENT_SCENARIOS_MANAGE)
   async rejectScenario(
     @Request() req: any,
     @Param('id') id: string,
     @Body() body: { reason: string },
   ) {
-    const reviewer = await this.requireOrgAdmin(req);
-    const scenario = await this.scenarioReview.reject(id, reviewer.id, body.reason);
+    const scenario = await this.scenarioReview.reject(id, req.resolvedUser.id, body.reason);
     return { success: true, data: scenario };
   }
 

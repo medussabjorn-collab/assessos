@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -10,6 +9,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { PrismaService } from '../../database/prisma.service';
 import { PsychometricRegistry } from './psychometric-registry.service';
 import { CompositeProfileService } from './composite-profile.service';
@@ -130,14 +132,9 @@ export class PsychometricController {
   // #26: team-dynamics heuristic. Exposes multiple people's DISC data at
   // once, so restricted beyond the self-only pattern used elsewhere here.
   @Post('team-dynamics')
-  @UseGuards(FirebaseAuthGuard)
-  async getTeamDynamics(@Request() req: any, @Body() body: { userIds: string[] }) {
-    const requester = await this.resolveUser(req);
-    if (!['manager', 'org_admin', 'super_admin'].includes(requester.role)) {
-      throw new ForbiddenException(
-        'Only managers and org admins can view team dynamics across multiple people',
-      );
-    }
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.PSYCHOMETRIC_TEAM_DYNAMICS_VIEW)
+  async getTeamDynamics(@Body() body: { userIds: string[] }) {
     const result = await this.teamDynamics.predictTeamDynamics(body.userIds ?? []);
     return { success: true, data: result };
   }

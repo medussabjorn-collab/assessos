@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { SsoConfigService } from './sso-config.service';
 
 describe('SsoConfigService', () => {
@@ -37,20 +36,15 @@ describe('SsoConfigService', () => {
       displayName: 'Acme SSO',
     };
 
-    it('rejects a non-admin role', async () => {
-      await expect(service.updateConfig(validConfig, 'employee')).rejects.toThrow(BadRequestException);
-      expect(prisma.tenant.update).not.toHaveBeenCalled();
-    });
-
     it('rejects a config missing required fields', async () => {
       await expect(
-        service.updateConfig({ ...validConfig, providerId: '' }, 'org_admin'),
+        service.updateConfig({ ...validConfig, providerId: '' }),
       ).rejects.toThrow('providerId, providerType, and displayName are required');
     });
 
     it('rejects an invalid providerType', async () => {
       await expect(
-        service.updateConfig({ ...validConfig, providerType: 'ldap' as any }, 'org_admin'),
+        service.updateConfig({ ...validConfig, providerType: 'ldap' as any }),
       ).rejects.toThrow('providerType must be "saml" or "oidc"');
     });
 
@@ -58,7 +52,7 @@ describe('SsoConfigService', () => {
       prisma.tenant.findFirst.mockResolvedValue({ id: 'other-tenant' });
 
       await expect(
-        service.updateConfig({ ...validConfig, domain: 'acme.com' }, 'org_admin'),
+        service.updateConfig({ ...validConfig, domain: 'acme.com' }),
       ).rejects.toThrow('already claimed');
       expect(prisma.tenant.update).not.toHaveBeenCalled();
     });
@@ -68,14 +62,14 @@ describe('SsoConfigService', () => {
       prisma.tenant.update.mockResolvedValue({ ssoConfig: { ...validConfig, domain: 'acme.com' } });
 
       await expect(
-        service.updateConfig({ ...validConfig, domain: 'acme.com' }, 'org_admin'),
+        service.updateConfig({ ...validConfig, domain: 'acme.com' }),
       ).resolves.toBeDefined();
     });
 
     it('saves a valid config with no domain specified', async () => {
       prisma.tenant.update.mockResolvedValue({ ssoConfig: validConfig });
 
-      await service.updateConfig(validConfig, 'org_admin');
+      await service.updateConfig(validConfig);
 
       expect(prisma.tenant.findFirst).not.toHaveBeenCalled();
       expect(prisma.tenant.update).toHaveBeenCalledWith({

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ShieldAlert, AlertTriangle, CheckCircle2, Loader } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
 import PageHeader from '@/components/PageHeader';
 
@@ -94,8 +95,10 @@ function DimensionTable({ title, groups }: { title: string; groups: GroupBreakdo
 }
 
 export default function CompliancePage() {
-  const { role } = useAuth();
-  const isAdmin = role === 'org_admin' || role === 'super_admin';
+  const { hasPermission } = useAuth();
+  const isAdmin =
+    hasPermission(PERMISSIONS.COMPLIANCE_BIAS_AUDIT_VIEW) &&
+    hasPermission(PERMISSIONS.COMPLIANCE_REVIEW_REQUESTS_MANAGE);
 
   const [report, setReport] = useState<AdverseImpactReport | null>(null);
   const [requests, setRequests] = useState<ReviewRequest[]>([]);

@@ -45,10 +45,7 @@ export class SsoConfigService {
     return (tenant?.ssoConfig as unknown as SsoConfig) ?? null;
   }
 
-  async updateConfig(config: SsoConfig, userRole: string): Promise<SsoConfig> {
-    if (!['org_admin', 'super_admin'].includes(userRole)) {
-      throw new BadRequestException('Only org admins can update SSO settings');
-    }
+  async updateConfig(config: SsoConfig): Promise<SsoConfig> {
     if (!config.providerId || !config.providerType || !config.displayName) {
       throw new BadRequestException('providerId, providerType, and displayName are required');
     }

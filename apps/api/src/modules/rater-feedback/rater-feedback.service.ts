@@ -7,6 +7,8 @@ import {
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { PermissionsService } from '../auth/permissions.service';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { SubmitFeedbackDto } from './dto/submit-feedback.dto';
 
 @Injectable({ scope: Scope.REQUEST })
@@ -15,15 +17,14 @@ export class RaterFeedbackService {
 
   constructor(
     private prisma: PrismaService,
+    private permissions: PermissionsService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
   }
 
   private async resolveUser(firebaseUid: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid, tenantId: this.tenantId },
-    });
+    const user = await this.permissions.resolveUser(firebaseUid, this.tenantId);
     if (!user) throw new BadRequestException('User not found');
     return user;
   }
@@ -78,9 +79,7 @@ export class RaterFeedbackService {
     }
 
     const isSubject = session.userId === requester.id;
-    const isReviewer = ['manager', 'org_admin', 'super_admin'].includes(
-      requester.role,
-    );
+    const isReviewer = this.permissions.hasPermission(requester, PERMISSIONS.RATER_FEEDBACK_REVIEW);
     if (!isSubject && !isReviewer) {
       throw new ForbiddenException('Not authorized to view this feedback');
     }

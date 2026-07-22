@@ -7,11 +7,11 @@ import {
   Query,
   UseGuards,
   Request,
-  ForbiddenException,
-  NotFoundException,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
-import { PrismaService } from '../../database/prisma.service';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { BiasAuditService } from './bias-audit.service';
 import { SelfIdService, SubmitSelfIdInput } from './self-id.service';
 import { ExplanationService } from './explanation.service';
@@ -30,34 +30,19 @@ export class ComplianceController {
     private dataExportService: DataExportService,
     private biometricConsentService: BiometricConsentService,
     private webhookDispatch: WebhookDispatchService,
-    private prisma: PrismaService,
   ) {}
 
   // Aggregate adverse-impact data is sensitive even in suppressed form —
-  // restricted to org_admin/super_admin, unlike the rest of the hiring
-  // module which any authenticated tenant user can read.
-  private async requireOrgAdmin(req: any): Promise<void> {
-    const tenantId = req.headers['x-tenant-id'];
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId },
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    if (user.role !== 'org_admin' && user.role !== 'super_admin') {
-      throw new ForbiddenException(
-        'Only org admins can access bias-audit reports',
-      );
-    }
-  }
-
+  // restricted to whoever holds compliance.bias_audit.view (org_admin +
+  // super_admin by default), unlike the rest of the hiring module which any
+  // authenticated tenant user can read.
   @Get('bias-audit')
-  @UseGuards(FirebaseAuthGuard)
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.COMPLIANCE_BIAS_AUDIT_VIEW)
   async getBiasAudit(
     @Request() req: any,
     @Query('jobRoleId') jobRoleId?: string,
   ) {
-    await this.requireOrgAdmin(req);
     const report = await this.biasAuditService.computeAdverseImpact(jobRoleId);
 
     const anyFlagged = Object.values(report.dimensions).some((groups) =>
@@ -114,21 +99,21 @@ export class ComplianceController {
   }
 
   @Get('review-requests')
-  @UseGuards(FirebaseAuthGuard)
-  async listReviewRequests(@Request() req: any) {
-    await this.requireOrgAdmin(req);
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.COMPLIANCE_REVIEW_REQUESTS_MANAGE)
+  async listReviewRequests() {
     const requests = await this.reviewRequestService.listPending();
     return { success: true, data: requests };
   }
 
   @Post('review-requests/:requestId/resolve')
-  @UseGuards(FirebaseAuthGuard)
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.COMPLIANCE_REVIEW_REQUESTS_MANAGE)
   async resolveReviewRequest(
     @Request() req: any,
     @Param('requestId') requestId: string,
     @Body() body: { resolutionNote: string },
   ) {
-    await this.requireOrgAdmin(req);
     const resolved = await this.reviewRequestService.resolve(
       requestId,
       req.user.uid,

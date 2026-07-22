@@ -1,10 +1,12 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ExplanationService } from './explanation.service';
+import { PERMISSIONS } from '../auth/permissions.constants';
 
 describe('ExplanationService', () => {
   const tenantId = 'tenant-1';
   let prisma: any;
   let questionBank: any;
+  let permissions: any;
   let service: ExplanationService;
 
   const visionQuestion = {
@@ -23,9 +25,18 @@ describe('ExplanationService', () => {
     options: [{ id: 'opt_3', text: 'Moderately', value: 3 }],
   };
 
+  // Builds a ResolvedUser-shaped object matching what the real
+  // PermissionsService.resolveUser returns, given just a permission set.
+  const resolvedUser = (id: string, permissionKeys: string[] = []) => ({
+    id,
+    tenantId,
+    firebaseUid: 'firebase-uid',
+    role: { id: 'role-1', name: permissionKeys.length ? 'org_admin' : 'employee', tenantId },
+    permissions: new Set(permissionKeys),
+  });
+
   beforeEach(() => {
     prisma = {
-      user: { findFirst: jest.fn() },
       aiReport: { findFirst: jest.fn() },
     };
     questionBank = {
@@ -33,12 +44,16 @@ describe('ExplanationService', () => {
         ({ q_vision_1: visionQuestion, q_influence_1: influenceQuestion } as any)[id],
       ),
     };
+    permissions = {
+      resolveUser: jest.fn(),
+      hasPermission: jest.fn((user: any, key: string) => user.permissions.has(key)),
+    };
     const request = { headers: { 'x-tenant-id': tenantId } };
-    service = new ExplanationService(prisma, questionBank, request);
+    service = new ExplanationService(prisma, questionBank, permissions, request);
   });
 
   it('throws NotFoundException for an unknown requester', async () => {
-    prisma.user.findFirst.mockResolvedValue(null);
+    permissions.resolveUser.mockResolvedValue(null);
 
     await expect(
       service.explainReport('report-1', 'firebase-uid'),
@@ -46,7 +61,7 @@ describe('ExplanationService', () => {
   });
 
   it('throws NotFoundException for a report outside this tenant', async () => {
-    prisma.user.findFirst.mockResolvedValue({ id: 'usr-1', role: 'employee' });
+    permissions.resolveUser.mockResolvedValue(resolvedUser('usr-1'));
     prisma.aiReport.findFirst.mockResolvedValue(null);
 
     await expect(
@@ -55,7 +70,7 @@ describe('ExplanationService', () => {
   });
 
   it('allows the report subject to view their own explanation', async () => {
-    prisma.user.findFirst.mockResolvedValue({ id: 'usr-1', role: 'employee' });
+    permissions.resolveUser.mockResolvedValue(resolvedUser('usr-1'));
     prisma.aiReport.findFirst.mockResolvedValue({
       id: 'report-1',
       userId: 'usr-1',
@@ -87,7 +102,7 @@ describe('ExplanationService', () => {
   });
 
   it('does not cross-attribute an influence answer into the vision breakdown', async () => {
-    prisma.user.findFirst.mockResolvedValue({ id: 'usr-1', role: 'employee' });
+    permissions.resolveUser.mockResolvedValue(resolvedUser('usr-1'));
     prisma.aiReport.findFirst.mockResolvedValue({
       id: 'report-1',
       userId: 'usr-1',
@@ -110,7 +125,9 @@ describe('ExplanationService', () => {
   });
 
   it('allows an org_admin to view a different user\'s report explanation', async () => {
-    prisma.user.findFirst.mockResolvedValue({ id: 'admin-1', role: 'org_admin' });
+    permissions.resolveUser.mockResolvedValue(
+      resolvedUser('admin-1', [PERMISSIONS.REPORT_EXPLANATION_VIEW_ANY]),
+    );
     prisma.aiReport.findFirst.mockResolvedValue({
       id: 'report-1',
       userId: 'someone-else',
@@ -126,7 +143,7 @@ describe('ExplanationService', () => {
   });
 
   it('rejects a non-admin, non-subject requester', async () => {
-    prisma.user.findFirst.mockResolvedValue({ id: 'usr-2', role: 'employee' });
+    permissions.resolveUser.mockResolvedValue(resolvedUser('usr-2'));
     prisma.aiReport.findFirst.mockResolvedValue({
       id: 'report-1',
       userId: 'someone-else',

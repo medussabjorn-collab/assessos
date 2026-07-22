@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { WhiteLabelService } from './white-label.service';
 
 describe('WhiteLabelService', () => {
@@ -37,17 +36,10 @@ describe('WhiteLabelService', () => {
   });
 
   describe('updateSettings', () => {
-    it('rejects a non-admin role', async () => {
-      await expect(
-        service.updateSettings({ companyName: 'Acme' }, 'employee'),
-      ).rejects.toThrow(BadRequestException);
-      expect(prisma.tenant.update).not.toHaveBeenCalled();
-    });
-
-    it('allows org_admin to update settings', async () => {
+    it('allows updating settings', async () => {
       prisma.tenant.update.mockResolvedValue({ whiteLabel: { companyName: 'Acme' } });
 
-      await service.updateSettings({ companyName: 'Acme' }, 'org_admin');
+      await service.updateSettings({ companyName: 'Acme' });
 
       expect(prisma.tenant.update).toHaveBeenCalledWith({
         where: { id: tenantId },
@@ -60,7 +52,7 @@ describe('WhiteLabelService', () => {
       prisma.tenant.findFirst.mockResolvedValue({ id: 'other-tenant' });
 
       await expect(
-        service.updateSettings({ customDomain: 'taken.example.com' }, 'org_admin'),
+        service.updateSettings({ customDomain: 'taken.example.com' }),
       ).rejects.toThrow('Domain already in use');
       expect(prisma.tenant.update).not.toHaveBeenCalled();
     });
@@ -70,7 +62,7 @@ describe('WhiteLabelService', () => {
       prisma.tenant.update.mockResolvedValue({ whiteLabel: { customDomain: 'mine.example.com' } });
 
       await expect(
-        service.updateSettings({ customDomain: 'mine.example.com' }, 'org_admin'),
+        service.updateSettings({ customDomain: 'mine.example.com' }),
       ).resolves.toBeDefined();
     });
   });

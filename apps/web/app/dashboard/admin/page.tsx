@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Shield, Users, FileText, AlertTriangle, Loader } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
 import PageHeader from '@/components/PageHeader';
 
@@ -27,8 +28,8 @@ interface UsageAlert {
 }
 
 export default function AdminPage() {
-  const { role } = useAuth();
-  const isSuperAdmin = role === 'super_admin';
+  const { hasPermission } = useAuth();
+  const isSuperAdmin = hasPermission(PERMISSIONS.PLATFORM_ORGS_MANAGE);
 
   const [orgs, setOrgs] = useState<OrgSummary[]>([]);
   const [alerts, setAlerts] = useState<UsageAlert[]>([]);

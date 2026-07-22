@@ -14,17 +14,22 @@ interface AuthContextType {
   userId: string | null;
   tenantId: string | null;
   role: string | null;
+  permissions: Set<string>;
+  hasPermission: (key: string) => boolean;
   loading: boolean;
   logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const EMPTY_PERMISSIONS: Set<string> = new Set();
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<Set<string>>(EMPTY_PERMISSIONS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,11 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser) {
         try {
           const response = await api.post('/api/auth/tenant');
-          const { userId: fetchedUserId, tenantId: fetchedTenantId, role: fetchedRole } =
-            response.data.data ?? {};
+          const {
+            userId: fetchedUserId,
+            tenantId: fetchedTenantId,
+            role: fetchedRole,
+            permissions: fetchedPermissions,
+          } = response.data.data ?? {};
           setUserId(fetchedUserId ?? null);
           setTenantId(fetchedTenantId ?? null);
           setRole(fetchedRole ?? null);
+          setPermissions(new Set(fetchedPermissions ?? []));
           // The api client reads tenantId from localStorage to attach the
           // x-tenant-id header on every subsequent request.
           if (fetchedTenantId) {
@@ -51,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserId(null);
         setTenantId(null);
         setRole(null);
+        setPermissions(EMPTY_PERMISSIONS);
         localStorage.removeItem('tenantId');
       }
 
@@ -65,11 +76,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserId(null);
     setTenantId(null);
     setRole(null);
+    setPermissions(EMPTY_PERMISSIONS);
     localStorage.removeItem('tenantId');
   };
 
+  const hasPermission = (key: string) => permissions.has(key);
+
   return (
-    <AuthContext.Provider value={{ user, userId, tenantId, role, loading, logout }}>
+    <AuthContext.Provider
+      value={{ user, userId, tenantId, role, permissions, hasPermission, loading, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,35 +1,25 @@
 import {
   Controller,
-  ForbiddenException,
   Get,
   Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
-import { PrismaService } from '../../database/prisma.service';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { AuditLogService, AuditQuery } from './audit-log.service';
 
-const READ_ROLES = ['org_admin', 'super_admin'];
-
 @Controller('api/audit')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard, PermissionsGuard)
+@RequirePermission(PERMISSIONS.AUDIT_LOG_VIEW)
 export class AuditLogController {
-  constructor(
-    private readonly audit: AuditLogService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly audit: AuditLogService) {}
 
   @Get()
   async list(@Request() req: any, @Query() query: AuditQuery) {
-    const tenantId = req.headers['x-tenant-id'];
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId },
-    });
-    if (!user || !READ_ROLES.includes(user.role)) {
-      throw new ForbiddenException('Only org admins can view audit logs');
-    }
-    const data = await this.audit.query(tenantId, query);
+    const data = await this.audit.query(req.resolvedUser.tenantId, query);
     return { success: true, ...data };
   }
 }

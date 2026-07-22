@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  ForbiddenException,
   Get,
   Put,
   Query,
@@ -9,43 +8,33 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
-import { PrismaService } from '../../database/prisma.service';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { PolicyService, EffectivePolicy } from './policy.service';
 
-const ADMIN_ROLES = ['org_admin', 'super_admin'];
-
 @Controller('api/proctoring/policy')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard, PermissionsGuard)
 export class PolicyController {
-  constructor(
-    private readonly policy: PolicyService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly policy: PolicyService) {}
 
   // Effective (resolved) policy for a config — readable by any authed user so
   // the client knows what to enforce.
   @Get()
   async get(@Request() req: any, @Query('configId') configId?: string) {
-    const tenantId = req.headers['x-tenant-id'];
-    const data = await this.policy.getEffective(tenantId, configId ?? null);
+    const data = await this.policy.getEffective(req.resolvedUser.tenantId, configId ?? null);
     return { success: true, data };
   }
 
   // Create/update a policy (tenant default when configId omitted). Admin only.
   @Put()
+  @RequirePermission(PERMISSIONS.PROCTORING_POLICY_MANAGE)
   async upsert(
     @Request() req: any,
     @Body() body: Partial<EffectivePolicy> & { configId?: string | null },
   ) {
-    const tenantId = req.headers['x-tenant-id'];
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId },
-    });
-    if (!user || !ADMIN_ROLES.includes(user.role)) {
-      throw new ForbiddenException('Only org admins can manage proctoring policy');
-    }
     const { configId, ...fields } = body;
-    const data = await this.policy.upsert(tenantId, configId ?? null, fields);
+    const data = await this.policy.upsert(req.resolvedUser.tenantId, configId ?? null, fields);
     return { success: true, data };
   }
 }

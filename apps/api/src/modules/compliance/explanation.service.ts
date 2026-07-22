@@ -3,6 +3,8 @@ import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { QuestionBankService } from '../assessment/question-bank.service';
+import { PermissionsService } from '../auth/permissions.service';
+import { PERMISSIONS } from '../auth/permissions.constants';
 
 interface ContributingAnswer {
   questionId: string;
@@ -39,6 +41,7 @@ export class ExplanationService {
   constructor(
     private prisma: PrismaService,
     private questionBank: QuestionBankService,
+    private permissions: PermissionsService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
@@ -48,9 +51,7 @@ export class ExplanationService {
     reportId: string,
     requesterFirebaseUid: string,
   ): Promise<ReportExplanation> {
-    const requester = await this.prisma.user.findFirst({
-      where: { firebaseUid: requesterFirebaseUid, tenantId: this.tenantId },
-    });
+    const requester = await this.permissions.resolveUser(requesterFirebaseUid, this.tenantId);
     if (!requester) {
       throw new NotFoundException('User not found');
     }
@@ -64,8 +65,8 @@ export class ExplanationService {
     }
 
     const isSelf = report.userId === requester.id;
-    const isAdmin = requester.role === 'org_admin' || requester.role === 'super_admin';
-    if (!isSelf && !isAdmin) {
+    const canViewAny = this.permissions.hasPermission(requester, PERMISSIONS.REPORT_EXPLANATION_VIEW_ANY);
+    if (!isSelf && !canViewAny) {
       throw new ForbiddenException(
         'Only the report subject or an org admin can view this explanation',
       );

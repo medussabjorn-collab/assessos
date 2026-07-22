@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Param,
   Post,
@@ -12,21 +11,24 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
-import { PrismaService } from '../../database/prisma.service';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { QuestionBankService, ListQuestionsQuery } from './question-bank.service';
 import { AdaptiveTestingService, AdaptiveNextInput } from './adaptive-testing.service';
 import { BulkImportDto, CreateQuestionDto, UpdateQuestionDto } from './dto/question.dto';
 
-const WRITE_ROLES = ['org_admin', 'super_admin'];
-
 @Controller('api/questions')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard, PermissionsGuard)
 export class QuestionBankController {
   constructor(
     private readonly service: QuestionBankService,
     private readonly adaptive: AdaptiveTestingService,
-    private readonly prisma: PrismaService,
   ) {}
+
+  private tenantOf(req: any): string {
+    return req.headers['x-tenant-id'];
+  }
 
   // Computerized adaptive test step: given answered items, return the ability
   // estimate + the next most-informative item (or terminate). Test-taker flow,
@@ -35,22 +37,6 @@ export class QuestionBankController {
   async adaptiveNext(@Request() req: any, @Body() body: AdaptiveNextInput) {
     const data = await this.adaptive.next(this.tenantOf(req), body);
     return { success: true, data };
-  }
-
-  private tenantOf(req: any): string {
-    return req.headers['x-tenant-id'];
-  }
-
-  // Writes are admin-only (leadership used requireAdmin). The guard injects
-  // only { uid, email }, so the role is resolved from the DB — same pattern as
-  // the other admin-gated controllers.
-  private async assertWriter(req: any) {
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid: req.user.uid, tenantId: this.tenantOf(req) },
-    });
-    if (!user || !WRITE_ROLES.includes(user.role)) {
-      throw new ForbiddenException('Only org admins can manage the question bank');
-    }
   }
 
   @Get()
@@ -66,29 +52,29 @@ export class QuestionBankController {
   }
 
   @Post()
+  @RequirePermission(PERMISSIONS.QUESTION_BANK_WRITE)
   async create(@Request() req: any, @Body() dto: CreateQuestionDto) {
-    await this.assertWriter(req);
     const data = await this.service.create(this.tenantOf(req), dto);
     return { success: true, data };
   }
 
   @Post('bulk')
+  @RequirePermission(PERMISSIONS.QUESTION_BANK_WRITE)
   async bulkImport(@Request() req: any, @Body() dto: BulkImportDto) {
-    await this.assertWriter(req);
     const data = await this.service.bulkImport(this.tenantOf(req), dto.questions);
     return { success: true, data };
   }
 
   @Put(':id')
+  @RequirePermission(PERMISSIONS.QUESTION_BANK_WRITE)
   async update(@Request() req: any, @Param('id') id: string, @Body() dto: UpdateQuestionDto) {
-    await this.assertWriter(req);
     const data = await this.service.update(this.tenantOf(req), id, dto);
     return { success: true, data };
   }
 
   @Delete(':id')
+  @RequirePermission(PERMISSIONS.QUESTION_BANK_WRITE)
   async remove(@Request() req: any, @Param('id') id: string) {
-    await this.assertWriter(req);
     const data = await this.service.remove(this.tenantOf(req), id);
     return { success: true, data };
   }

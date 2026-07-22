@@ -41,13 +41,7 @@ export class WhiteLabelService {
 
   async updateSettings(
     settings: WhiteLabelSettings,
-    userRole: string,
   ): Promise<WhiteLabelSettings> {
-    // Verify user is org_admin
-    if (!['org_admin', 'super_admin'].includes(userRole)) {
-      throw new BadRequestException('Only org admins can update white-label settings');
-    }
-
     // Verify custom domain (if provided)
     if (settings.customDomain) {
       await this.validateCustomDomain(settings.customDomain);
