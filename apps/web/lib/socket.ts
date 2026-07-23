@@ -73,6 +73,13 @@ class SocketService {
     this.socket.on('notification', (data: unknown) => {
       this.dispatch('notification', data);
     });
+
+    // Emitted by AssessmentConfigService (RealtimeGateway.emitToTenant) any
+    // time an admin publishes a new/updated assessment version — lets every
+    // open admin session refresh instantly instead of on next page load.
+    this.socket.on('assessment_config.published', (data: unknown) => {
+      this.dispatch('assessment_config.published', data);
+    });
   }
 
   disconnect(): void {

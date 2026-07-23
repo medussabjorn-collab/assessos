@@ -5,6 +5,7 @@ import { ClipboardList, Plus, History, Loader, ShieldOff, X } from 'lucide-react
 import { useAuth } from '@/lib/auth-context';
 import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
+import { socketService } from '@/lib/socket';
 import PageHeader from '@/components/PageHeader';
 
 interface Dimension {
@@ -65,6 +66,7 @@ export default function AssessmentsPage() {
   const [saving, setSaving] = useState(false);
   const [versions, setVersions] = useState<AssessmentConfig[] | null>(null);
   const [versionsGroupId, setVersionsGroupId] = useState<string | null>(null);
+  const [liveNotice, setLiveNotice] = useState<{ groupId: string; version: number } | null>(null);
 
   const selected = configs.find((c) => c.assessmentGroupId === selectedGroupId) ?? null;
 
@@ -84,18 +86,36 @@ export default function AssessmentsPage() {
       .finally(() => setLoading(false));
   }, [authLoading, allowed]);
 
+  // Realtime: every connected admin sees a published version instantly.
+  // Always refresh the list quietly; if the assessment currently open in the
+  // editor was just updated by someone else, surface it instead of silently
+  // letting a later save clobber their published change.
+  useEffect(() => {
+    if (!allowed) return;
+    const unsubscribe = socketService.on('assessment_config.published', (data: unknown) => {
+      const published = data as AssessmentConfig;
+      load().catch(() => {});
+      if (published?.assessmentGroupId && published.assessmentGroupId === selectedGroupId) {
+        setLiveNotice({ groupId: published.assessmentGroupId, version: published.version });
+      }
+    });
+    return unsubscribe;
+  }, [allowed, selectedGroupId]);
+
   const startCreate = () => {
     setCreating(true);
     setSelectedGroupId(null);
     setVersionsGroupId(null);
     setDraft(emptyDraft());
     setError(null);
+    setLiveNotice(null);
   };
 
   const selectConfig = (config: AssessmentConfig) => {
     setCreating(false);
     setSelectedGroupId(config.assessmentGroupId);
     setVersionsGroupId(null);
+    setLiveNotice(null);
     setDraft({
       pillar: config.pillar,
       dimensions: config.dimensions,
@@ -271,6 +291,20 @@ export default function AssessmentsPage() {
 
           {showEditor && (
             <div className="bg-surface border border-hairline rounded-xl p-5">
+              {liveNotice && selected && liveNotice.groupId === selected.assessmentGroupId && (
+                <div className="mb-4 flex items-center justify-between gap-3 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-sm text-amber-600">
+                  <span>
+                    Another admin just published v{liveNotice.version} of this assessment. Your changes here are
+                    based on an older version.
+                  </span>
+                  <button
+                    onClick={() => selectConfig(selected)}
+                    className="shrink-0 px-2 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-xs font-medium transition"
+                  >
+                    Reload latest
+                  </button>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="text-xs text-subtle block mb-1">Pillar</label>
@@ -408,6 +442,7 @@ export default function AssessmentsPage() {
                   onClick={() => {
                     setCreating(false);
                     setSelectedGroupId(null);
+                    setLiveNotice(null);
                   }}
                   className="px-4 py-2 rounded-lg text-sm text-subtle hover:bg-canvas transition"
                 >

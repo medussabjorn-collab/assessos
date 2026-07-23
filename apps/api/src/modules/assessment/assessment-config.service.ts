@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 
 export interface AssessmentConfigInput {
   pillar?: string;
@@ -35,7 +36,10 @@ const VERSIONED_FIELDS = [
 
 @Injectable()
 export class AssessmentConfigService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private realtime: RealtimeGateway,
+  ) {}
 
   async listCurrent(tenantId: string) {
     return this.prisma.assessmentConfig.findMany({
@@ -90,10 +94,13 @@ export class AssessmentConfigService {
       },
     });
 
-    return this.prisma.assessmentConfig.update({
+    const config = await this.prisma.assessmentConfig.update({
       where: { id: created.id },
       data: { assessmentGroupId: created.id },
     });
+
+    this.broadcastPublish(tenantId, config);
+    return config;
   }
 
   async createVersion(tenantId: string, assessmentGroupId: string, input: AssessmentConfigInput) {
@@ -125,6 +132,15 @@ export class AssessmentConfigService {
       }),
     ]);
 
+    this.broadcastPublish(tenantId, newVersion);
     return newVersion;
+  }
+
+  // Every connected admin session in the tenant sees the new current version
+  // instantly (RealtimeGateway.emitToTenant -> the tenant:<id> room every
+  // authenticated socket already joins on connect) — no page refresh needed.
+  // Fire-and-forget: a socket-emit failure must never fail the publish.
+  private broadcastPublish(tenantId: string, config: unknown) {
+    this.realtime.emitToTenant(tenantId, 'assessment_config.published', config);
   }
 }

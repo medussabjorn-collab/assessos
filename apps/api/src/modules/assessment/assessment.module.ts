@@ -11,9 +11,10 @@ import { IrtAdaptiveTestingService } from './irt-adaptive-testing.service';
 import { PrismaService } from '../../database/prisma.service';
 import { TenantModule } from '../tenant/tenant.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
+import { RealtimeModule } from '../realtime/realtime.module';
 
 @Module({
-  imports: [TenantModule, WebhooksModule],
+  imports: [TenantModule, WebhooksModule, RealtimeModule],
   controllers: [AssessmentController, AssessmentConfigController],
   providers: [
     AssessmentService,
