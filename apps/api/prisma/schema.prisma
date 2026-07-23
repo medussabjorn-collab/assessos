@@ -52,6 +52,7 @@ model Tenant {
   integrityLog      IntegrityLogEntry[]
   proctoringIncidents ProctoringIncident[]
   roles             Role[]
+  invitations       Invitation[]
 
   @@map("tenants")
 }
@@ -99,6 +100,7 @@ model User {
   auditLogs         AuditLog[]
   notifications     Notification[]
   identityVerifications IdentityVerification[]
+  invitationsSent   Invitation[]
 
   @@index([tenantId])
   @@index([roleId])
@@ -125,10 +127,49 @@ model Role {
 
   users       User[]
   permissions RolePermission[]
+  invitations Invitation[]
 
   @@unique([tenantId, name])
   @@index([tenantId])
   @@map("roles")
+}
+
+enum InvitationStatus {
+  pending
+  accepted
+  expired
+  revoked
+}
+
+// Real invitation lifecycle — replaces the earlier instant-activate invite
+// (which created the User row immediately, before the invitee ever set a
+// password). No User row exists until `accept` succeeds. `token` is the
+// secret in the emailed accept-link; `id` is the internal reference an
+// admin's UI uses for resend/revoke, kept separate so listing invitations
+// never leaks the secret. Only one `pending` invitation per (tenantId,
+// email) is allowed — enforced via a partial unique index in the migration
+// (Prisma's schema DSL can't express a filtered unique constraint).
+model Invitation {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email       String
+  name        String
+  roleId      String
+  role        Role     @relation(fields: [roleId], references: [id])
+  department  String?
+  token       String   @unique
+  status      InvitationStatus @default(pending)
+  invitedById String
+  invitedBy   User     @relation(fields: [invitedById], references: [id])
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([token])
+  @@map("invitations")
 }
 
 // Fixed, code-referenced capability catalog — not user-creatable. Grouped by

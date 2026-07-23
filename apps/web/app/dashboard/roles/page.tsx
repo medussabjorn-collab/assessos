@@ -32,6 +32,18 @@ interface TenantUser {
   role: { id: string; name: string };
 }
 
+interface InvitationSummary {
+  id: string;
+  email: string;
+  name: string;
+  department: string | null;
+  role: { id: string; name: string };
+  invitedByName: string;
+  status: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
 export default function RolesPage() {
   const { userId, hasPermission, loading: authLoading } = useAuth();
   const allowed = hasPermission(PERMISSIONS.ROLES_MANAGE);
@@ -39,6 +51,7 @@ export default function RolesPage() {
   const [permissions, setPermissions] = useState<PermissionDef[]>([]);
   const [roles, setRoles] = useState<RoleSummary[]>([]);
   const [users, setUsers] = useState<TenantUser[]>([]);
+  const [invitations, setInvitations] = useState<InvitationSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -60,14 +73,16 @@ export default function RolesPage() {
   const selected = roles.find((r) => r.id === selectedId) ?? null;
 
   const load = async () => {
-    const [rolesRes, permsRes, usersRes] = await Promise.all([
+    const [rolesRes, permsRes, usersRes, invitesRes] = await Promise.all([
       api.get('/api/roles'),
       api.get('/api/roles/permissions'),
       api.get('/api/users'),
+      api.get('/api/invitations'),
     ]);
     setRoles(rolesRes.data.data ?? []);
     setPermissions(permsRes.data.data ?? []);
     setUsers(usersRes.data.data ?? []);
+    setInvitations(invitesRes.data.data ?? []);
   };
 
   useEffect(() => {
@@ -166,7 +181,7 @@ export default function RolesPage() {
     setInviteSaving(true);
     setInviteMsg(null);
     try {
-      await api.post('/api/users', {
+      await api.post('/api/invitations', {
         email: inviteForm.email,
         name: inviteForm.name,
         department: inviteForm.department || undefined,
@@ -178,6 +193,26 @@ export default function RolesPage() {
       setInviteMsg(err?.response?.data?.message ?? 'Failed to send invitation.');
     } finally {
       setInviteSaving(false);
+    }
+  };
+
+  const resendInvitation = async (id: string) => {
+    setUserActionError(null);
+    try {
+      await api.post(`/api/invitations/${id}/resend`);
+      await load();
+    } catch (err: any) {
+      setUserActionError(err?.response?.data?.message ?? 'Failed to resend invitation.');
+    }
+  };
+
+  const revokeInvitation = async (id: string) => {
+    setUserActionError(null);
+    try {
+      await api.post(`/api/invitations/${id}/revoke`);
+      await load();
+    } catch (err: any) {
+      setUserActionError(err?.response?.data?.message ?? 'Failed to revoke invitation.');
     }
   };
 
@@ -370,6 +405,71 @@ export default function RolesPage() {
           )}
         </div>
       </div>
+
+      {invitations.filter((inv) => inv.status !== 'accepted').length > 0 && (
+        <div className="mt-8 bg-surface border border-hairline rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-hairline">
+            <h3 className="font-semibold text-ink">Pending invitations</h3>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-subtle border-b border-hairline">
+                <th className="p-3 font-medium">Email</th>
+                <th className="p-3 font-medium">Name</th>
+                <th className="p-3 font-medium">Role</th>
+                <th className="p-3 font-medium">Invited by</th>
+                <th className="p-3 font-medium">Status</th>
+                <th className="p-3 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {invitations
+                .filter((inv) => inv.status !== 'accepted')
+                .map((inv) => (
+                  <tr key={inv.id} className="border-b border-hairline last:border-0">
+                    <td className="p-3">{inv.email}</td>
+                    <td className="p-3 text-subtle">{inv.name}</td>
+                    <td className="p-3 text-subtle capitalize">{inv.role.name.replace(/_/g, ' ')}</td>
+                    <td className="p-3 text-subtle">{inv.invitedByName}</td>
+                    <td className="p-3">
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full ${
+                          inv.status === 'pending'
+                            ? 'bg-amber-500/15 text-amber-600'
+                            : inv.status === 'expired'
+                              ? 'bg-red-500/15 text-red-500'
+                              : 'bg-canvas text-subtle'
+                        }`}
+                      >
+                        {inv.status}
+                      </span>
+                    </td>
+                    <td className="p-2">
+                      <div className="flex gap-1 justify-end">
+                        {inv.status !== 'revoked' && (
+                          <button
+                            onClick={() => resendInvitation(inv.id)}
+                            className="px-2 py-1 rounded-md text-xs text-brand-600 hover:bg-brand-50"
+                          >
+                            Resend
+                          </button>
+                        )}
+                        {inv.status === 'pending' && (
+                          <button
+                            onClick={() => revokeInvitation(inv.id)}
+                            className="px-2 py-1 rounded-md text-xs text-red-500 hover:bg-red-500/10"
+                          >
+                            Revoke
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="mt-8 bg-surface border border-hairline rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-hairline flex items-center justify-between">

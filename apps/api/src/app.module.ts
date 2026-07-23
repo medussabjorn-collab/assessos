@@ -75,6 +75,10 @@ export class AppModule implements NestModule {
         'api/auth/tenant',
         'api/auth/sso/discover',
         'api/billing/webhooks/stripe',
+        // The invitee has no tenant context (or account) yet at this point —
+        // the invitation's token carries the tenant, not the request header.
+        'api/invitations/lookup',
+        'api/invitations/accept',
         // Platform-level super-admin routes act ACROSS tenants — the
         // x-tenant-id header here names the org being managed, not the
         // caller's own membership, so tenant-disabled enforcement must not

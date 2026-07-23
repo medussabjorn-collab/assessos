@@ -14,7 +14,7 @@ import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermission } from '../auth/permissions.decorator';
 import { PERMISSIONS } from '../auth/permissions.constants';
 import { PrismaService } from '../../database/prisma.service';
-import { UsersManagementService, InviteUserInput, UpdateUserInput } from './users-management.service';
+import { UsersManagementService, UpdateUserInput } from './users-management.service';
 
 interface ActivityItem {
   label: string;
@@ -34,18 +34,6 @@ export class UsersController {
   async list(@Request() req: any) {
     const users = await this.usersManagement.listUsers(req.resolvedUser.tenantId);
     return { success: true, data: users };
-  }
-
-  @Post()
-  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
-  @RequirePermission(PERMISSIONS.USERS_MANAGE)
-  async invite(@Request() req: any, @Body() body: InviteUserInput) {
-    const user = await this.usersManagement.inviteUser(
-      req.resolvedUser.tenantId,
-      req.resolvedUser.role.name,
-      body,
-    );
-    return { success: true, data: user, message: 'Invitation sent' };
   }
 
   @Patch(':id')
