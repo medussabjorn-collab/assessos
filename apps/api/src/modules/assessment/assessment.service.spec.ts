@@ -8,6 +8,7 @@ describe('AssessmentService', () => {
 
   let prisma: any;
   let webhookDispatch: any;
+  let identity: any;
   let service: AssessmentService;
 
   beforeEach(() => {
@@ -24,6 +25,7 @@ describe('AssessmentService', () => {
     const questionBank = { get: jest.fn() };
     const adaptiveTesting = { next: jest.fn() };
     const pillarQuestions = { getQuestionsForDimension: jest.fn().mockResolvedValue([]), getQuestionById: jest.fn() };
+    identity = { isVerifiedForUser: jest.fn().mockResolvedValue(true) };
     const request = { headers: { 'x-tenant-id': tenantId } };
     service = new AssessmentService(
       prisma,
@@ -31,6 +33,7 @@ describe('AssessmentService', () => {
       questionBank as any,
       adaptiveTesting as any,
       pillarQuestions as any,
+      identity as any,
       request,
     );
   });
@@ -67,6 +70,42 @@ describe('AssessmentService', () => {
       ).rejects.toThrow(NotFoundException);
 
       expect(prisma.assessmentSession.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects when aiProctoring is on and the user has no verified identity check', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentConfig.findUnique.mockResolvedValue({
+        id: 'cfg-1',
+        tenantId,
+        pillar: 'vision',
+        timeLimitMin: 30,
+        aiProctoring: true,
+      });
+      identity.isVerifiedForUser.mockResolvedValue(false);
+
+      await expect(
+        service.startSession(firebaseUid, { configId: 'cfg-1' } as any),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(identity.isVerifiedForUser).toHaveBeenCalledWith(tenantId, internalUserId);
+      expect(prisma.assessmentSession.create).not.toHaveBeenCalled();
+    });
+
+    it('allows starting when aiProctoring is on and the user has a verified identity check', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentConfig.findUnique.mockResolvedValue({
+        id: 'cfg-1',
+        tenantId,
+        pillar: 'vision',
+        timeLimitMin: 30,
+        aiProctoring: true,
+      });
+      prisma.assessmentSession.create.mockResolvedValue({ id: 'sess-1', pillar: 'vision' });
+      identity.isVerifiedForUser.mockResolvedValue(true);
+
+      await service.startSession(firebaseUid, { configId: 'cfg-1' } as any);
+
+      expect(prisma.assessmentSession.create).toHaveBeenCalled();
     });
   });
 
@@ -149,6 +188,24 @@ describe('AssessmentService', () => {
         userId: internalUserId,
         pillar: 'leadership',
       });
+    });
+
+    it('rejects submission when the session has been proctoring-revoked', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'active',
+        startedAt: new Date(),
+        config: { timeLimitMin: 30 },
+        proctoringRevoked: true,
+      });
+
+      await expect(
+        service.submitAnswers('sess-1', firebaseUid, { answers: [], metadata: {} } as any),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.assessmentSession.update).not.toHaveBeenCalled();
     });
 
     it('rejects submission once the config time limit has elapsed since startedAt', async () => {

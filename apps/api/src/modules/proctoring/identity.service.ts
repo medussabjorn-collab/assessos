@@ -116,6 +116,18 @@ export class IdentityService {
     return !!latest;
   }
 
+  // Same gate, but before a session exists to attach the check to — identity
+  // verification happens pre-session, so at the moment AssessmentService
+  // creates the session there is no sessionId yet for isVerifiedForSession to
+  // filter on. Falls back to "has this user verified at all recently".
+  async isVerifiedForUser(tenantId: string, userId: string): Promise<boolean> {
+    const latest = await this.prisma.identityVerification.findFirst({
+      where: { tenantId, userId, status: 'verified' },
+      orderBy: { createdAt: 'desc' },
+    });
+    return !!latest;
+  }
+
   // In-session periodic re-check. A confirmed drift (different person) both
   // flags the record and raises an identity_drift proctoring event, and revokes
   // the session binding so the client must re-authenticate.

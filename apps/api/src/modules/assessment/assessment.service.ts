@@ -15,6 +15,7 @@ import { QuestionBankService } from '../question-bank/question-bank.service';
 import { AdaptiveTestingService, AnsweredItem } from '../question-bank/adaptive-testing.service';
 import { IrtAbility } from '../question-bank/three-pl-irt.service';
 import { PillarQuestionService } from '../pillar-questions/pillar-question.service';
+import { IdentityService } from '../proctoring/identity.service';
 
 // Fallback adaptive-test length when a module config's totalQuestions isn't
 // set to something sane (0 default from a config that was only ever meant
@@ -31,6 +32,7 @@ export class AssessmentService {
     private questionBank: QuestionBankService,
     private adaptiveTesting: AdaptiveTestingService,
     private pillarQuestions: PillarQuestionService,
+    private identity: IdentityService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
@@ -63,6 +65,17 @@ export class AssessmentService {
     }
   }
 
+  // IdentityService.checkBinding sets this on a device/IP/biometric mismatch
+  // mid-session, but nothing previously stopped the session from continuing
+  // to accept answers afterward.
+  private assertNotRevoked(proctoringRevoked: boolean) {
+    if (proctoringRevoked) {
+      throw new BadRequestException(
+        'This session has been revoked due to a proctoring integrity check failure',
+      );
+    }
+  }
+
   async startSession(firebaseUid: string, createSessionDto: CreateSessionDto) {
     const { configId } = createSessionDto;
     const userId = await this.resolveUserId(firebaseUid);
@@ -73,6 +86,15 @@ export class AssessmentService {
 
     if (!config || config.tenantId !== this.tenantId) {
       throw new BadRequestException('Assessment config not found');
+    }
+
+    if (config.aiProctoring) {
+      const verified = await this.identity.isVerifiedForUser(this.tenantId, userId);
+      if (!verified) {
+        throw new BadRequestException(
+          'Identity verification required before starting this assessment',
+        );
+      }
     }
 
     // Module-based configs (technical/attitude/behavioral/psychometric/
@@ -177,6 +199,7 @@ export class AssessmentService {
     if (!session.moduleId) {
       throw new BadRequestException('This session is not an adaptive module assessment');
     }
+    this.assertNotRevoked(session.proctoringRevoked);
     this.assertWithinTimeLimit(session.startedAt, session.config.timeLimitMin);
 
     const pendingQuestionId = session.questionOrder[session.currentIndex];
@@ -348,6 +371,7 @@ export class AssessmentService {
     if (session.status !== 'active') {
       throw new BadRequestException('Session is not active');
     }
+    this.assertNotRevoked(session.proctoringRevoked);
     this.assertWithinTimeLimit(session.startedAt, session.config.timeLimitMin);
 
     // Enrich each raw answer with the real question text + selected

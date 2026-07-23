@@ -47,6 +47,31 @@ async function main() {
     });
   }
 
+  // ── Identity verification ───────────────────────────────────────────────────
+  // The leadership config below has aiProctoring: true, which now gates
+  // AssessmentService.startSession on IdentityService.isVerifiedForUser.
+  // Demo users need a verified record or the seeded sessions/reports below
+  // become untakeable through the real API.
+  const verifiedUsers = ['usr-jane', 'usr-john'];
+  for (const userId of verifiedUsers) {
+    await prisma.identityVerification.upsert({
+      where: { id: `idv-${userId}` },
+      update: {},
+      create: {
+        id: `idv-${userId}`,
+        tenantId: tenant.id,
+        userId,
+        documentType: 'passport',
+        documentVerified: true,
+        documentScore: 0.95,
+        faceMatchScore: 0.97,
+        livenessPassed: true,
+        otpVerified: true,
+        status: 'verified',
+      },
+    });
+  }
+
   // ── Assessment config ───────────────────────────────────────────────────────
   const config = await prisma.assessmentConfig.upsert({
     where: { id: 'cfg-leadership-001' },

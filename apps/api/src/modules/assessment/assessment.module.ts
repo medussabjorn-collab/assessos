@@ -12,9 +12,17 @@ import { WebhooksModule } from '../webhooks/webhooks.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { QuestionBankModule } from '../question-bank/question-bank.module';
 import { PillarQuestionModule } from '../pillar-questions/pillar-question.module';
+import { ProctoringModule } from '../proctoring/proctoring.module';
 
 @Module({
-  imports: [TenantModule, WebhooksModule, RealtimeModule, QuestionBankModule, PillarQuestionModule],
+  imports: [
+    TenantModule,
+    WebhooksModule,
+    RealtimeModule,
+    QuestionBankModule,
+    PillarQuestionModule,
+    ProctoringModule,
+  ],
   controllers: [AssessmentController, AssessmentConfigController],
   providers: [
     AssessmentService,
