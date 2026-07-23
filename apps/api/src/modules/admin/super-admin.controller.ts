@@ -44,6 +44,15 @@ export class SuperAdminController {
     };
   }
 
+  @Post('organizations/:tenantId/enable')
+  async enableOrganization(@Param('tenantId') tenantId: string) {
+    await this.superAdminService.enableOrganization(tenantId);
+    return {
+      success: true,
+      message: 'Organization enabled',
+    };
+  }
+
   @Get('users/:tenantId')
   async getOrgUsers(@Param('tenantId') tenantId: string) {
     const users = await this.superAdminService.getOrgUsers(tenantId);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Shield, Ban, Loader } from 'lucide-react';
+import { Shield, Ban, CheckCircle2, Loader } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
@@ -74,6 +74,19 @@ export default function OrgDetailPage() {
     }
   };
 
+  const enableOrg = async () => {
+    setDisabling(true);
+    try {
+      await api.post(`/api/admin/organizations/${tenantId}/enable`);
+      setActionMsg('Organization enabled.');
+      setOrg((prev) => (prev ? { ...prev, settings: { ...prev.settings, disabled: false } } : prev));
+    } catch {
+      setActionMsg('Failed to enable organization.');
+    } finally {
+      setDisabling(false);
+    }
+  };
+
   if (!isSuperAdmin) {
     return (
       <div>
@@ -109,7 +122,16 @@ export default function OrgDetailPage() {
         icon={Shield}
         action={
           disabled ? (
-            <span className="text-xs px-3 py-1.5 rounded-full bg-red-500/15 text-red-400">Disabled</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-3 py-1.5 rounded-full bg-red-500/15 text-red-400">Disabled</span>
+              <button
+                onClick={enableOrg}
+                disabled={disabling}
+                className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/40 text-emerald-500 px-3 py-1.5 text-sm hover:bg-emerald-500/10 disabled:opacity-50 transition"
+              >
+                <CheckCircle2 size={15} /> {disabling ? 'Enabling…' : 'Enable organization'}
+              </button>
+            </div>
           ) : (
             <button
               onClick={disableOrg}

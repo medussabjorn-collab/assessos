@@ -66,12 +66,28 @@ export class SuperAdminService {
   }
 
   async disableOrganization(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } });
     await this.prisma.tenant.update({
       where: { id: tenantId },
       data: {
         settings: {
+          ...(tenant?.settings as Record<string, any> | null ?? {}),
           disabled: true,
           disabledAt: new Date().toISOString(),
+        },
+      },
+    });
+  }
+
+  async enableOrganization(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } });
+    await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: {
+        settings: {
+          ...(tenant?.settings as Record<string, any> | null ?? {}),
+          disabled: false,
+          disabledAt: null,
         },
       },
     });

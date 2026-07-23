@@ -75,6 +75,19 @@ export class AppModule implements NestModule {
         'api/auth/tenant',
         'api/auth/sso/discover',
         'api/billing/webhooks/stripe',
+        // Platform-level super-admin routes act ACROSS tenants — the
+        // x-tenant-id header here names the org being managed, not the
+        // caller's own membership, so tenant-disabled enforcement must not
+        // apply. Authorization is PLATFORM_ORGS_MANAGE (PermissionsGuard),
+        // not tenant membership. Without this exclusion, disabling an org
+        // whose admin happens to also be its own super_admin's home tenant
+        // permanently locks out the only account that could re-enable it.
+        'api/admin/organizations',
+        'api/admin/organizations/:tenantId',
+        'api/admin/organizations/:tenantId/disable',
+        'api/admin/organizations/:tenantId/enable',
+        'api/admin/users/:tenantId',
+        'api/admin/usage-alerts',
       )
       .forRoutes('*');
   }
