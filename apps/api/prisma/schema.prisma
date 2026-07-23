@@ -232,9 +232,6 @@ model AssessmentSession {
   moduleId          AssessmentModuleId?
   questionOrder     String[]
   currentIndex      Int       @default(0)
-  expiresAt         DateTime?
-  timeSpentSec      Int       @default(0)
-  offlineToken      String?
 
   // Advanced proctoring — session binding (continuous-auth pillar). The
   // session token is tied to a device + IP-range hash + biometric-template
