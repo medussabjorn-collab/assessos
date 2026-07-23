@@ -23,8 +23,16 @@ describe('AssessmentService', () => {
     webhookDispatch = { dispatch: jest.fn() };
     const questionBank = { get: jest.fn() };
     const adaptiveTesting = { next: jest.fn() };
+    const pillarQuestions = { getQuestionsForDimension: jest.fn().mockResolvedValue([]), getQuestionById: jest.fn() };
     const request = { headers: { 'x-tenant-id': tenantId } };
-    service = new AssessmentService(prisma, webhookDispatch, questionBank as any, adaptiveTesting as any, request);
+    service = new AssessmentService(
+      prisma,
+      webhookDispatch,
+      questionBank as any,
+      adaptiveTesting as any,
+      pillarQuestions as any,
+      request,
+    );
   });
 
   describe('startSession', () => {

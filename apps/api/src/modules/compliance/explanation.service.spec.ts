@@ -5,25 +5,8 @@ import { PERMISSIONS } from '../auth/permissions.constants';
 describe('ExplanationService', () => {
   const tenantId = 'tenant-1';
   let prisma: any;
-  let questionBank: any;
   let permissions: any;
   let service: ExplanationService;
-
-  const visionQuestion = {
-    id: 'q_vision_1',
-    dimensionId: 'vision',
-    text: 'How effectively do you articulate a vision?',
-    options: [
-      { id: 'opt_1', text: 'Not at all', value: 1 },
-      { id: 'opt_4', text: 'Very effectively', value: 4 },
-    ],
-  };
-  const influenceQuestion = {
-    id: 'q_influence_1',
-    dimensionId: 'influence',
-    text: 'How effectively do you persuade others?',
-    options: [{ id: 'opt_3', text: 'Moderately', value: 3 }],
-  };
 
   // Builds a ResolvedUser-shaped object matching what the real
   // PermissionsService.resolveUser returns, given just a permission set.
@@ -39,17 +22,12 @@ describe('ExplanationService', () => {
     prisma = {
       aiReport: { findFirst: jest.fn() },
     };
-    questionBank = {
-      getQuestionById: jest.fn((id: string) =>
-        ({ q_vision_1: visionQuestion, q_influence_1: influenceQuestion } as any)[id],
-      ),
-    };
     permissions = {
       resolveUser: jest.fn(),
       hasPermission: jest.fn((user: any, key: string) => user.permissions.has(key)),
     };
     const request = { headers: { 'x-tenant-id': tenantId } };
-    service = new ExplanationService(prisma, questionBank, permissions, request);
+    service = new ExplanationService(prisma, permissions, request);
   });
 
   it('throws NotFoundException for an unknown requester', async () => {
@@ -79,8 +57,24 @@ describe('ExplanationService', () => {
       dimensionScores: { vision: 85, influence: 60 },
       session: {
         answers: [
-          { questionId: 'q_vision_1', selectedOptionId: 'opt_4', timeTakenSec: 12 },
-          { questionId: 'q_influence_1', selectedOptionId: 'opt_3', timeTakenSec: 8 },
+          {
+            questionId: 'q_vision_1',
+            selectedOptionId: 'opt_4',
+            timeTakenSec: 12,
+            dimensionId: 'vision',
+            questionText: 'How effectively do you articulate a vision?',
+            selectedOptionText: 'Very effectively',
+            selectedOptionValue: 4,
+          },
+          {
+            questionId: 'q_influence_1',
+            selectedOptionId: 'opt_3',
+            timeTakenSec: 8,
+            dimensionId: 'influence',
+            questionText: 'How effectively do you persuade others?',
+            selectedOptionText: 'Moderately',
+            selectedOptionValue: 3,
+          },
         ],
       },
     });
@@ -111,8 +105,24 @@ describe('ExplanationService', () => {
       dimensionScores: { vision: 85, influence: 60 },
       session: {
         answers: [
-          { questionId: 'q_vision_1', selectedOptionId: 'opt_4', timeTakenSec: 12 },
-          { questionId: 'q_influence_1', selectedOptionId: 'opt_3', timeTakenSec: 8 },
+          {
+            questionId: 'q_vision_1',
+            selectedOptionId: 'opt_4',
+            timeTakenSec: 12,
+            dimensionId: 'vision',
+            questionText: 'How effectively do you articulate a vision?',
+            selectedOptionText: 'Very effectively',
+            selectedOptionValue: 4,
+          },
+          {
+            questionId: 'q_influence_1',
+            selectedOptionId: 'opt_3',
+            timeTakenSec: 8,
+            dimensionId: 'influence',
+            questionText: 'How effectively do you persuade others?',
+            selectedOptionText: 'Moderately',
+            selectedOptionValue: 3,
+          },
         ],
       },
     });

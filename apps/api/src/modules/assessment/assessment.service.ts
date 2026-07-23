@@ -14,6 +14,7 @@ import { WebhookDispatchService } from '../webhooks/webhook-dispatch.service';
 import { QuestionBankService } from '../question-bank/question-bank.service';
 import { AdaptiveTestingService, AnsweredItem } from '../question-bank/adaptive-testing.service';
 import { IrtAbility } from '../question-bank/three-pl-irt.service';
+import { PillarQuestionService } from '../pillar-questions/pillar-question.service';
 
 // Fallback adaptive-test length when a module config's totalQuestions isn't
 // set to something sane (0 default from a config that was only ever meant
@@ -29,6 +30,7 @@ export class AssessmentService {
     private webhookDispatch: WebhookDispatchService,
     private questionBank: QuestionBankService,
     private adaptiveTesting: AdaptiveTestingService,
+    private pillarQuestions: PillarQuestionService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
@@ -81,10 +83,27 @@ export class AssessmentService {
       },
     });
 
+    // Fixed-form question set, one dimension at a time — real, admin-
+    // editable Likert items (replaces the old hardcoded mock array).
+    const dimensions = (config.dimensions ?? []) as Array<{ id: string; label?: string; weight?: number }>;
+    const questionsByDimension = await Promise.all(
+      dimensions.map((d) => this.pillarQuestions.getQuestionsForDimension(this.tenantId, d.id)),
+    );
+    // Mongo docs use _id; the frontend's Question/QuestionCard shape expects
+    // a plain `id` string — normalize at this API boundary so no frontend
+    // component needs to know the storage detail.
+    const questions = questionsByDimension.flat().map((q: any) => ({
+      id: String(q._id),
+      dimensionId: q.dimensionId,
+      text: q.text,
+      options: q.options,
+    }));
+
     return {
       sessionId: session.id,
       pillar: session.pillar,
       timeLimitMin: config.timeLimitMin,
+      questions,
     };
   }
 
@@ -318,12 +337,31 @@ export class AssessmentService {
       throw new BadRequestException('Session is not active');
     }
 
+    // Enrich each raw answer with the real question text + selected
+    // option's meaning before persisting — the AI report prompt
+    // (report-generator.service.ts) just JSON.stringifies whatever's
+    // stored here, so without this it only ever saw opaque ids and had
+    // no actual basis to score anything.
+    const enrichedAnswers = await Promise.all(
+      submitAnswersDto.answers.map(async (a) => {
+        const question: any = await this.pillarQuestions.getQuestionById(this.tenantId, a.questionId);
+        const option = question?.options?.find((o: any) => o.id === a.selectedOptionId);
+        return {
+          ...a,
+          dimensionId: question?.dimensionId ?? null,
+          questionText: question?.text ?? null,
+          selectedOptionText: option?.text ?? null,
+          selectedOptionValue: option?.value ?? null,
+        };
+      }),
+    );
+
     const submittedSession = await this.prisma.assessmentSession.update({
       where: { id: sessionId },
       data: {
         status: 'done',
         submittedAt: new Date(),
-        answers: submitAnswersDto.answers,
+        answers: enrichedAnswers,
         answersMetadata: submitAnswersDto.metadata,
       },
     });

@@ -18,7 +18,7 @@ import { SubmitAdaptiveAnswerDto } from './dto/submit-adaptive-answer.dto';
 import { ScenarioGeneratorService, GenerateScenarioParams } from './scenario-generator.service';
 import { ScenarioReviewService } from './scenario-review.service';
 import { IrtAdaptiveTestingService, GradedResponse } from './irt-adaptive-testing.service';
-import { QuestionBankService } from './question-bank.service';
+import { PillarQuestionService } from '../pillar-questions/pillar-question.service';
 
 @Controller('api/assessments')
 export class AssessmentController {
@@ -27,7 +27,7 @@ export class AssessmentController {
     private scenarioGenerator: ScenarioGeneratorService,
     private scenarioReview: ScenarioReviewService,
     private irt: IrtAdaptiveTestingService,
-    private questionBank: QuestionBankService,
+    private pillarQuestions: PillarQuestionService,
   ) {}
 
   @Post('sessions/start')
@@ -165,14 +165,18 @@ export class AssessmentController {
 
   @Post('irt/next-item')
   @UseGuards(FirebaseAuthGuard)
-  selectNextItem(
+  async selectNextItem(
+    @Request() req: any,
     @Body() body: { currentTheta: number; answeredQuestionIds: string[]; dimensionId?: string },
   ) {
-    const pool = this.questionBank.getQuestions(body.dimensionId);
+    const tenantId = req.headers['x-tenant-id'];
+    const pool: any[] = body.dimensionId
+      ? await this.pillarQuestions.getQuestionsForDimension(tenantId, body.dimensionId)
+      : [];
     const answered = new Set(body.answeredQuestionIds ?? []);
     const availableParams = pool
-      .filter((q) => !answered.has(q.id))
-      .map((q) => this.irt.defaultParametersFor(q.id));
+      .filter((q) => !answered.has(String(q._id)))
+      .map((q) => this.irt.defaultParametersFor(String(q._id)));
 
     const next = this.irt.selectNextItem(body.currentTheta, availableParams);
     return { success: true, data: next };

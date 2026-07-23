@@ -63,7 +63,13 @@ function AssessmentPageContent() {
     );
   }
 
-  return <AssessmentView sessionId={startData.sessionId} configId={configId!} />;
+  return (
+    <AssessmentView
+      sessionId={startData.sessionId}
+      questions={startData.questions ?? []}
+      timeLimitMin={startData.timeLimitMin}
+    />
+  );
 }
 
 export default function AssessmentPage() {

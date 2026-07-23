@@ -2,7 +2,6 @@ import { ForbiddenException, Injectable, NotFoundException, Scope } from '@nestj
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { QuestionBankService } from '../assessment/question-bank.service';
 import { PermissionsService } from '../auth/permissions.service';
 import { PERMISSIONS } from '../auth/permissions.constants';
 
@@ -40,7 +39,6 @@ export class ExplanationService {
 
   constructor(
     private prisma: PrismaService,
-    private questionBank: QuestionBankService,
     private permissions: PermissionsService,
     @Inject(REQUEST) private request: any,
   ) {
@@ -72,28 +70,32 @@ export class ExplanationService {
       );
     }
 
+    // Enriched at submission time (assessment.service.ts submitAnswers) with
+    // the real question text + selected option's meaning — no question-bank
+    // lookup needed here. Sessions submitted before that enrichment existed
+    // just show a placeholder rather than throwing.
     const answers = (report.session.answers ?? []) as Array<{
       questionId: string;
       selectedOptionId: string;
       timeTakenSec: number;
+      dimensionId?: string | null;
+      questionText?: string | null;
+      selectedOptionText?: string | null;
+      selectedOptionValue?: number | null;
     }>;
     const dimensionScores = (report.dimensionScores ?? {}) as Record<string, number>;
 
     const dimensionBreakdown: DimensionExplanation[] = Object.entries(dimensionScores).map(
       ([dimension, score]) => {
         const contributingAnswers = answers
-          .filter((a) => this.questionBank.getQuestionById(a.questionId)?.dimensionId === dimension)
-          .map((a) => {
-            const question = this.questionBank.getQuestionById(a.questionId);
-            const option = question?.options.find((o) => o.id === a.selectedOptionId);
-            return {
-              questionId: a.questionId,
-              questionText: question?.text ?? '(question no longer in bank)',
-              selectedOptionText: option?.text ?? null,
-              selectedOptionValue: option?.value ?? null,
-              timeTakenSec: a.timeTakenSec ?? null,
-            };
-          });
+          .filter((a) => a.dimensionId === dimension)
+          .map((a) => ({
+            questionId: a.questionId,
+            questionText: a.questionText ?? '(question text unavailable for this submission)',
+            selectedOptionText: a.selectedOptionText ?? null,
+            selectedOptionValue: a.selectedOptionValue ?? null,
+            timeTakenSec: a.timeTakenSec ?? null,
+          }));
         return { dimension, score, contributingAnswers };
       },
     );

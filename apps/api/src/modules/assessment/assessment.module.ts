@@ -3,8 +3,6 @@ import { AssessmentService } from './assessment.service';
 import { AssessmentController } from './assessment.controller';
 import { AssessmentConfigService } from './assessment-config.service';
 import { AssessmentConfigController } from './assessment-config.controller';
-import { LeadershipService } from './leadership.service';
-import { QuestionBankService } from './question-bank.service';
 import { ScenarioGeneratorService } from './scenario-generator.service';
 import { ScenarioReviewService } from './scenario-review.service';
 import { IrtAdaptiveTestingService } from './irt-adaptive-testing.service';
@@ -13,15 +11,14 @@ import { TenantModule } from '../tenant/tenant.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { QuestionBankModule } from '../question-bank/question-bank.module';
+import { PillarQuestionModule } from '../pillar-questions/pillar-question.module';
 
 @Module({
-  imports: [TenantModule, WebhooksModule, RealtimeModule, QuestionBankModule],
+  imports: [TenantModule, WebhooksModule, RealtimeModule, QuestionBankModule, PillarQuestionModule],
   controllers: [AssessmentController, AssessmentConfigController],
   providers: [
     AssessmentService,
     AssessmentConfigService,
-    LeadershipService,
-    QuestionBankService,
     ScenarioGeneratorService,
     ScenarioReviewService,
     IrtAdaptiveTestingService,
@@ -29,8 +26,6 @@ import { QuestionBankModule } from '../question-bank/question-bank.module';
   ],
   exports: [
     AssessmentService,
-    LeadershipService,
-    QuestionBankService,
     ScenarioGeneratorService,
     ScenarioReviewService,
     IrtAdaptiveTestingService,

@@ -1,15 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
 import Timer from './Timer';
 import QuestionCard from './QuestionCard';
-
-interface AssessmentViewProps {
-  sessionId: string;
-  configId: string;
-}
 
 interface Question {
   id: string;
@@ -18,78 +13,25 @@ interface Question {
   dimensionId: string;
 }
 
+interface AssessmentViewProps {
+  sessionId: string;
+  questions: Question[];
+  timeLimitMin: number;
+}
+
 interface Answer {
   questionId: string;
   selectedOptionId: string;
   timeTakenSec: number;
 }
 
-export default function AssessmentView({
-  sessionId,
-  configId: _configId,
-}: AssessmentViewProps) {
+export default function AssessmentView({ sessionId, questions, timeLimitMin }: AssessmentViewProps) {
   const { user, tenantId } = useAuth();
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeLimitMin, setTimeLimitMin] = useState(60);
   const [timeStarted, setTimeStarted] = useState(Date.now());
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/api/assessments/sessions/${sessionId}`,
-          {
-            headers: {
-              'x-tenant-id': tenantId,
-              Authorization: `Bearer ${await user?.getIdToken()}`,
-            },
-          },
-        );
-        setTimeLimitMin(response.data.data.config.timeLimitMin);
-
-        // Mock questions for now (in Phase 3, fetch from backend)
-        const mockQuestions: Question[] = [
-          {
-            id: 'q1',
-            text: 'How effectively do you articulate a compelling vision?',
-            dimensionId: 'vision',
-            options: [
-              { id: 'opt1', text: 'Not at all', value: 1 },
-              { id: 'opt2', text: 'Somewhat', value: 2 },
-              { id: 'opt3', text: 'Moderately', value: 3 },
-              { id: 'opt4', text: 'Very effectively', value: 4 },
-              { id: 'opt5', text: 'Exceptionally well', value: 5 },
-            ],
-          },
-          {
-            id: 'q2',
-            text: 'How well do you develop strategic plans?',
-            dimensionId: 'vision',
-            options: [
-              { id: 'opt1', text: 'Not at all', value: 1 },
-              { id: 'opt2', text: 'Somewhat', value: 2 },
-              { id: 'opt3', text: 'Moderately', value: 3 },
-              { id: 'opt4', text: 'Very well', value: 4 },
-              { id: 'opt5', text: 'Exceptionally well', value: 5 },
-            ],
-          },
-        ];
-
-        setQuestions(mockQuestions);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load session');
-        setLoading(false);
-      }
-    };
-
-    if (user) fetchSession();
-  }, [sessionId, user, tenantId]);
 
   const handleAnswerSelect = (optionId: string) => {
     const timeTakenSec = Math.round((Date.now() - timeStarted) / 1000);
@@ -159,7 +101,6 @@ export default function AssessmentView({
     handleSubmit();
   };
 
-  if (loading) return <div className="p-8">Loading assessment...</div>;
   if (error) return <div className="p-8 text-red-500">{error}</div>;
   if (submitted) {
     return (
@@ -176,7 +117,14 @@ export default function AssessmentView({
   }
 
   if (questions.length === 0) {
-    return <div className="p-8">No questions available</div>;
+    return (
+      <div className="p-8 max-w-2xl mx-auto text-center">
+        <p className="text-gray-600">
+          No questions are configured for this assessment yet. Ask an admin to add questions for its
+          dimensions.
+        </p>
+      </div>
+    );
   }
 
   const currentQuestion = questions[currentQuestionIndex];

@@ -20,6 +20,7 @@ import { RaterFeedbackModule } from './modules/rater-feedback/rater-feedback.mod
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { QuestionBankModule } from './modules/question-bank/question-bank.module';
+import { PillarQuestionModule } from './modules/pillar-questions/pillar-question.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
@@ -56,6 +57,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     ComplianceModule,
     WebhooksModule,
     QuestionBankModule,
+    PillarQuestionModule,
     NotificationsModule,
     AuditLogModule,
     IntegrationsModule,
