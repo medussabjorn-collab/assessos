@@ -126,6 +126,18 @@ export class ReportGeneratorService {
     const text = data.content.find((c) => c.type === 'text')?.text ?? '';
     const parsed = this.parseReport(text);
 
+    const scoreValues = Object.values(parsed.dimensionScores);
+    const avgScore = scoreValues.length
+      ? scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length
+      : 0;
+
+    const benchmarkPercentile = await this.computeBenchmarkPercentile(
+      report.tenantId,
+      session.configId,
+      reportId,
+      avgScore,
+    );
+
     await this.prisma.aiReport.update({
       where: { id: reportId },
       data: {
@@ -133,14 +145,11 @@ export class ReportGeneratorService {
         narrative: parsed.narrative,
         recommendation: parsed.recommendation,
         coachingPlan: parsed.coachingPlan as unknown as Prisma.InputJsonValue,
+        benchmarkPercentile,
         status: 'ready',
       },
     });
 
-    const scoreValues = Object.values(parsed.dimensionScores);
-    const avgScore = scoreValues.length
-      ? scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length
-      : 0;
     if (avgScore >= HIGH_SCORE_THRESHOLD || avgScore <= LOW_SCORE_THRESHOLD) {
       void this.webhookDispatch.dispatch(report.tenantId, 'report.score_threshold_crossed', {
         reportId,
@@ -149,6 +158,37 @@ export class ReportGeneratorService {
         threshold: avgScore >= HIGH_SCORE_THRESHOLD ? 'high' : 'low',
       });
     }
+  }
+
+  // Ranks this report's average dimension score against every other ready
+  // report on the same assessment config in the tenant. Returns null (not 0
+  // or 50) when there are no peers yet — there is nothing honest to report.
+  private async computeBenchmarkPercentile(
+    tenantId: string,
+    configId: string,
+    reportId: string,
+    avgScore: number,
+  ): Promise<number | null> {
+    const peers = await this.prisma.aiReport.findMany({
+      where: {
+        tenantId,
+        status: 'ready',
+        id: { not: reportId },
+        session: { configId },
+      },
+      select: { dimensionScores: true },
+    });
+
+    const peerAverages = peers
+      .map((p) => Object.values(p.dimensionScores as Record<string, number>))
+      .filter((values) => values.length > 0)
+      .map((values) => values.reduce((a, b) => a + b, 0) / values.length);
+
+    if (peerAverages.length === 0) return null;
+
+    const below = peerAverages.filter((s) => s < avgScore).length;
+    const equal = peerAverages.filter((s) => s === avgScore).length;
+    return Math.round(((below + 0.5 * equal) / peerAverages.length) * 100);
   }
 
   private parseReport(text: string): GeneratedReport {
