@@ -106,6 +106,8 @@ describe('AssessmentService', () => {
         tenantId,
         userId: internalUserId,
         status: 'active',
+        startedAt: new Date(),
+        config: { timeLimitMin: 30 },
       });
       prisma.assessmentSession.update.mockResolvedValue({
         id: 'sess-1',
@@ -128,6 +130,8 @@ describe('AssessmentService', () => {
         tenantId,
         userId: internalUserId,
         status: 'active',
+        startedAt: new Date(),
+        config: { timeLimitMin: 30 },
       });
       prisma.assessmentSession.update.mockResolvedValue({
         id: 'sess-1',
@@ -145,6 +149,43 @@ describe('AssessmentService', () => {
         userId: internalUserId,
         pillar: 'leadership',
       });
+    });
+
+    it('rejects submission once the config time limit has elapsed since startedAt', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'active',
+        startedAt: new Date(Date.now() - 31 * 60_000),
+        config: { timeLimitMin: 30 },
+      });
+
+      await expect(
+        service.submitAnswers('sess-1', firebaseUid, { answers: [], metadata: {} } as any),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.assessmentSession.update).not.toHaveBeenCalled();
+    });
+
+    it('allows submission right up to the deadline but not past it', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'active',
+        startedAt: new Date(Date.now() - 10 * 60_000),
+        config: { timeLimitMin: 30 },
+      });
+      prisma.assessmentSession.update.mockResolvedValue({ id: 'sess-1', status: 'done' });
+
+      const result = await service.submitAnswers('sess-1', firebaseUid, {
+        answers: [],
+        metadata: {},
+      } as any);
+
+      expect(result.status).toBe('done');
     });
   });
 });

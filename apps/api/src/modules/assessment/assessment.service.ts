@@ -52,6 +52,17 @@ export class AssessmentService {
     return user.id;
   }
 
+  // The frontend Timer auto-submits at timeLimitMin, but that's a client
+  // behavior a candidate can bypass by calling the API directly. This is
+  // the actual enforcement.
+  private assertWithinTimeLimit(startedAt: Date | null, timeLimitMin: number) {
+    if (!startedAt || timeLimitMin <= 0) return;
+    const deadline = new Date(startedAt.getTime() + timeLimitMin * 60_000);
+    if (new Date() > deadline) {
+      throw new BadRequestException('Time limit for this assessment session has expired');
+    }
+  }
+
   async startSession(firebaseUid: string, createSessionDto: CreateSessionDto) {
     const { configId } = createSessionDto;
     const userId = await this.resolveUserId(firebaseUid);
@@ -166,6 +177,7 @@ export class AssessmentService {
     if (!session.moduleId) {
       throw new BadRequestException('This session is not an adaptive module assessment');
     }
+    this.assertWithinTimeLimit(session.startedAt, session.config.timeLimitMin);
 
     const pendingQuestionId = session.questionOrder[session.currentIndex];
     if (!pendingQuestionId || pendingQuestionId !== dto.questionId) {
@@ -336,6 +348,7 @@ export class AssessmentService {
     if (session.status !== 'active') {
       throw new BadRequestException('Session is not active');
     }
+    this.assertWithinTimeLimit(session.startedAt, session.config.timeLimitMin);
 
     // Enrich each raw answer with the real question text + selected
     // option's meaning before persisting — the AI report prompt
