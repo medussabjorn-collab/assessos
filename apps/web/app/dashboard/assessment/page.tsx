@@ -5,13 +5,14 @@ import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
 import AssessmentView from '@/components/AssessmentView';
+import AdaptiveAssessmentView from '@/components/AdaptiveAssessmentView';
 
 function AssessmentPageContent() {
   const { user, tenantId } = useAuth();
   const searchParams = useSearchParams();
   const configId = searchParams.get('configId');
 
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [startData, setStartData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,6 +21,7 @@ function AssessmentPageContent() {
 
     const startSession = async () => {
       setLoading(true);
+      setError(null);
       try {
         const response = await axios.post(
           'http://localhost:3000/api/assessments/sessions/start',
@@ -31,7 +33,7 @@ function AssessmentPageContent() {
             },
           },
         );
-        setSessionId(response.data.data.sessionId);
+        setStartData(response.data.data);
       } catch (err) {
         setError('Failed to start assessment');
       } finally {
@@ -44,9 +46,24 @@ function AssessmentPageContent() {
 
   if (loading) return <div className="p-8">Starting assessment...</div>;
   if (error) return <div className="p-8 text-red-500">{error}</div>;
-  if (!sessionId) return <div className="p-8">Loading...</div>;
+  if (!startData) return <div className="p-8">Loading...</div>;
 
-  return <AssessmentView sessionId={sessionId} configId={configId!} />;
+  // Module-based configs run the real-time adaptive flow (question served
+  // directly in the start response); pillar configs keep the existing
+  // fixed-batch flow.
+  if (startData.question) {
+    return (
+      <AdaptiveAssessmentView
+        sessionId={startData.sessionId}
+        moduleId={startData.moduleId}
+        initialQuestion={startData.question}
+        initialProgress={startData.progress}
+        initialAbility={startData.ability}
+      />
+    );
+  }
+
+  return <AssessmentView sessionId={startData.sessionId} configId={configId!} />;
 }
 
 export default function AssessmentPage() {

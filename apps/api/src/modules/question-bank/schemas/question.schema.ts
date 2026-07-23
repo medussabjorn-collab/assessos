@@ -33,7 +33,13 @@ export class Question {
   @Prop({ index: true })
   tenantId?: string;
 
-  @Prop({ required: true, enum: QUESTION_MODULE_IDS })
+  // `type: String` is required here even though `enum` is set — the field's
+  // TS type is a string-literal union, which has no concrete runtime
+  // constructor, so @nestjs/mongoose can't infer a Mongoose type from
+  // reflected design:type metadata alone (throws "Cannot determine a type
+  // for the ... field" the first time this class is evaluated outside the
+  // exact bundler context that happened to mask it).
+  @Prop({ type: String, required: true, enum: QUESTION_MODULE_IDS })
   moduleId: QuestionModuleId;
 
   @Prop({ required: true })

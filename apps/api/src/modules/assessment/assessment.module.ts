@@ -12,9 +12,10 @@ import { PrismaService } from '../../database/prisma.service';
 import { TenantModule } from '../tenant/tenant.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
 import { RealtimeModule } from '../realtime/realtime.module';
+import { QuestionBankModule } from '../question-bank/question-bank.module';
 
 @Module({
-  imports: [TenantModule, WebhooksModule, RealtimeModule],
+  imports: [TenantModule, WebhooksModule, RealtimeModule, QuestionBankModule],
   controllers: [AssessmentController, AssessmentConfigController],
   providers: [
     AssessmentService,

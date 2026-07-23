@@ -14,6 +14,7 @@ import { PERMISSIONS } from '../auth/permissions.constants';
 import { AssessmentService } from './assessment.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { SubmitAnswersDto } from './dto/submit-answers.dto';
+import { SubmitAdaptiveAnswerDto } from './dto/submit-adaptive-answer.dto';
 import { ScenarioGeneratorService, GenerateScenarioParams } from './scenario-generator.service';
 import { ScenarioReviewService } from './scenario-review.service';
 import { IrtAdaptiveTestingService, GradedResponse } from './irt-adaptive-testing.service';
@@ -72,6 +73,26 @@ export class AssessmentController {
       uid,
       submitAnswersDto,
     );
+
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  // Real-time computerized adaptive test step — one question at a time.
+  // Grades against the real Mongo question bank, recomputes theta via the
+  // 3PL engine, and either returns the next most-informative item or
+  // finalizes the session with a real AssessmentResult.
+  @Post('sessions/:sessionId/answer')
+  @UseGuards(FirebaseAuthGuard)
+  async submitAdaptiveAnswer(
+    @Request() req: any,
+    @Param('sessionId') sessionId: string,
+    @Body() body: SubmitAdaptiveAnswerDto,
+  ) {
+    const { uid } = req.user;
+    const result = await this.assessmentService.submitAdaptiveAnswer(sessionId, uid, body);
 
     return {
       success: true,

@@ -21,8 +21,10 @@ describe('AssessmentService', () => {
       },
     };
     webhookDispatch = { dispatch: jest.fn() };
+    const questionBank = { get: jest.fn() };
+    const adaptiveTesting = { next: jest.fn() };
     const request = { headers: { 'x-tenant-id': tenantId } };
-    service = new AssessmentService(prisma, webhookDispatch, request);
+    service = new AssessmentService(prisma, webhookDispatch, questionBank as any, adaptiveTesting as any, request);
   });
 
   describe('startSession', () => {

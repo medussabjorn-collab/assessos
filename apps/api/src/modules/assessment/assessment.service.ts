@@ -9,7 +9,16 @@ import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { SubmitAnswersDto } from './dto/submit-answers.dto';
+import { SubmitAdaptiveAnswerDto } from './dto/submit-adaptive-answer.dto';
 import { WebhookDispatchService } from '../webhooks/webhook-dispatch.service';
+import { QuestionBankService } from '../question-bank/question-bank.service';
+import { AdaptiveTestingService, AnsweredItem } from '../question-bank/adaptive-testing.service';
+import { IrtAbility } from '../question-bank/three-pl-irt.service';
+
+// Fallback adaptive-test length when a module config's totalQuestions isn't
+// set to something sane (0 default from a config that was only ever meant
+// for the fixed-batch pillar path).
+const DEFAULT_MIN_ADAPTIVE_QUESTIONS = 10;
 
 @Injectable({ scope: Scope.REQUEST })
 export class AssessmentService {
@@ -18,9 +27,17 @@ export class AssessmentService {
   constructor(
     private prisma: PrismaService,
     private webhookDispatch: WebhookDispatchService,
+    private questionBank: QuestionBankService,
+    private adaptiveTesting: AdaptiveTestingService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
+  }
+
+  // Never send the answer key to the candidate.
+  private stripAnswerKey(question: any) {
+    const { correctIndex, explanation, ...safe } = question;
+    return safe;
   }
 
   private async resolveUserId(firebaseUid: string): Promise<string> {
@@ -45,6 +62,14 @@ export class AssessmentService {
       throw new BadRequestException('Assessment config not found');
     }
 
+    // Module-based configs (technical/attitude/behavioral/psychometric/
+    // communication) run a real-time computerized adaptive test against the
+    // Mongo question bank; pillar configs (leadership) keep the existing
+    // fixed-batch flow untouched.
+    if (config.moduleId) {
+      return this.startAdaptiveSession(userId, config);
+    }
+
     const session = await this.prisma.assessmentSession.create({
       data: {
         tenantId: this.tenantId,
@@ -60,6 +85,203 @@ export class AssessmentService {
       sessionId: session.id,
       pillar: session.pillar,
       timeLimitMin: config.timeLimitMin,
+    };
+  }
+
+  private async startAdaptiveSession(
+    userId: string,
+    config: { id: string; moduleId: string | null; totalQuestions: number; timeLimitMin: number },
+  ) {
+    const moduleId = config.moduleId as string;
+    const minQuestions = config.totalQuestions > 0 ? config.totalQuestions : DEFAULT_MIN_ADAPTIVE_QUESTIONS;
+
+    const first = await this.adaptiveTesting.next(this.tenantId, {
+      moduleId,
+      answered: [],
+      initialTheta: 0,
+      minQuestions,
+    });
+
+    if (!first.nextQuestionId) {
+      throw new BadRequestException(`No questions available for module "${moduleId}"`);
+    }
+
+    const session = await this.prisma.assessmentSession.create({
+      data: {
+        tenantId: this.tenantId,
+        userId,
+        configId: config.id,
+        pillar: moduleId,
+        status: 'active',
+        startedAt: new Date(),
+        moduleId: moduleId as any,
+        questionOrder: [first.nextQuestionId],
+      },
+    });
+
+    const question = await this.questionBank.get(this.tenantId, first.nextQuestionId);
+
+    return {
+      sessionId: session.id,
+      moduleId,
+      timeLimitMin: config.timeLimitMin,
+      question: this.stripAnswerKey(question),
+      progress: { answered: 0, total: minQuestions },
+      ability: first.ability,
+    };
+  }
+
+  async submitAdaptiveAnswer(sessionId: string, firebaseUid: string, dto: SubmitAdaptiveAnswerDto) {
+    const userId = await this.resolveUserId(firebaseUid);
+    const session = await this.prisma.assessmentSession.findUnique({
+      where: { id: sessionId },
+      include: { config: true },
+    });
+
+    if (!session || session.tenantId !== this.tenantId || session.userId !== userId) {
+      throw new BadRequestException('Session not found');
+    }
+    if (session.status !== 'active') {
+      throw new BadRequestException('Session is not active');
+    }
+    if (!session.moduleId) {
+      throw new BadRequestException('This session is not an adaptive module assessment');
+    }
+
+    const pendingQuestionId = session.questionOrder[session.currentIndex];
+    if (!pendingQuestionId || pendingQuestionId !== dto.questionId) {
+      throw new BadRequestException('This is not the current pending question for this session');
+    }
+
+    const question: any = await this.questionBank.get(this.tenantId, dto.questionId);
+    const isCorrect = dto.selectedIndex === question.correctIndex;
+
+    await this.prisma.sessionAnswer.upsert({
+      where: { sessionId_questionId: { sessionId, questionId: dto.questionId } },
+      update: {
+        selectedOption: dto.selectedIndex,
+        isCorrect,
+        timeSpentSec: dto.timeTakenSec,
+        answeredAt: new Date(),
+      },
+      create: {
+        tenantId: this.tenantId,
+        sessionId,
+        questionId: dto.questionId,
+        selectedOption: dto.selectedIndex,
+        isCorrect,
+        timeSpentSec: dto.timeTakenSec,
+        answeredAt: new Date(),
+      },
+    });
+
+    const answeredRows = await this.prisma.sessionAnswer.findMany({
+      where: { sessionId },
+      select: { questionId: true, isCorrect: true },
+    });
+    const answered: AnsweredItem[] = answeredRows.map((r) => ({
+      questionId: r.questionId,
+      correct: r.isCorrect ?? false,
+    }));
+
+    const minQuestions =
+      session.config.totalQuestions > 0 ? session.config.totalQuestions : DEFAULT_MIN_ADAPTIVE_QUESTIONS;
+    const next = await this.adaptiveTesting.next(this.tenantId, {
+      moduleId: session.moduleId as string,
+      answered,
+      initialTheta: 0,
+      minQuestions,
+    });
+
+    const newCurrentIndex = session.currentIndex + 1;
+
+    if (next.terminate) {
+      return this.finalizeAdaptiveSession(session, userId, answered, next.ability, newCurrentIndex, isCorrect);
+    }
+
+    const nextQuestionOrder = [...session.questionOrder, next.nextQuestionId as string];
+    await this.prisma.assessmentSession.update({
+      where: { id: sessionId },
+      data: { questionOrder: nextQuestionOrder, currentIndex: newCurrentIndex },
+    });
+
+    const nextQuestion = await this.questionBank.get(this.tenantId, next.nextQuestionId as string);
+
+    return {
+      done: false,
+      correct: isCorrect,
+      question: this.stripAnswerKey(nextQuestion),
+      progress: { answered: newCurrentIndex, total: minQuestions },
+      ability: next.ability,
+    };
+  }
+
+  private async finalizeAdaptiveSession(
+    session: { id: string; moduleId: string | null; config: { passMark: number } },
+    userId: string,
+    answered: AnsweredItem[],
+    ability: IrtAbility,
+    answeredCount: number,
+    lastAnswerCorrect: boolean,
+  ) {
+    const correctAnswers = answered.filter((a) => a.correct).length;
+    const wrongAnswers = answered.length - correctAnswers;
+    const score = answered.length > 0 ? Math.round((correctAnswers / answered.length) * 100) : 0;
+    const passed = score >= session.config.passMark;
+
+    const submittedSession = await this.prisma.assessmentSession.update({
+      where: { id: session.id },
+      data: { status: 'done', submittedAt: new Date(), currentIndex: answeredCount },
+    });
+
+    await this.prisma.assessmentResult.upsert({
+      where: { sessionId: session.id },
+      update: {
+        score,
+        passed,
+        totalQuestions: answered.length,
+        correctAnswers,
+        wrongAnswers,
+        skippedAnswers: 0,
+        irtTheta: ability.theta,
+        irtSe: ability.se,
+        irtTier: ability.tier,
+      },
+      create: {
+        tenantId: this.tenantId,
+        userId,
+        sessionId: session.id,
+        moduleId: session.moduleId as any,
+        score,
+        passed,
+        totalQuestions: answered.length,
+        correctAnswers,
+        wrongAnswers,
+        skippedAnswers: 0,
+        irtTheta: ability.theta,
+        irtSe: ability.se,
+        irtTier: ability.tier,
+      },
+    });
+
+    // Fire-and-forget — a slow/down subscriber must never block submission.
+    void this.webhookDispatch.dispatch(this.tenantId, 'assessment.completed', {
+      sessionId: submittedSession.id,
+      userId,
+      pillar: submittedSession.pillar,
+    });
+
+    return {
+      done: true,
+      correct: lastAnswerCorrect,
+      result: {
+        score,
+        passed,
+        totalQuestions: answered.length,
+        correctAnswers,
+        wrongAnswers,
+        ability,
+      },
     };
   }
 
