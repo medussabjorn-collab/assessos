@@ -24,6 +24,7 @@ export const PERMISSIONS = {
   PLATFORM_ORGS_MANAGE: 'platform.orgs.manage',
   ROLES_MANAGE: 'roles.manage',
   ASSESSMENT_CONFIGS_MANAGE: 'assessment.configs.manage',
+  USERS_MANAGE: 'users.manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

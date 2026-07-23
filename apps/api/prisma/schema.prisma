@@ -76,6 +76,10 @@ model User {
   // Merged from leadership-assessment (Firebase remains the auth source of
   // truth — no passwordHash/refresh tokens; these are profile metadata only)
   emailVerified     Boolean   @default(false)
+  // Soft-deactivation — never hard-delete a user (would cascade-destroy
+  // real assessment history/reports). Enforced in FirebaseAuthGuard (every
+  // authenticated request) and PermissionsService.resolveUser.
+  isActive          Boolean   @default(true)
   lastLoginAt       DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt

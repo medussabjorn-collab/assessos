@@ -1,9 +1,13 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { ForbiddenException, Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private prisma: PrismaService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -39,8 +43,23 @@ export class FirebaseAuthGuard implements CanActivate {
     try {
       const decodedToken = await this.authService.verifyIdToken(token);
       request.user = decodedToken;
+
+      // Soft-deactivated users are blocked everywhere, not just on
+      // permission-gated routes — a plain email/password lookup by
+      // firebaseUid (globally unique), no tenant needed here. A user not
+      // found yet (e.g. mid-registration) is allowed through — register()
+      // creates them.
+      const user = await this.prisma.user.findFirst({
+        where: { firebaseUid: decodedToken.uid },
+        select: { isActive: true },
+      });
+      if (user && !user.isActive) {
+        throw new ForbiddenException('Your account has been deactivated');
+      }
+
       return true;
     } catch (error) {
+      if (error instanceof ForbiddenException) throw error;
       return false;
     }
   }

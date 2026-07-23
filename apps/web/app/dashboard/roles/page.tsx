@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { KeyRound, Plus, Trash2, Loader, ShieldOff } from 'lucide-react';
+import { KeyRound, Plus, Trash2, Loader, ShieldOff, UserPlus, Pencil, Ban, CheckCircle2, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
@@ -28,6 +28,7 @@ interface TenantUser {
   name: string;
   email: string;
   department: string | null;
+  isActive: boolean;
   role: { id: string; name: string };
 }
 
@@ -47,13 +48,22 @@ export default function RolesPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [inviting, setInviting] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ email: '', name: '', department: '', roleId: '' });
+  const [inviteSaving, setInviteSaving] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState<string | null>(null);
+
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', department: '' });
+  const [userActionError, setUserActionError] = useState<string | null>(null);
+
   const selected = roles.find((r) => r.id === selectedId) ?? null;
 
   const load = async () => {
     const [rolesRes, permsRes, usersRes] = await Promise.all([
       api.get('/api/roles'),
       api.get('/api/roles/permissions'),
-      api.get('/api/roles/users'),
+      api.get('/api/users'),
     ]);
     setRoles(rolesRes.data.data ?? []);
     setPermissions(permsRes.data.data ?? []);
@@ -143,6 +153,63 @@ export default function RolesPage() {
       await load();
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Failed to assign role.');
+    }
+  };
+
+  const startInvite = () => {
+    setInviting(true);
+    setInviteForm({ email: '', name: '', department: '', roleId: roles[0]?.id ?? '' });
+    setInviteMsg(null);
+  };
+
+  const submitInvite = async () => {
+    setInviteSaving(true);
+    setInviteMsg(null);
+    try {
+      await api.post('/api/users', {
+        email: inviteForm.email,
+        name: inviteForm.name,
+        department: inviteForm.department || undefined,
+        roleId: inviteForm.roleId,
+      });
+      setInviting(false);
+      await load();
+    } catch (err: any) {
+      setInviteMsg(err?.response?.data?.message ?? 'Failed to send invitation.');
+    } finally {
+      setInviteSaving(false);
+    }
+  };
+
+  const startEditUser = (u: TenantUser) => {
+    setEditingUserId(u.id);
+    setEditForm({ name: u.name, email: u.email, department: u.department ?? '' });
+    setUserActionError(null);
+  };
+
+  const saveEditUser = async () => {
+    if (!editingUserId) return;
+    setUserActionError(null);
+    try {
+      await api.patch(`/api/users/${editingUserId}`, {
+        name: editForm.name,
+        email: editForm.email,
+        department: editForm.department || undefined,
+      });
+      setEditingUserId(null);
+      await load();
+    } catch (err: any) {
+      setUserActionError(err?.response?.data?.message ?? 'Failed to update user.');
+    }
+  };
+
+  const toggleUserActive = async (u: TenantUser) => {
+    setUserActionError(null);
+    try {
+      await api.post(`/api/users/${u.id}/${u.isActive ? 'deactivate' : 'reactivate'}`);
+      await load();
+    } catch (err: any) {
+      setUserActionError(err?.response?.data?.message ?? 'Failed to update user.');
     }
   };
 
@@ -305,44 +372,181 @@ export default function RolesPage() {
       </div>
 
       <div className="mt-8 bg-surface border border-hairline rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-hairline">
+        <div className="px-5 py-4 border-b border-hairline flex items-center justify-between">
           <h3 className="font-semibold text-ink">Team members</h3>
+          <button
+            onClick={startInvite}
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 text-white px-3 py-1.5 text-sm hover:bg-brand-700 transition"
+          >
+            <UserPlus size={15} /> Invite user
+          </button>
         </div>
+
+        {inviting && (
+          <div className="p-5 border-b border-hairline bg-canvas/50 space-y-3">
+            {inviteMsg && <p className="text-sm text-red-500">{inviteMsg}</p>}
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                placeholder="Email"
+                type="email"
+                value={inviteForm.email}
+                onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
+                className="border border-hairline rounded-lg px-3 py-1.5 text-sm bg-canvas"
+              />
+              <input
+                placeholder="Name"
+                value={inviteForm.name}
+                onChange={(e) => setInviteForm((f) => ({ ...f, name: e.target.value }))}
+                className="border border-hairline rounded-lg px-3 py-1.5 text-sm bg-canvas"
+              />
+              <input
+                placeholder="Department (optional)"
+                value={inviteForm.department}
+                onChange={(e) => setInviteForm((f) => ({ ...f, department: e.target.value }))}
+                className="border border-hairline rounded-lg px-3 py-1.5 text-sm bg-canvas"
+              />
+              <select
+                value={inviteForm.roleId}
+                onChange={(e) => setInviteForm((f) => ({ ...f, roleId: e.target.value }))}
+                className="border border-hairline rounded-lg px-3 py-1.5 text-sm bg-canvas capitalize"
+              >
+                {roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name.replace(/_/g, ' ')}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setInviting(false)}
+                className="px-4 py-2 rounded-lg text-sm text-subtle hover:bg-canvas transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitInvite}
+                disabled={inviteSaving || !inviteForm.email.trim() || !inviteForm.name.trim() || !inviteForm.roleId}
+                className="px-4 py-2 rounded-lg bg-brand-600 text-white text-sm disabled:opacity-50"
+              >
+                {inviteSaving ? 'Sending…' : 'Send invitation'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {userActionError && <p className="px-5 pt-3 text-sm text-red-500">{userActionError}</p>}
+
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-subtle border-b border-hairline">
               <th className="p-3 font-medium">Name</th>
               <th className="p-3 font-medium">Email</th>
+              <th className="p-3 font-medium">Department</th>
               <th className="p-3 font-medium">Role</th>
+              <th className="p-3 font-medium">Status</th>
+              <th className="p-3 font-medium"></th>
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-b border-hairline last:border-0">
-                <td className="p-3">{u.name}</td>
-                <td className="p-3 text-subtle">{u.email}</td>
-                <td className="p-3">
-                  {roles.some((r) => r.id === u.role.id) ? (
-                    <select
-                      value={u.role.id}
-                      disabled={u.id === userId}
-                      onChange={(e) => assignRole(u.id, e.target.value)}
-                      className="border border-hairline rounded-lg px-2 py-1 text-sm bg-canvas capitalize disabled:opacity-60"
+            {users.map((u) =>
+              editingUserId === u.id ? (
+                <tr key={u.id} className="border-b border-hairline last:border-0 bg-canvas/40">
+                  <td className="p-2">
+                    <input
+                      value={editForm.name}
+                      onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                      className="w-full border border-hairline rounded-lg px-2 py-1 text-sm bg-canvas"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      value={editForm.email}
+                      onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                      className="w-full border border-hairline rounded-lg px-2 py-1 text-sm bg-canvas"
+                    />
+                  </td>
+                  <td className="p-2">
+                    <input
+                      value={editForm.department}
+                      onChange={(e) => setEditForm((f) => ({ ...f, department: e.target.value }))}
+                      className="w-full border border-hairline rounded-lg px-2 py-1 text-sm bg-canvas"
+                    />
+                  </td>
+                  <td className="p-3 text-subtle capitalize">{u.role.name.replace(/_/g, ' ')}</td>
+                  <td className="p-3" />
+                  <td className="p-2">
+                    <div className="flex gap-1 justify-end">
+                      <button onClick={saveEditUser} className="p-1.5 rounded-md text-emerald-600 hover:bg-emerald-500/10">
+                        <CheckCircle2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => setEditingUserId(null)}
+                        className="p-1.5 rounded-md text-subtle hover:bg-canvas"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={u.id} className={`border-b border-hairline last:border-0 ${u.isActive ? '' : 'opacity-50'}`}>
+                  <td className="p-3">{u.name}</td>
+                  <td className="p-3 text-subtle">{u.email}</td>
+                  <td className="p-3 text-subtle">{u.department ?? '—'}</td>
+                  <td className="p-3">
+                    {roles.some((r) => r.id === u.role.id) ? (
+                      <select
+                        value={u.role.id}
+                        disabled={u.id === userId}
+                        onChange={(e) => assignRole(u.id, e.target.value)}
+                        className="border border-hairline rounded-lg px-2 py-1 text-sm bg-canvas capitalize disabled:opacity-60"
+                      >
+                        {roles.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.name.replace(/_/g, ' ')}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-xs text-subtle capitalize" title="Platform-level role — not managed here">
+                        {u.role.name.replace(/_/g, ' ')}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full ${
+                        u.isActive ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
+                      }`}
                     >
-                      {roles.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.name.replace(/_/g, ' ')}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span className="text-xs text-subtle capitalize" title="Platform-level role — not managed here">
-                      {u.role.name.replace(/_/g, ' ')}
+                      {u.isActive ? 'active' : 'deactivated'}
                     </span>
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="p-2">
+                    <div className="flex gap-1 justify-end">
+                      <button
+                        onClick={() => startEditUser(u)}
+                        className="p-1.5 rounded-md text-subtle hover:bg-canvas"
+                        title="Edit"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        onClick={() => toggleUserActive(u)}
+                        disabled={u.id === userId}
+                        title={u.id === userId ? 'You cannot deactivate your own account' : u.isActive ? 'Deactivate' : 'Reactivate'}
+                        className={`p-1.5 rounded-md disabled:opacity-30 ${
+                          u.isActive ? 'text-red-500 hover:bg-red-500/10' : 'text-emerald-600 hover:bg-emerald-500/10'
+                        }`}
+                      >
+                        {u.isActive ? <Ban size={15} /> : <CheckCircle2 size={15} />}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ),
+            )}
           </tbody>
         </table>
         {users.length === 0 && <p className="p-6 text-center text-subtle text-sm">No users.</p>}

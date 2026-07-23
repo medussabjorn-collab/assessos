@@ -51,4 +51,27 @@ export class AuthService {
     const user = await admin.auth().getUser(uid);
     return user;
   }
+
+  // Creates the real Firebase account for an admin-invited user, no password
+  // set — they set one themselves via the link from generatePasswordResetLink.
+  async createFirebaseUser(email: string, displayName: string) {
+    if (!this.firebaseReady) {
+      throw new Error('Authentication is not configured on this server.');
+    }
+    return admin.auth().createUser({ email, displayName, emailVerified: false });
+  }
+
+  async generatePasswordResetLink(email: string): Promise<string> {
+    if (!this.firebaseReady) {
+      throw new Error('Authentication is not configured on this server.');
+    }
+    return admin.auth().generatePasswordResetLink(email);
+  }
+
+  async updateFirebaseUserEmail(uid: string, email: string) {
+    if (!this.firebaseReady) {
+      throw new Error('Authentication is not configured on this server.');
+    }
+    return admin.auth().updateUser(uid, { email });
+  }
 }
