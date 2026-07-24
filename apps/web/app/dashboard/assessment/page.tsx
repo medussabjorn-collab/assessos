@@ -56,11 +56,15 @@ function AssessmentPageContent() {
     attemptStart();
   };
 
+  // Only a proctored assessment needs device/biometric binding — spinning up
+  // the camera and loading face-api for every session (even a plain,
+  // non-proctored quiz) was both wasteful and, in headless/no-camera
+  // environments (e2e CI), crashed the page entirely.
   const binding = useSessionBinding({
     sessionId: startData?.sessionId ?? '',
     verificationId,
     baselineDescriptor,
-    enabled: phase === 'ready' && !!startData?.sessionId,
+    enabled: phase === 'ready' && !!startData?.sessionId && !!startData?.aiProctoring,
   });
 
   if (phase === 'starting') return <div className="p-8">Starting assessment...</div>;

@@ -138,13 +138,14 @@ export class AssessmentService {
       sessionId: session.id,
       pillar: session.pillar,
       timeLimitMin: config.timeLimitMin,
+      aiProctoring: config.aiProctoring,
       questions,
     };
   }
 
   private async startAdaptiveSession(
     userId: string,
-    config: { id: string; moduleId: string | null; totalQuestions: number; timeLimitMin: number },
+    config: { id: string; moduleId: string | null; totalQuestions: number; timeLimitMin: number; aiProctoring: boolean },
   ) {
     const moduleId = config.moduleId as string;
     const minQuestions = config.totalQuestions > 0 ? config.totalQuestions : DEFAULT_MIN_ADAPTIVE_QUESTIONS;
@@ -179,6 +180,7 @@ export class AssessmentService {
       sessionId: session.id,
       moduleId,
       timeLimitMin: config.timeLimitMin,
+      aiProctoring: config.aiProctoring,
       question: this.stripAnswerKey(question),
       progress: { answered: 0, total: minQuestions },
       ability: first.ability,

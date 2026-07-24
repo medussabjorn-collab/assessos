@@ -107,6 +107,22 @@ describe('AssessmentService', () => {
 
       expect(prisma.assessmentSession.create).toHaveBeenCalled();
     });
+
+    it('reports aiProctoring in the response so the frontend only engages device/camera binding when it applies', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentConfig.findUnique.mockResolvedValue({
+        id: 'cfg-1',
+        tenantId,
+        pillar: 'vision',
+        timeLimitMin: 30,
+        aiProctoring: false,
+      });
+      prisma.assessmentSession.create.mockResolvedValue({ id: 'sess-1', pillar: 'vision' });
+
+      const result = await service.startSession(firebaseUid, { configId: 'cfg-1' } as any);
+
+      expect(result.aiProctoring).toBe(false);
+    });
   });
 
   describe('getSession', () => {
