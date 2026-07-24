@@ -9,6 +9,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermission } from '../auth/permissions.decorator';
@@ -36,6 +37,15 @@ export class IdentityController {
     });
     if (!user) throw new NotFoundException('User not found');
     return { tenantId, userId: user.id };
+  }
+
+  // ipHash must come from the actual request, never the client body — a
+  // client can say anything about its own IP, which would make the
+  // consistency check checkBinding exists for entirely defeatable (always
+  // send back whatever hash was bound). Hashed, not stored raw, matching
+  // the schema field's own naming.
+  private hashIp(req: any): string {
+    return createHash('sha256').update(req.ip || 'unknown').digest('hex');
   }
 
   // Pre-session: submit verification results (document/face/liveness/OTP).
@@ -69,11 +79,18 @@ export class IdentityController {
     return { success: true, data };
   }
 
-  // Session binding (device + IP-hash + biometric-hash).
+  // Session binding (device + IP-hash + biometric-hash). ipHash is always
+  // computed from the real request here — body.ipHash, if a client sends
+  // one, is ignored.
   @Post('session/:sessionId/bind')
   async bind(@Request() req: any, @Param('sessionId') sessionId: string, @Body() body: SessionBinding) {
     const tenantId = req.headers['x-tenant-id'];
-    const data = await this.identity.bindSession(tenantId, sessionId, body);
+    const binding: SessionBinding = {
+      deviceId: body.deviceId,
+      biometricHash: body.biometricHash,
+      ipHash: this.hashIp(req),
+    };
+    const data = await this.identity.bindSession(tenantId, sessionId, binding);
     return { success: true, data: { id: data.id, bound: true } };
   }
 
@@ -84,7 +101,12 @@ export class IdentityController {
     @Body() body: SessionBinding,
   ) {
     const tenantId = req.headers['x-tenant-id'];
-    const data = await this.identity.checkBinding(tenantId, sessionId, body);
+    const presented: SessionBinding = {
+      deviceId: body.deviceId,
+      biometricHash: body.biometricHash,
+      ipHash: this.hashIp(req),
+    };
+    const data = await this.identity.checkBinding(tenantId, sessionId, presented);
     return { success: true, data };
   }
 
