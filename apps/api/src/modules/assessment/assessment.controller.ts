@@ -60,6 +60,24 @@ export class AssessmentController {
     };
   }
 
+  @Post('sessions/:sessionId/pause')
+  @UseGuards(FirebaseAuthGuard)
+  async pauseSession(@Request() req: any, @Param('sessionId') sessionId: string) {
+    const { uid } = req.user;
+    const result = await this.assessmentService.pauseSession(sessionId, uid);
+
+    return { success: true, data: result };
+  }
+
+  @Post('sessions/:sessionId/resume')
+  @UseGuards(FirebaseAuthGuard)
+  async resumeSession(@Request() req: any, @Param('sessionId') sessionId: string) {
+    const { uid } = req.user;
+    const result = await this.assessmentService.resumeSession(sessionId, uid);
+
+    return { success: true, data: result };
+  }
+
   @Post('sessions/:sessionId/submit')
   @UseGuards(FirebaseAuthGuard)
   async submitAnswers(

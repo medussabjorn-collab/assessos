@@ -224,6 +224,11 @@ model AssessmentSession {
   startedAt         DateTime?
   submittedAt       DateTime?
   createdAt         DateTime  @default(now())
+  // Pause/resume: time spent paused doesn't count against timeLimitMin.
+  // pausedAt is set while status='paused'; on resume the elapsed pause is
+  // added to totalPausedSec and pausedAt is cleared.
+  pausedAt          DateTime?
+  totalPausedSec    Int       @default(0)
   // Merged from leadership-assessment: module-based / adaptive delivery state.
   // leadership's richer SessionStatus (not_started/in_progress/submitted/
   // graded/expired) maps onto assessos's pending/active/done at the service
@@ -262,6 +267,7 @@ model AssessmentSession {
 enum SessionStatus {
   pending
   active
+  paused
   done
 }
 

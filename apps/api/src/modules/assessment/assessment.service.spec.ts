@@ -137,6 +137,82 @@ describe('AssessmentService', () => {
     });
   });
 
+  describe('pauseSession / resumeSession', () => {
+    it('pauseSession sets status paused and records pausedAt', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'active',
+      });
+      prisma.assessmentSession.update.mockResolvedValue({
+        id: 'sess-1',
+        status: 'paused',
+        pausedAt: new Date(),
+      });
+
+      const result = await service.pauseSession('sess-1', firebaseUid);
+
+      expect(result.status).toBe('paused');
+      expect(prisma.assessmentSession.update).toHaveBeenCalledWith({
+        where: { id: 'sess-1' },
+        data: expect.objectContaining({ status: 'paused', pausedAt: expect.any(Date) }),
+      });
+    });
+
+    it('pauseSession rejects a session that is not active', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'paused',
+      });
+
+      await expect(service.pauseSession('sess-1', firebaseUid)).rejects.toThrow(BadRequestException);
+      expect(prisma.assessmentSession.update).not.toHaveBeenCalled();
+    });
+
+    it('resumeSession accumulates the elapsed pause into totalPausedSec and clears pausedAt', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'paused',
+        pausedAt: new Date(Date.now() - 90_000),
+        totalPausedSec: 30,
+      });
+      prisma.assessmentSession.update.mockResolvedValue({
+        id: 'sess-1',
+        status: 'active',
+        totalPausedSec: 120,
+      });
+
+      const result = await service.resumeSession('sess-1', firebaseUid);
+
+      expect(result.status).toBe('active');
+      const updateArgs = prisma.assessmentSession.update.mock.calls[0][0];
+      expect(updateArgs.data.pausedAt).toBeNull();
+      expect(updateArgs.data.totalPausedSec).toBeGreaterThanOrEqual(30 + 89);
+      expect(updateArgs.data.totalPausedSec).toBeLessThanOrEqual(30 + 91);
+    });
+
+    it('resumeSession rejects a session that is not paused', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'active',
+      });
+
+      await expect(service.resumeSession('sess-1', firebaseUid)).rejects.toThrow(BadRequestException);
+      expect(prisma.assessmentSession.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('submitAnswers', () => {
     it('resolves the internal user before validating session ownership and submits successfully', async () => {
       prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
@@ -233,6 +309,29 @@ describe('AssessmentService', () => {
         userId: internalUserId,
         status: 'active',
         startedAt: new Date(Date.now() - 10 * 60_000),
+        config: { timeLimitMin: 30 },
+      });
+      prisma.assessmentSession.update.mockResolvedValue({ id: 'sess-1', status: 'done' });
+
+      const result = await service.submitAnswers('sess-1', firebaseUid, {
+        answers: [],
+        metadata: {},
+      } as any);
+
+      expect(result.status).toBe('done');
+    });
+
+    it('extends the deadline by totalPausedSec — a submission that would otherwise be late succeeds', async () => {
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentSession.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        tenantId,
+        userId: internalUserId,
+        status: 'active',
+        // 31 min since startedAt on a 30 min limit — would fail without
+        // the 5 min of accumulated pause time pushing the deadline back.
+        startedAt: new Date(Date.now() - 31 * 60_000),
+        totalPausedSec: 5 * 60,
         config: { timeLimitMin: 30 },
       });
       prisma.assessmentSession.update.mockResolvedValue({ id: 'sess-1', status: 'done' });

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
+import { api } from '@/lib/api';
 import Timer from './Timer';
 import QuestionCard from './QuestionCard';
 
@@ -32,6 +33,8 @@ export default function AssessmentView({ sessionId, questions, timeLimitMin }: A
   const [error, setError] = useState<string | null>(null);
   const [timeStarted, setTimeStarted] = useState(Date.now());
   const [submitted, setSubmitted] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [pauseError, setPauseError] = useState<string | null>(null);
 
   const handleAnswerSelect = (optionId: string) => {
     const timeTakenSec = Math.round((Date.now() - timeStarted) / 1000);
@@ -101,6 +104,27 @@ export default function AssessmentView({ sessionId, questions, timeLimitMin }: A
     handleSubmit();
   };
 
+  const handlePause = async () => {
+    setPauseError(null);
+    try {
+      await api.post(`/api/assessments/sessions/${sessionId}/pause`);
+      setPaused(true);
+    } catch {
+      setPauseError('Failed to pause the assessment.');
+    }
+  };
+
+  const handleResume = async () => {
+    setPauseError(null);
+    try {
+      await api.post(`/api/assessments/sessions/${sessionId}/resume`);
+      setPaused(false);
+      setTimeStarted(Date.now());
+    } catch {
+      setPauseError('Failed to resume the assessment.');
+    }
+  };
+
   if (error) return <div className="p-8 text-red-500">{error}</div>;
   if (submitted) {
     return (
@@ -139,11 +163,21 @@ export default function AssessmentView({ sessionId, questions, timeLimitMin }: A
             <h1 className="text-3xl font-bold text-slate-900">
               Leadership Assessment
             </h1>
-            <Timer
-              timeLimitMin={timeLimitMin}
-              onTimeExpired={handleTimeExpired}
-            />
+            <div className="flex items-center gap-3">
+              <Timer
+                timeLimitMin={timeLimitMin}
+                onTimeExpired={handleTimeExpired}
+                paused={paused}
+              />
+              <button
+                onClick={paused ? handleResume : handlePause}
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium"
+              >
+                {paused ? 'Resume' : 'Pause'}
+              </button>
+            </div>
           </div>
+          {pauseError && <p className="text-sm text-red-600 mt-2">{pauseError}</p>}
           <div className="bg-white rounded-lg shadow-sm p-4">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>
@@ -165,14 +199,27 @@ export default function AssessmentView({ sessionId, questions, timeLimitMin }: A
         </div>
 
         {/* Question Card */}
-        <QuestionCard
-          question={currentQuestion}
-          selectedOptionId={currentAnswer?.selectedOptionId}
-          onSelectOption={handleAnswerSelect}
-        />
+        {paused ? (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <p className="text-lg font-medium text-gray-700 mb-2">Assessment paused</p>
+            <p className="text-sm text-gray-500 mb-6">The clock is stopped. Resume when you&apos;re ready.</p>
+            <button
+              onClick={handleResume}
+              className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
+            >
+              Resume
+            </button>
+          </div>
+        ) : (
+          <QuestionCard
+            question={currentQuestion}
+            selectedOptionId={currentAnswer?.selectedOptionId}
+            onSelectOption={handleAnswerSelect}
+          />
+        )}
 
         {/* Navigation */}
-        <div className="mt-8 flex justify-between items-center">
+        <div className={`mt-8 flex justify-between items-center ${paused ? 'hidden' : ''}`}>
           <button
             onClick={handlePrevious}
             disabled={currentQuestionIndex === 0}

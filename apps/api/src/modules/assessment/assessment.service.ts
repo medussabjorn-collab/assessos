@@ -56,10 +56,12 @@ export class AssessmentService {
 
   // The frontend Timer auto-submits at timeLimitMin, but that's a client
   // behavior a candidate can bypass by calling the API directly. This is
-  // the actual enforcement.
-  private assertWithinTimeLimit(startedAt: Date | null, timeLimitMin: number) {
+  // the actual enforcement. totalPausedSec pushes the deadline back by
+  // however long the session spent paused — pause time must not count
+  // against the candidate's time limit.
+  private assertWithinTimeLimit(startedAt: Date | null, timeLimitMin: number, totalPausedSec = 0) {
     if (!startedAt || timeLimitMin <= 0) return;
-    const deadline = new Date(startedAt.getTime() + timeLimitMin * 60_000);
+    const deadline = new Date(startedAt.getTime() + timeLimitMin * 60_000 + totalPausedSec * 1000);
     if (new Date() > deadline) {
       throw new BadRequestException('Time limit for this assessment session has expired');
     }
@@ -200,7 +202,7 @@ export class AssessmentService {
       throw new BadRequestException('This session is not an adaptive module assessment');
     }
     this.assertNotRevoked(session.proctoringRevoked);
-    this.assertWithinTimeLimit(session.startedAt, session.config.timeLimitMin);
+    this.assertWithinTimeLimit(session.startedAt, session.config.timeLimitMin, session.totalPausedSec);
 
     const pendingQuestionId = session.questionOrder[session.currentIndex];
     if (!pendingQuestionId || pendingQuestionId !== dto.questionId) {
@@ -353,6 +355,49 @@ export class AssessmentService {
     return session;
   }
 
+  async pauseSession(sessionId: string, firebaseUid: string) {
+    const userId = await this.resolveUserId(firebaseUid);
+    const session = await this.prisma.assessmentSession.findUnique({ where: { id: sessionId } });
+
+    if (!session || session.tenantId !== this.tenantId || session.userId !== userId) {
+      throw new BadRequestException('Session not found');
+    }
+    if (session.status !== 'active') {
+      throw new BadRequestException('Session is not active');
+    }
+
+    const paused = await this.prisma.assessmentSession.update({
+      where: { id: sessionId },
+      data: { status: 'paused', pausedAt: new Date() },
+    });
+
+    return { sessionId: paused.id, status: paused.status, pausedAt: paused.pausedAt };
+  }
+
+  async resumeSession(sessionId: string, firebaseUid: string) {
+    const userId = await this.resolveUserId(firebaseUid);
+    const session = await this.prisma.assessmentSession.findUnique({ where: { id: sessionId } });
+
+    if (!session || session.tenantId !== this.tenantId || session.userId !== userId) {
+      throw new BadRequestException('Session not found');
+    }
+    if (session.status !== 'paused' || !session.pausedAt) {
+      throw new BadRequestException('Session is not paused');
+    }
+
+    const pausedDurationSec = Math.floor((Date.now() - session.pausedAt.getTime()) / 1000);
+    const resumed = await this.prisma.assessmentSession.update({
+      where: { id: sessionId },
+      data: {
+        status: 'active',
+        pausedAt: null,
+        totalPausedSec: session.totalPausedSec + pausedDurationSec,
+      },
+    });
+
+    return { sessionId: resumed.id, status: resumed.status, totalPausedSec: resumed.totalPausedSec };
+  }
+
   async submitAnswers(
     sessionId: string,
     firebaseUid: string,
@@ -372,7 +417,7 @@ export class AssessmentService {
       throw new BadRequestException('Session is not active');
     }
     this.assertNotRevoked(session.proctoringRevoked);
-    this.assertWithinTimeLimit(session.startedAt, session.config.timeLimitMin);
+    this.assertWithinTimeLimit(session.startedAt, session.config.timeLimitMin, session.totalPausedSec);
 
     // Enrich each raw answer with the real question text + selected
     // option's meaning before persisting — the AI report prompt
