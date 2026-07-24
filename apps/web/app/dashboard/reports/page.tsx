@@ -5,6 +5,10 @@ import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
 import { FileText, Loader, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface Report {
   id: string;
@@ -13,6 +17,13 @@ interface Report {
   createdAt: string;
   benchmarkPercentile?: number;
 }
+
+const STATUS_COLORS: Record<string, string> = {
+  ready: '#19aa59',
+  pending: '#f59e0b',
+  failed: '#ef4444',
+  archived: '#94a3b8',
+};
 
 const STATUS_PILL: Record<string, string> = {
   ready:   'bg-brand-100 text-brand-700',
@@ -63,6 +74,53 @@ export default function ReportsPage() {
       {error && (
         <div className="frost-card border-red-300 p-4 text-red-600 text-sm">{error}</div>
       )}
+
+      {reports.length > 0 && (() => {
+        const statusCounts: Record<string, number> = {};
+        for (const r of reports) statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
+        const readyPercentiles = reports
+          .map((r) => r.benchmarkPercentile)
+          .filter((p): p is number => p != null);
+        const avgPercentile = readyPercentiles.length
+          ? Math.round(readyPercentiles.reduce((a, b) => a + b, 0) / readyPercentiles.length)
+          : null;
+
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="frost-card p-5 sm:col-span-1 flex flex-col items-center justify-center">
+              <p className="text-3xl font-bold text-ink">{reports.length}</p>
+              <p className="text-xs text-subtle mt-1">Total reports</p>
+            </div>
+            {avgPercentile != null && (
+              <div className="frost-card p-5 sm:col-span-1 flex flex-col items-center justify-center">
+                <p className="text-3xl font-bold text-brand-600">{avgPercentile}%</p>
+                <p className="text-xs text-subtle mt-1">Avg. percentile</p>
+              </div>
+            )}
+            <div className={`frost-card p-4 ${avgPercentile != null ? 'sm:col-span-1' : 'sm:col-span-2'}`}>
+              <p className="text-xs text-subtle mb-2 text-center">Status breakdown</p>
+              <div className="h-32">
+                <Doughnut
+                  data={{
+                    labels: Object.keys(statusCounts),
+                    datasets: [
+                      {
+                        data: Object.values(statusCounts),
+                        backgroundColor: Object.keys(statusCounts).map((s) => STATUS_COLORS[s] ?? '#94a3b8'),
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {reports.length === 0 ? (
         <div className="frost-card p-12 text-center">

@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  admin
+  candidate
+  viewer
+  recruiter
+}
+
+enum AssessmentModuleId {
+  technical
+  attitude
+  behavioral
+  psychometric
+  communication
+}
+
+enum SessionStatus {
+  not_started
+  in_progress
+  submitted
+  graded
+  expired
+}
+
+enum AuditAction {
+  login
+  logout
+  register
+  assessment_started
+  assessment_submitted
+  assessment_graded
+  proctor_event
+  config_updated
+  user_created
+  user_updated
+  user_deleted
+  report_generated
+  integration_connected
+  integration_disconnected
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  domain      String?
+  logoUrl     String?
+  plan        String   @default("starter")   // starter | professional | enterprise
+  isActive    Boolean  @default(true)
+  maxSeats    Int      @default(10)
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  sessions    AssessmentSession[]
+  results     AssessmentResult[]
+  configs     AssessmentConfig[]
+
+  @@index([slug])
+  @@map("organizations")
+}
+
+model User {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  name           String
+  passwordHash   String
+  role           UserRole      @default(candidate)
+  isActive       Boolean       @default(true)
+  emailVerified  Boolean       @default(false)
+  lastLoginAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  sessions      AssessmentSession[]
+  results       AssessmentResult[]
+  auditLogs     AuditLog[]
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+  @@index([role])
+  @@index([organizationId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model AssessmentConfig {
+  id              String             @id @default(uuid())
+  moduleId        AssessmentModuleId
+  displayName     String
+  timeLimitMin    Int
+  passMark        Float
+  negativeMarking Boolean            @default(false)
+  negativePenalty Float              @default(0.25)
+  shuffleQuestions Boolean           @default(true)
+  shuffleOptions   Boolean           @default(true)
+  aiProctoring    Boolean            @default(true)
+  adaptiveMode    Boolean            @default(false)
+  totalQuestions  Int                @default(100)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  sessions        AssessmentSession[]
+
+  @@unique([moduleId, organizationId])
+  @@index([organizationId])
+  @@map("assessment_configs")
+}
+
+model AssessmentSession {
+  id              String             @id @default(uuid())
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moduleId        AssessmentModuleId
+  configId        String
+  config          AssessmentConfig   @relation(fields: [configId], references: [id])
+  organizationId  String?
+  organization    Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  status          SessionStatus      @default(not_started)
+  startedAt       DateTime?
+  submittedAt     DateTime?
+  expiresAt       DateTime?
+  timeSpentSec    Int                @default(0)
+  questionOrder   String[]
+  currentIndex    Int                @default(0)
+  offlineToken    String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  answers         SessionAnswer[]
+  result          AssessmentResult?
+  proctoringEvents ProctoringEventLog[]
+
+  @@index([userId])
+  @@index([moduleId])
+  @@index([status])
+  @@index([organizationId])
+  @@map("assessment_sessions")
+}
+
+model SessionAnswer {
+  id           String           @id @default(uuid())
+  sessionId    String
+  session      AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId   String
+  selectedOption Int?
+  isCorrect    Boolean?
+  isFlagged    Boolean          @default(false)
+  timeSpentSec Int              @default(0)
+  answeredAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([sessionId, questionId])
+  @@index([sessionId])
+  @@map("session_answers")
+}
+
+model AssessmentResult {
+  id              String             @id @default(uuid())
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId       String             @unique
+  session         AssessmentSession  @relation(fields: [sessionId], references: [id])
+  moduleId        AssessmentModuleId
+  organizationId  String?
+  organization    Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  score           Float
+  percentile      Float?
+  passed          Boolean
+  totalQuestions  Int
+  correctAnswers  Int
+  wrongAnswers    Int
+  skippedAnswers  Int
+  irtTheta        Float?
+  irtSe           Float?
+  irtTier         String?
+  subTopicScores  Json?
+  aiInsights      String[]
+  proctoringRisk  Int                @default(0)
+  violations      Int                @default(0)
+  warnings        Int                @default(0)
+  gradedAt        DateTime           @default(now())
+  createdAt       DateTime           @default(now())
+
+  @@index([userId])
+  @@index([moduleId])
+  @@index([organizationId])
+  @@map("assessment_results")
+}
+
+model ProctoringEventLog {
+  id          String            @id @default(uuid())
+  sessionId   String
+  session     AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventType   String
+  riskDelta   Int               @default(0)
+  totalRisk   Int               @default(0)
+  metadata    Json?
+  occurredAt  DateTime          @default(now())
+
+  @@index([sessionId])
+  @@map("proctoring_events")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      AuditAction
+  resource    String?
+  resourceId  String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+}
+
+model Integration {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  category    String
+  status      String   @default("disconnected")
+  config      Json?
+  lastSyncAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("integrations")
+}

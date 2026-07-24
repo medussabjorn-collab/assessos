@@ -1,5 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { WebhookDispatchService } from '../webhooks/webhook-dispatch.service';
+
+// Notable-report threshold for the score_threshold_crossed webhook.
+// Disclosed, arbitrary constants — not derived from any validated cutoff.
+const HIGH_SCORE_THRESHOLD = 85;
+const LOW_SCORE_THRESHOLD = 40;
 
 /**
  * Generates AI assessment reports by calling the Claude API directly.
@@ -13,17 +20,26 @@ import { PrismaService } from '../../database/prisma.service';
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
+interface CoachingGoal {
+  goal: string;
+  actions: string[];
+}
+
 interface GeneratedReport {
   dimensionScores: Record<string, number>;
   narrative: string;
   recommendation: string;
+  coachingPlan: { goals: CoachingGoal[] };
 }
 
 @Injectable()
 export class ReportGeneratorService {
   private readonly logger = new Logger(ReportGeneratorService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private webhookDispatch: WebhookDispatchService,
+  ) {}
 
   /**
    * Fire-and-forget entry point. Generates the report and updates the
@@ -74,10 +90,12 @@ export class ReportGeneratorService {
       '{',
       '  "dimensionScores": { "<dimension name>": <0-100>, ... },',
       '  "narrative": "<3-5 sentence assessment of strengths and growth areas, grounded in the answer data>",',
-      '  "recommendation": "<1-2 sentence development recommendation>"',
+      '  "recommendation": "<1-2 sentence development recommendation>",',
+      '  "coachingPlan": { "goals": [ { "goal": "<growth-area goal tied to the lowest-scoring dimensions>", "actions": ["<concrete 90-day action>", "..."] }, ... ] }',
       '}',
       '',
       'If the answer data is too sparse to assess a dimension, score it 50 and say so in the narrative. Do not invent specifics that the data does not support.',
+      'coachingPlan should have 2-3 goals, each with 2-3 concrete actions, targeting the lowest-scoring dimensions.',
     ].join('\n');
 
     const res = await fetch(ANTHROPIC_URL, {
@@ -89,7 +107,10 @@ export class ReportGeneratorService {
       },
       body: JSON.stringify({
         model: process.env.REPORT_MODEL || DEFAULT_MODEL,
-        max_tokens: 1024,
+        // Headroom for the full JSON: narrative + recommendation + a
+        // 2-3 goal coaching plan. 1024 could truncate verbose responses,
+        // which then fail parseReport and mark the report failed.
+        max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -105,15 +126,69 @@ export class ReportGeneratorService {
     const text = data.content.find((c) => c.type === 'text')?.text ?? '';
     const parsed = this.parseReport(text);
 
+    const scoreValues = Object.values(parsed.dimensionScores);
+    const avgScore = scoreValues.length
+      ? scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length
+      : 0;
+
+    const benchmarkPercentile = await this.computeBenchmarkPercentile(
+      report.tenantId,
+      session.configId,
+      reportId,
+      avgScore,
+    );
+
     await this.prisma.aiReport.update({
       where: { id: reportId },
       data: {
         dimensionScores: parsed.dimensionScores,
         narrative: parsed.narrative,
         recommendation: parsed.recommendation,
+        coachingPlan: parsed.coachingPlan as unknown as Prisma.InputJsonValue,
+        benchmarkPercentile,
         status: 'ready',
       },
     });
+
+    if (avgScore >= HIGH_SCORE_THRESHOLD || avgScore <= LOW_SCORE_THRESHOLD) {
+      void this.webhookDispatch.dispatch(report.tenantId, 'report.score_threshold_crossed', {
+        reportId,
+        userId: report.userId,
+        avgScore: Math.round(avgScore * 100) / 100,
+        threshold: avgScore >= HIGH_SCORE_THRESHOLD ? 'high' : 'low',
+      });
+    }
+  }
+
+  // Ranks this report's average dimension score against every other ready
+  // report on the same assessment config in the tenant. Returns null (not 0
+  // or 50) when there are no peers yet — there is nothing honest to report.
+  private async computeBenchmarkPercentile(
+    tenantId: string,
+    configId: string,
+    reportId: string,
+    avgScore: number,
+  ): Promise<number | null> {
+    const peers = await this.prisma.aiReport.findMany({
+      where: {
+        tenantId,
+        status: 'ready',
+        id: { not: reportId },
+        session: { configId },
+      },
+      select: { dimensionScores: true },
+    });
+
+    const peerAverages = peers
+      .map((p) => Object.values(p.dimensionScores as Record<string, number>))
+      .filter((values) => values.length > 0)
+      .map((values) => values.reduce((a, b) => a + b, 0) / values.length);
+
+    if (peerAverages.length === 0) return null;
+
+    const below = peerAverages.filter((s) => s < avgScore).length;
+    const equal = peerAverages.filter((s) => s === avgScore).length;
+    return Math.round(((below + 0.5 * equal) / peerAverages.length) * 100);
   }
 
   private parseReport(text: string): GeneratedReport {
@@ -125,7 +200,8 @@ export class ReportGeneratorService {
     if (
       typeof parsed.dimensionScores !== 'object' ||
       typeof parsed.narrative !== 'string' ||
-      typeof parsed.recommendation !== 'string'
+      typeof parsed.recommendation !== 'string' ||
+      !Array.isArray(parsed.coachingPlan?.goals)
     ) {
       throw new Error('Model response missing required fields');
     }

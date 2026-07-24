@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "dashboard": "Panel",
+    "leadership": "Liderazgo",
+    "hiring": "Contratación",
+    "pipeline": "Proceso",
+    "practice": "Práctica",
+    "interviews": "Entrevistas",
+    "challenges": "Desafíos",
+    "hackathons": "Hackathons",
+    "analytics": "Analítica",
+    "integrations": "Integraciones",
+    "compliance": "Cumplimiento",
+    "identityReview": "Revisión de identidad",
+    "admin": "Administración",
+    "roles": "Roles",
+    "assessments": "Evaluaciones",
+    "settings": "Configuración",
+    "signOut": "Cerrar sesión"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "success": "Éxito",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "close": "Cerrar",
+    "view": "Ver",
+    "minutes": "minutos",
+    "seconds": "segundos",
+    "hours": "horas",
+    "darkMode": "Modo oscuro",
+    "language": "Idioma",
+    "theme": "Tema",
+    "notifications": "Notificaciones",
+    "offline": "Sin conexión",
+    "online": "En línea"
+  },
+  "topbar": {
+    "searchPlaceholder": "Buscar evaluaciones, candidatos, problemas…",
+    "workspace": "Espacio de trabajo",
+    "currentPlan": "Plan actual"
+  }
+}

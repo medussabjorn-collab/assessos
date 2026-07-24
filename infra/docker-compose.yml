@@ -36,6 +36,19 @@ services:
       timeout: 5s
       retries: 5
 
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: ..
@@ -44,12 +57,13 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
+      mongo: { condition: service_healthy }
     environment:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://assessos_user:assessos_pass@postgres:5432/assessos_dev
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379
+      MONGO_URL: mongodb://mongo:27017/assessos
       JWT_SECRET: dev-jwt-secret-change-me-32-chars-min
       CORS_ORIGIN: http://localhost:3001
       # Load idempotent demo data on start (local/demo only — never set in prod)
@@ -75,3 +89,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  mongo_data:

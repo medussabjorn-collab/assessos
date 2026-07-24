@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "leadership": "Leadership",
+    "hiring": "Recrutement",
+    "pipeline": "Pipeline",
+    "practice": "Entraînement",
+    "interviews": "Entretiens",
+    "challenges": "Défis",
+    "hackathons": "Hackathons",
+    "analytics": "Analytique",
+    "integrations": "Intégrations",
+    "compliance": "Conformité",
+    "identityReview": "Vérification d'identité",
+    "admin": "Administration",
+    "roles": "Rôles",
+    "assessments": "Évaluations",
+    "settings": "Paramètres",
+    "signOut": "Se déconnecter"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "success": "Succès",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "close": "Fermer",
+    "view": "Voir",
+    "minutes": "minutes",
+    "seconds": "secondes",
+    "hours": "heures",
+    "darkMode": "Mode sombre",
+    "language": "Langue",
+    "theme": "Thème",
+    "notifications": "Notifications",
+    "offline": "Hors ligne",
+    "online": "En ligne"
+  },
+  "topbar": {
+    "searchPlaceholder": "Rechercher évaluations, candidats, problèmes…",
+    "workspace": "Espace de travail",
+    "currentPlan": "Forfait actuel"
+  }
+}

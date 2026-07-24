@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import { Loader, Star, Plus, X } from 'lucide-react';
+import { Loader, Star, Plus, X, ShieldAlert } from 'lucide-react';
 
 interface Candidate {
   id: string;
@@ -35,6 +35,33 @@ const EMPTY_FORM = {
   linkedinUrl: '',
 };
 
+const GENDER_OPTIONS = [
+  { value: 'female', label: 'Female' },
+  { value: 'male', label: 'Male' },
+  { value: 'non_binary', label: 'Non-binary' },
+  { value: 'decline_to_state', label: 'Decline to state' },
+];
+const RACE_OPTIONS = [
+  { value: 'hispanic_or_latino', label: 'Hispanic or Latino' },
+  { value: 'white', label: 'White' },
+  { value: 'black_or_african_american', label: 'Black or African American' },
+  { value: 'native_hawaiian_or_pacific_islander', label: 'Native Hawaiian or Pacific Islander' },
+  { value: 'asian', label: 'Asian' },
+  { value: 'american_indian_or_alaska_native', label: 'American Indian or Alaska Native' },
+  { value: 'two_or_more_races', label: 'Two or more races' },
+  { value: 'decline_to_state', label: 'Decline to state' },
+];
+const AGE_OPTIONS = [
+  { value: 'under_40', label: 'Under 40' },
+  { value: 'forty_and_over', label: '40 and over' },
+  { value: 'decline_to_state', label: 'Decline to state' },
+];
+const CONSENT_SCOPES = [
+  { value: 'facial_detection', label: 'Facial detection' },
+  { value: 'eye_tracking', label: 'Eye tracking' },
+  { value: 'voice_analysis', label: 'Voice analysis' },
+];
+
 export default function HiringPipelinePage() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -44,6 +71,14 @@ export default function HiringPipelinePage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const [complianceCandidateId, setComplianceCandidateId] = useState<string | null>(null);
+  const [selfId, setSelfId] = useState({ gender: '', raceEthnicity: '', ageBand: '' });
+  const [consentScope, setConsentScope] = useState<string[]>([]);
+  const [retentionDays, setRetentionDays] = useState(90);
+  const [complianceStatus, setComplianceStatus] = useState<string | null>(null);
+  const [complianceError, setComplianceError] = useState<string | null>(null);
+  const [complianceBusy, setComplianceBusy] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,6 +145,76 @@ export default function HiringPipelinePage() {
       setFormError('Failed to add candidate. Check the fields and try again.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openCompliance = (candidateId: string) => {
+    setComplianceCandidateId(candidateId);
+    setSelfId({ gender: '', raceEthnicity: '', ageBand: '' });
+    setConsentScope([]);
+    setRetentionDays(90);
+    setComplianceStatus(null);
+    setComplianceError(null);
+  };
+
+  const toggleScope = (scope: string) => {
+    setConsentScope((prev) =>
+      prev.includes(scope) ? prev.filter((s) => s !== scope) : [...prev, scope],
+    );
+  };
+
+  const submitSelfId = async () => {
+    if (!complianceCandidateId) return;
+    setComplianceBusy(true);
+    setComplianceError(null);
+    try {
+      await api.post(`/api/compliance/candidates/${complianceCandidateId}/self-id`, {
+        gender: selfId.gender || undefined,
+        raceEthnicity: selfId.raceEthnicity || undefined,
+        ageBand: selfId.ageBand || undefined,
+      });
+      setComplianceStatus('Self-ID recorded.');
+    } catch (err: any) {
+      setComplianceError(
+        err?.response?.data?.message ?? 'Failed to submit self-ID.',
+      );
+    } finally {
+      setComplianceBusy(false);
+    }
+  };
+
+  const grantConsent = async () => {
+    if (!complianceCandidateId || consentScope.length === 0) return;
+    setComplianceBusy(true);
+    setComplianceError(null);
+    try {
+      await api.post(`/api/compliance/candidates/${complianceCandidateId}/biometric-consent`, {
+        scope: consentScope,
+        retentionDays,
+      });
+      setComplianceStatus('Biometric consent granted.');
+    } catch (err: any) {
+      setComplianceError(
+        err?.response?.data?.message ?? 'Failed to grant consent.',
+      );
+    } finally {
+      setComplianceBusy(false);
+    }
+  };
+
+  const revokeConsent = async () => {
+    if (!complianceCandidateId) return;
+    setComplianceBusy(true);
+    setComplianceError(null);
+    try {
+      await api.post(`/api/compliance/candidates/${complianceCandidateId}/biometric-consent/revoke`);
+      setComplianceStatus('Biometric consent revoked.');
+    } catch (err: any) {
+      setComplianceError(
+        err?.response?.data?.message ?? 'Failed to revoke consent.',
+      );
+    } finally {
+      setComplianceBusy(false);
     }
   };
 
@@ -221,6 +326,123 @@ export default function HiringPipelinePage() {
         </div>
       )}
 
+      {complianceCandidateId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
+          <div className="frost-card w-full max-w-lg p-6 bg-surface max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-ink">Compliance</h2>
+              <button
+                onClick={() => setComplianceCandidateId(null)}
+                className="text-subtle hover:text-ink transition"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mb-4 flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-xs text-amber-600">
+              <ShieldAlert size={14} className="shrink-0 mt-0.5" />
+              <span>
+                Provisional: EEOC/BIPA best practice is for the candidate to submit this
+                themselves. This form lets a recruiter record it on their behalf until a
+                candidate-facing intake portal exists — treat data collected here as not
+                fully compliant with that separation requirement.
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-ink mb-2">Voluntary self-identification (EEO)</h3>
+                <div className="space-y-2">
+                  <select
+                    value={selfId.gender}
+                    onChange={(e) => setSelfId({ ...selfId, gender: e.target.value })}
+                    className={field}
+                  >
+                    <option value="">Gender…</option>
+                    {GENDER_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={selfId.raceEthnicity}
+                    onChange={(e) => setSelfId({ ...selfId, raceEthnicity: e.target.value })}
+                    className={field}
+                  >
+                    <option value="">Race / ethnicity…</option>
+                    {RACE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={selfId.ageBand}
+                    onChange={(e) => setSelfId({ ...selfId, ageBand: e.target.value })}
+                    className={field}
+                  >
+                    <option value="">Age band…</option>
+                    {AGE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={submitSelfId}
+                    disabled={complianceBusy}
+                    className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition"
+                  >
+                    Save self-ID
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-hairline">
+                <h3 className="text-sm font-semibold text-ink mb-2">Biometric proctoring consent (BIPA)</h3>
+                <div className="space-y-2">
+                  {CONSENT_SCOPES.map((s) => (
+                    <label key={s.value} className="flex items-center gap-2 text-sm text-ink">
+                      <input
+                        type="checkbox"
+                        checked={consentScope.includes(s.value)}
+                        onChange={() => toggleScope(s.value)}
+                      />
+                      {s.label}
+                    </label>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-subtle">Retention (days):</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={retentionDays}
+                      onChange={(e) => setRetentionDays(Number(e.target.value))}
+                      className={`${field} w-24`}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={grantConsent}
+                      disabled={complianceBusy || consentScope.length === 0}
+                      className="flex-1 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium py-2 rounded-lg transition"
+                    >
+                      Grant consent
+                    </button>
+                    <button
+                      onClick={revokeConsent}
+                      disabled={complianceBusy}
+                      className="flex-1 border border-hairline text-sm font-medium py-2 rounded-lg transition disabled:opacity-50"
+                    >
+                      Revoke
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {complianceStatus && <p className="text-sm text-green-500">{complianceStatus}</p>}
+              {complianceError && <p className="text-sm text-red-500">{complianceError}</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {STAGES.map((stage) => {
           const inStage = candidates.filter((c) => c.stage === stage.key);
@@ -253,14 +475,23 @@ export default function HiringPipelinePage() {
                           Fit {candidate.cultureFitScore}
                         </span>
                       </div>
-                      {next && (
+                      <div className="flex gap-2">
+                        {next && (
+                          <button
+                            onClick={() => moveCandidate(candidate.id, next)}
+                            className="flex-1 text-xs bg-brand-600 hover:bg-brand-700 px-2 py-1 rounded transition"
+                          >
+                            Advance →
+                          </button>
+                        )}
                         <button
-                          onClick={() => moveCandidate(candidate.id, next)}
-                          className="w-full text-xs bg-brand-600 hover:bg-brand-700 px-2 py-1 rounded transition"
+                          onClick={() => openCompliance(candidate.id)}
+                          className="inline-flex items-center gap-1 text-xs border border-hairline hover:bg-canvas px-2 py-1 rounded transition"
+                          title="Self-ID & biometric consent"
                         >
-                          Advance →
+                          <ShieldAlert size={12} />
                         </button>
-                      )}
+                      </div>
                     </div>
                   );
                 })}

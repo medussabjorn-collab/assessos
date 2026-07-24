@@ -9,15 +9,33 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { PrismaService } from '../../database/prisma.service';
 import { PsychometricRegistry } from './psychometric-registry.service';
+import { CompositeProfileService } from './composite-profile.service';
+import { TeamDynamicsService } from './team-dynamics.service';
 
 @Controller('api/psych')
 export class PsychometricController {
   constructor(
     private registry: PsychometricRegistry,
     private prisma: PrismaService,
+    private compositeProfile: CompositeProfileService,
+    private teamDynamics: TeamDynamicsService,
   ) {}
+
+  private async resolveUser(req: any) {
+    const tenantId = req.headers['x-tenant-id'];
+    const user = await this.prisma.user.findFirst({
+      where: { firebaseUid: req.user.uid, tenantId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
 
   @Get('models')
   @UseGuards(FirebaseAuthGuard)
@@ -100,5 +118,24 @@ export class PsychometricController {
         ...interpretation,
       },
     };
+  }
+
+  // #26: composite profile across whatever models the user has completed.
+  @Get('composite-profile')
+  @UseGuards(FirebaseAuthGuard)
+  async getCompositeProfile(@Request() req: any) {
+    const user = await this.resolveUser(req);
+    const profile = await this.compositeProfile.getCompositeProfile(user.id);
+    return { success: true, data: profile };
+  }
+
+  // #26: team-dynamics heuristic. Exposes multiple people's DISC data at
+  // once, so restricted beyond the self-only pattern used elsewhere here.
+  @Post('team-dynamics')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.PSYCHOMETRIC_TEAM_DYNAMICS_VIEW)
+  async getTeamDynamics(@Body() body: { userIds: string[] }) {
+    const result = await this.teamDynamics.predictTeamDynamics(body.userIds ?? []);
+    return { success: true, data: result };
   }
 }

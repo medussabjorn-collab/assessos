@@ -13,7 +13,38 @@ export async function mockAssessmentFlow(page: Page): Promise<void> {
   await mockApi(page, /\/api\/auth\/tenant/, { data: { tenantId: 'tenant-001' } });
 
   await mockApi(page, /\/api\/assessments\/sessions\/start/, {
-    data: { sessionId: MOCK_SESSION_ID },
+    data: {
+      sessionId: MOCK_SESSION_ID,
+      pillar: 'leadership',
+      timeLimitMin: 30,
+      aiProctoring: false,
+      questions: [
+        {
+          id: 'q1',
+          dimensionId: 'vision',
+          text: 'How effectively do you articulate a compelling vision for your team or organization?',
+          options: [
+            { id: 'opt_1', text: 'Not at all', value: 1 },
+            { id: 'opt_2', text: 'Somewhat', value: 2 },
+            { id: 'opt_3', text: 'Moderately', value: 3 },
+            { id: 'opt_4', text: 'Very effectively', value: 4 },
+            { id: 'opt_5', text: 'Exceptionally well', value: 5 },
+          ],
+        },
+        {
+          id: 'q2',
+          dimensionId: 'vision',
+          text: 'How well do you develop strategic plans that align with organizational goals?',
+          options: [
+            { id: 'opt_1', text: 'Not at all', value: 1 },
+            { id: 'opt_2', text: 'Somewhat', value: 2 },
+            { id: 'opt_3', text: 'Moderately', value: 3 },
+            { id: 'opt_4', text: 'Very well', value: 4 },
+            { id: 'opt_5', text: 'Exceptionally well', value: 5 },
+          ],
+        },
+      ],
+    },
   });
 
   await mockApi(page, new RegExp(`/api/assessments/sessions/${MOCK_SESSION_ID}$`), {
@@ -82,6 +113,27 @@ export async function mockHiringFlow(page: Page): Promise<void> {
         rejected: 2,
       },
     },
+  });
+
+  await mockApi(page, /\/api\/hiring\/candidates/, {
+    data: [
+      {
+        id: 'cand-001',
+        name: 'Jane Doe',
+        role: 'Software Engineer',
+        stage: 'technical',
+        technicalScore: 9,
+        cultureFitScore: 8,
+      },
+      {
+        id: 'cand-002',
+        name: 'John Smith',
+        role: 'Product Manager',
+        stage: 'screening',
+        technicalScore: 8,
+        cultureFitScore: 7,
+      },
+    ],
   });
 }
 

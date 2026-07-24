@@ -1,15 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import axios from 'axios';
+import { api } from '@/lib/api';
 import Timer from './Timer';
 import QuestionCard from './QuestionCard';
-
-interface AssessmentViewProps {
-  sessionId: string;
-  configId: string;
-}
 
 interface Question {
   id: string;
@@ -18,78 +14,27 @@ interface Question {
   dimensionId: string;
 }
 
+interface AssessmentViewProps {
+  sessionId: string;
+  questions: Question[];
+  timeLimitMin: number;
+}
+
 interface Answer {
   questionId: string;
   selectedOptionId: string;
   timeTakenSec: number;
 }
 
-export default function AssessmentView({
-  sessionId,
-  configId: _configId,
-}: AssessmentViewProps) {
+export default function AssessmentView({ sessionId, questions, timeLimitMin }: AssessmentViewProps) {
   const { user, tenantId } = useAuth();
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeLimitMin, setTimeLimitMin] = useState(60);
   const [timeStarted, setTimeStarted] = useState(Date.now());
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/api/assessments/sessions/${sessionId}`,
-          {
-            headers: {
-              'x-tenant-id': tenantId,
-              Authorization: `Bearer ${await user?.getIdToken()}`,
-            },
-          },
-        );
-        setTimeLimitMin(response.data.data.config.timeLimitMin);
-
-        // Mock questions for now (in Phase 3, fetch from backend)
-        const mockQuestions: Question[] = [
-          {
-            id: 'q1',
-            text: 'How effectively do you articulate a compelling vision?',
-            dimensionId: 'vision',
-            options: [
-              { id: 'opt1', text: 'Not at all', value: 1 },
-              { id: 'opt2', text: 'Somewhat', value: 2 },
-              { id: 'opt3', text: 'Moderately', value: 3 },
-              { id: 'opt4', text: 'Very effectively', value: 4 },
-              { id: 'opt5', text: 'Exceptionally well', value: 5 },
-            ],
-          },
-          {
-            id: 'q2',
-            text: 'How well do you develop strategic plans?',
-            dimensionId: 'vision',
-            options: [
-              { id: 'opt1', text: 'Not at all', value: 1 },
-              { id: 'opt2', text: 'Somewhat', value: 2 },
-              { id: 'opt3', text: 'Moderately', value: 3 },
-              { id: 'opt4', text: 'Very well', value: 4 },
-              { id: 'opt5', text: 'Exceptionally well', value: 5 },
-            ],
-          },
-        ];
-
-        setQuestions(mockQuestions);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load session');
-        setLoading(false);
-      }
-    };
-
-    if (user) fetchSession();
-  }, [sessionId, user, tenantId]);
+  const [paused, setPaused] = useState(false);
+  const [pauseError, setPauseError] = useState<string | null>(null);
 
   const handleAnswerSelect = (optionId: string) => {
     const timeTakenSec = Math.round((Date.now() - timeStarted) / 1000);
@@ -159,7 +104,27 @@ export default function AssessmentView({
     handleSubmit();
   };
 
-  if (loading) return <div className="p-8">Loading assessment...</div>;
+  const handlePause = async () => {
+    setPauseError(null);
+    try {
+      await api.post(`/api/assessments/sessions/${sessionId}/pause`);
+      setPaused(true);
+    } catch {
+      setPauseError('Failed to pause the assessment.');
+    }
+  };
+
+  const handleResume = async () => {
+    setPauseError(null);
+    try {
+      await api.post(`/api/assessments/sessions/${sessionId}/resume`);
+      setPaused(false);
+      setTimeStarted(Date.now());
+    } catch {
+      setPauseError('Failed to resume the assessment.');
+    }
+  };
+
   if (error) return <div className="p-8 text-red-500">{error}</div>;
   if (submitted) {
     return (
@@ -176,7 +141,14 @@ export default function AssessmentView({
   }
 
   if (questions.length === 0) {
-    return <div className="p-8">No questions available</div>;
+    return (
+      <div className="p-8 max-w-2xl mx-auto text-center">
+        <p className="text-gray-600">
+          No questions are configured for this assessment yet. Ask an admin to add questions for its
+          dimensions.
+        </p>
+      </div>
+    );
   }
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -191,11 +163,21 @@ export default function AssessmentView({
             <h1 className="text-3xl font-bold text-slate-900">
               Leadership Assessment
             </h1>
-            <Timer
-              timeLimitMin={timeLimitMin}
-              onTimeExpired={handleTimeExpired}
-            />
+            <div className="flex items-center gap-3">
+              <Timer
+                timeLimitMin={timeLimitMin}
+                onTimeExpired={handleTimeExpired}
+                paused={paused}
+              />
+              <button
+                onClick={paused ? handleResume : handlePause}
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium"
+              >
+                {paused ? 'Resume' : 'Pause'}
+              </button>
+            </div>
           </div>
+          {pauseError && <p className="text-sm text-red-600 mt-2">{pauseError}</p>}
           <div className="bg-white rounded-lg shadow-sm p-4">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>
@@ -217,14 +199,27 @@ export default function AssessmentView({
         </div>
 
         {/* Question Card */}
-        <QuestionCard
-          question={currentQuestion}
-          selectedOptionId={currentAnswer?.selectedOptionId}
-          onSelectOption={handleAnswerSelect}
-        />
+        {paused ? (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <p className="text-lg font-medium text-gray-700 mb-2">Assessment paused</p>
+            <p className="text-sm text-gray-500 mb-6">The clock is stopped. Resume when you&apos;re ready.</p>
+            <button
+              onClick={handleResume}
+              className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
+            >
+              Resume
+            </button>
+          </div>
+        ) : (
+          <QuestionCard
+            question={currentQuestion}
+            selectedOptionId={currentAnswer?.selectedOptionId}
+            onSelectOption={handleAnswerSelect}
+          />
+        )}
 
         {/* Navigation */}
-        <div className="mt-8 flex justify-between items-center">
+        <div className={`mt-8 flex justify-between items-center ${paused ? 'hidden' : ''}`}>
           <button
             onClick={handlePrevious}
             disabled={currentQuestionIndex === 0}

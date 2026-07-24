@@ -10,13 +10,25 @@ import {
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { HiringService } from './hiring.service';
 import { CandidateService } from './candidate.service';
+import { JobMatchService } from './job-match.service';
 
 @Controller('api/hiring')
 export class HiringController {
   constructor(
     private hiringService: HiringService,
     private candidateService: CandidateService,
+    private jobMatchService: JobMatchService,
   ) {}
+
+  // Serves #24 (pre-assessment job matching) and #25 (post-assessment
+  // "not selected, suggest better fit"). No resume parsing — caller
+  // supplies the skills list however it extracted them.
+  @Post('job-matches')
+  @UseGuards(FirebaseAuthGuard)
+  matchJobs(@Body() body: { skills: string[] }) {
+    const matches = this.jobMatchService.matchSkillsToRoles(body.skills ?? []);
+    return { success: true, data: matches };
+  }
 
   @Get('candidates')
   @UseGuards(FirebaseAuthGuard)
@@ -48,6 +60,9 @@ export class HiringController {
       phone?: string;
       linkedinUrl?: string;
       resumeUrl?: string;
+      country?: string;
+      usState?: string;
+      source?: string;
     },
   ) {
     const { jobRoleId, ...candidateData } = body;

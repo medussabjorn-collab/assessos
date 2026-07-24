@@ -159,24 +159,97 @@ export class HiringService {
   }
 
   async getHiringAnalytics() {
-    // Return hiring funnel and metrics
+    const [candidates, audits] = await Promise.all([
+      this.prisma.candidate.findMany({
+        where: { tenantId: this.tenantId },
+        select: { id: true, stage: true, source: true, createdAt: true },
+      }),
+      this.prisma.hiringDecisionAudit.findMany({
+        where: { tenantId: this.tenantId },
+        orderBy: { decidedAt: 'asc' },
+        select: { candidateId: true, fromStage: true, toStage: true, decidedAt: true },
+      }),
+    ]);
+
+    const totalApplicants = candidates.length;
+    const hiredCount = candidates.filter((c) => c.stage === 'hired').length;
+
+    // Distinct candidates who ever advanced FROM a given stage to a
+    // non-rejected stage — reflects "passed this stage at some point," not
+    // current position, since a candidate who's now hired also passed
+    // technical/culture_fit earlier.
+    const advancedFrom = (fromStage: string) =>
+      new Set(
+        audits
+          .filter((a) => a.fromStage === fromStage && a.toStage !== 'rejected')
+          .map((a) => a.candidateId),
+      ).size;
+
+    const screenedCount = advancedFrom('screening');
+    const technicalPassCount = advancedFrom('technical');
+    const cultureFitPassCount = advancedFrom('culture_fit');
+    const offerCount = new Set(
+      audits.filter((a) => a.toStage === 'offer' || a.toStage === 'hired').map((a) => a.candidateId),
+    ).size;
+
+    const conversionRate =
+      totalApplicants > 0 ? Math.round((hiredCount / totalApplicants) * 1000) / 10 : 0;
+
+    // Average days between consecutive stage-leaving transitions, per
+    // candidate, then averaged across candidates who made that transition.
+    // avgTimeToScreening uses Candidate.createdAt as the start point (no
+    // "applied" audit row exists — screening is the initial stage).
+    const byCandidate = new Map<string, typeof audits>();
+    for (const a of audits) {
+      const list = byCandidate.get(a.candidateId) ?? [];
+      list.push(a);
+      byCandidate.set(a.candidateId, list);
+    }
+    const candidateCreatedAt = new Map(candidates.map((c) => [c.id, c.createdAt]));
+
+    const avgDaysFor = (fromStage: string): number | null => {
+      const durations: number[] = [];
+      for (const [candidateId, transitions] of byCandidate) {
+        const transition = transitions.find((t) => t.fromStage === fromStage);
+        if (!transition) continue;
+        const start =
+          fromStage === 'screening'
+            ? candidateCreatedAt.get(candidateId)
+            : transitions
+                .filter((t) => t.decidedAt < transition.decidedAt)
+                .sort((a, b) => b.decidedAt.getTime() - a.decidedAt.getTime())[0]?.decidedAt;
+        if (!start) continue;
+        durations.push((transition.decidedAt.getTime() - start.getTime()) / 86_400_000);
+      }
+      if (durations.length === 0) return null;
+      return Math.round((durations.reduce((s, d) => s + d, 0) / durations.length) * 10) / 10;
+    };
+
+    const sourceGroups = new Map<string, { count: number; hired: number }>();
+    for (const c of candidates) {
+      const key = c.source ?? 'unspecified';
+      const entry = sourceGroups.get(key) ?? { count: 0, hired: 0 };
+      entry.count += 1;
+      if (c.stage === 'hired') entry.hired += 1;
+      sourceGroups.set(key, entry);
+    }
+    const topCandidatesSources = [...sourceGroups.entries()]
+      .map(([source, v]) => ({ source, ...v }))
+      .sort((a, b) => b.count - a.count);
+
     return {
-      totalApplicants: 150,
-      screenedCount: 50,
-      technicalPassCount: 20,
-      cultureFitPassCount: 10,
-      offerCount: 5,
-      hiredCount: 3,
-      conversionRate: 2.0,
-      avgTimeToScreening: 2,
-      avgTimeTechnical: 7,
-      avgTimeCultureFit: 5,
-      avgTimeToOffer: 14,
-      topCandidatesSources: [
-        { source: 'LinkedIn', count: 35, hired: 1 },
-        { source: 'Referral', count: 20, hired: 2 },
-        { source: 'Careers Page', count: 25, hired: 0 },
-      ],
+      totalApplicants,
+      screenedCount,
+      technicalPassCount,
+      cultureFitPassCount,
+      offerCount,
+      hiredCount,
+      conversionRate,
+      avgTimeToScreening: avgDaysFor('screening'),
+      avgTimeTechnical: avgDaysFor('technical'),
+      avgTimeCultureFit: avgDaysFor('culture_fit'),
+      avgTimeToOffer: avgDaysFor('offer'),
+      topCandidatesSources,
     };
   }
 

@@ -4,27 +4,21 @@ import {
   Post,
   Param,
   UseGuards,
-  Request,
-  ForbiddenException,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { SuperAdminService } from './super-admin.service';
 
 @Controller('api/admin')
+@UseGuards(FirebaseAuthGuard, PermissionsGuard)
+@RequirePermission(PERMISSIONS.PLATFORM_ORGS_MANAGE)
 export class SuperAdminController {
   constructor(private superAdminService: SuperAdminService) {}
 
   @Get('organizations')
-  @UseGuards(FirebaseAuthGuard)
-  async listOrganizations(@Request() req: any) {
-    const { uid } = req.user;
-
-    // Verify user is super_admin
-    const isSuperAdmin = await this.superAdminService.isSuperAdmin(uid);
-    if (!isSuperAdmin) {
-      throw new ForbiddenException('Only super admins can access this endpoint');
-    }
-
+  async listOrganizations() {
     const orgs = await this.superAdminService.listOrganizations();
     return {
       success: true,
@@ -33,19 +27,7 @@ export class SuperAdminController {
   }
 
   @Get('organizations/:tenantId')
-  @UseGuards(FirebaseAuthGuard)
-  async getOrganization(
-    @Request() req: any,
-    @Param('tenantId') tenantId: string,
-  ) {
-    const { uid } = req.user;
-
-    // Verify user is super_admin
-    const isSuperAdmin = await this.superAdminService.isSuperAdmin(uid);
-    if (!isSuperAdmin) {
-      throw new ForbiddenException('Only super admins can access this endpoint');
-    }
-
+  async getOrganization(@Param('tenantId') tenantId: string) {
     const org = await this.superAdminService.getOrganization(tenantId);
     return {
       success: true,
@@ -54,19 +36,7 @@ export class SuperAdminController {
   }
 
   @Post('organizations/:tenantId/disable')
-  @UseGuards(FirebaseAuthGuard)
-  async disableOrganization(
-    @Request() req: any,
-    @Param('tenantId') tenantId: string,
-  ) {
-    const { uid } = req.user;
-
-    // Verify user is super_admin
-    const isSuperAdmin = await this.superAdminService.isSuperAdmin(uid);
-    if (!isSuperAdmin) {
-      throw new ForbiddenException('Only super admins can access this endpoint');
-    }
-
+  async disableOrganization(@Param('tenantId') tenantId: string) {
     await this.superAdminService.disableOrganization(tenantId);
     return {
       success: true,
@@ -74,20 +44,17 @@ export class SuperAdminController {
     };
   }
 
+  @Post('organizations/:tenantId/enable')
+  async enableOrganization(@Param('tenantId') tenantId: string) {
+    await this.superAdminService.enableOrganization(tenantId);
+    return {
+      success: true,
+      message: 'Organization enabled',
+    };
+  }
+
   @Get('users/:tenantId')
-  @UseGuards(FirebaseAuthGuard)
-  async getOrgUsers(
-    @Request() req: any,
-    @Param('tenantId') tenantId: string,
-  ) {
-    const { uid } = req.user;
-
-    // Verify user is super_admin
-    const isSuperAdmin = await this.superAdminService.isSuperAdmin(uid);
-    if (!isSuperAdmin) {
-      throw new ForbiddenException('Only super admins can access this endpoint');
-    }
-
+  async getOrgUsers(@Param('tenantId') tenantId: string) {
     const users = await this.superAdminService.getOrgUsers(tenantId);
     return {
       success: true,
@@ -96,16 +63,7 @@ export class SuperAdminController {
   }
 
   @Post('usage-alerts')
-  @UseGuards(FirebaseAuthGuard)
-  async checkUsageAlerts(@Request() req: any) {
-    const { uid } = req.user;
-
-    // Verify user is super_admin
-    const isSuperAdmin = await this.superAdminService.isSuperAdmin(uid);
-    if (!isSuperAdmin) {
-      throw new ForbiddenException('Only super admins can access this endpoint');
-    }
-
+  async checkUsageAlerts() {
     const alerts = await this.superAdminService.checkUsageAlerts();
     return {
       success: true,

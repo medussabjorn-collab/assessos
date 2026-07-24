@@ -5,14 +5,6 @@ import { PrismaService } from '../../database/prisma.service';
 export class SuperAdminService {
   constructor(private prisma: PrismaService) {}
 
-  async isSuperAdmin(firebaseUid: string): Promise<boolean> {
-    const user = await this.prisma.user.findFirst({
-      where: { firebaseUid, role: 'super_admin' },
-    });
-
-    return !!user;
-  }
-
   async listOrganizations() {
     const tenants = await this.prisma.tenant.findMany({
       include: {
@@ -50,7 +42,7 @@ export class SuperAdminService {
             id: true,
             email: true,
             name: true,
-            role: true,
+            role: { select: { name: true } },
             createdAt: true,
           },
         },
@@ -63,17 +55,39 @@ export class SuperAdminService {
         },
       },
     });
+    if (!tenant) return null;
 
-    return tenant;
+    // Keep the API's `role` field a plain string, same shape as before RBAC —
+    // the caller doesn't need the full Role relation, just its name.
+    return {
+      ...tenant,
+      users: tenant.users.map((u) => ({ ...u, role: u.role.name })),
+    };
   }
 
   async disableOrganization(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } });
     await this.prisma.tenant.update({
       where: { id: tenantId },
       data: {
         settings: {
+          ...(tenant?.settings as Record<string, any> | null ?? {}),
           disabled: true,
           disabledAt: new Date().toISOString(),
+        },
+      },
+    });
+  }
+
+  async enableOrganization(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { settings: true } });
+    await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: {
+        settings: {
+          ...(tenant?.settings as Record<string, any> | null ?? {}),
+          disabled: false,
+          disabledAt: null,
         },
       },
     });
@@ -86,7 +100,7 @@ export class SuperAdminService {
         id: true,
         email: true,
         name: true,
-        role: true,
+        role: { select: { name: true } },
         department: true,
         createdAt: true,
         _count: {
@@ -98,7 +112,7 @@ export class SuperAdminService {
       },
     });
 
-    return users;
+    return users.map((u) => ({ ...u, role: u.role.name }));
   }
 
   async checkUsageAlerts(): Promise<

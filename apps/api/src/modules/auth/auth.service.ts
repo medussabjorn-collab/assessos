@@ -51,4 +51,11 @@ export class AuthService {
     const user = await admin.auth().getUser(uid);
     return user;
   }
+
+  async updateFirebaseUserEmail(uid: string, email: string) {
+    if (!this.firebaseReady) {
+      throw new Error('Authentication is not configured on this server.');
+    }
+    return admin.auth().updateUser(uid, { email });
+  }
 }

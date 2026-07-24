@@ -1,10 +1,13 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { ForbiddenException, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { VideoRoomService } from './video-room.service';
-import { ProctoringService } from './proctoring.service';
+import { ProctoringService } from '../proctoring/proctoring.service';
 import { InterviewFeedbackService } from './interview-feedback.service';
 import { SchedulingService } from './scheduling.service';
+import { BiometricConsentService } from '../compliance/biometric-consent.service';
+
+const PROCTORING_BIOMETRIC_SCOPE = 'facial_detection';
 
 @Injectable({ scope: Scope.REQUEST })
 export class InterviewService {
@@ -15,12 +18,32 @@ export class InterviewService {
     private proctoring: ProctoringService,
     private feedback: InterviewFeedbackService,
     private scheduling: SchedulingService,
+    private biometricConsent: BiometricConsentService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
   }
 
-  async startInterview(interviewId: string, candidateName: string) {
+  async startInterview(
+    interviewId: string,
+    candidateId: string,
+    candidateName: string,
+  ) {
+    // BIPA / Illinois AI Video Interview Act gate — ProctoringService does
+    // facial detection (see proctoring.service.ts), so no monitoring starts
+    // without prior, scoped, non-expired consent from this candidate.
+    const consented = await this.biometricConsent.hasActiveConsent(
+      candidateId,
+      PROCTORING_BIOMETRIC_SCOPE,
+    );
+    if (!consented) {
+      throw new ForbiddenException(
+        'Cannot start proctored interview: candidate has not given active ' +
+          'biometric consent for facial detection. Collect consent via ' +
+          'POST /api/compliance/candidates/:candidateId/biometric-consent first.',
+      );
+    }
+
     const videoRoom = await this.videoRoom.createVideoRoom(
       interviewId,
       candidateName,

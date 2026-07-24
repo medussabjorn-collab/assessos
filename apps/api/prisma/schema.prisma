@@ -15,6 +15,10 @@ model Tenant {
   whiteLabel        Json?
   ssoConfig         Json?
   settings          Json?
+  // Merged from leadership-assessment Organization
+  domain            String?
+  logoUrl           String?
+  maxSeats          Int       @default(10)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -25,6 +29,30 @@ model Tenant {
   subscriptions     Subscription[]
   candidates        Candidate[]
   psychometricResults PsychometricResult[]
+  raterFeedback     RaterFeedback[]
+  candidateSelfIds  CandidateSelfId[]
+  hiringDecisionAudits HiringDecisionAudit[]
+  decisionReviewRequests DecisionReviewRequest[]
+  biometricConsents BiometricConsent[]
+  codeSubmissions   CodeSubmission[]
+  lockdownViolations LockdownViolation[]
+  generatedScenarios GeneratedScenario[]
+  webhookSubscriptions WebhookSubscription[]
+  // Merged from leadership-assessment
+  sessionAnswers    SessionAnswer[]
+  assessmentResults AssessmentResult[]
+  proctoringEvents  ProctoringEventLog[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  integrations      Integration[]
+  identityVerifications IdentityVerification[]
+  environmentScans  EnvironmentScan[]
+  proctoringPolicies ProctoringPolicy[]
+  evidenceArtifacts EvidenceArtifact[]
+  integrityLog      IntegrityLogEntry[]
+  proctoringIncidents ProctoringIncident[]
+  roles             Role[]
+  invitations       Invitation[]
 
   @@map("tenants")
 }
@@ -42,26 +70,141 @@ model User {
   firebaseUid       String    @unique
   email             String
   name              String
-  role              Role      @default(employee)
+  roleId            String
+  role              Role      @relation(fields: [roleId], references: [id])
   department        String?
   metadata          Json?
+  // Merged from leadership-assessment (Firebase remains the auth source of
+  // truth — no passwordHash/refresh tokens; these are profile metadata only)
+  emailVerified     Boolean   @default(false)
+  // Soft-deactivation — never hard-delete a user (would cascade-destroy
+  // real assessment history/reports). Enforced in FirebaseAuthGuard (every
+  // authenticated request) and PermissionsService.resolveUser.
+  isActive          Boolean   @default(true)
+  lastLoginAt       DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   assessmentSessions AssessmentSession[]
   aiReports         AiReport[]
   psychometricResults PsychometricResult[]
+  raterFeedbackGiven    RaterFeedback[] @relation("RaterFeedbackRater")
+  raterFeedbackReceived RaterFeedback[] @relation("RaterFeedbackSubject")
+  decisionReviewRequestsMade     DecisionReviewRequest[] @relation("DecisionReviewRequester")
+  decisionReviewRequestsResolved DecisionReviewRequest[] @relation("DecisionReviewResolver")
+  codeSubmissions   CodeSubmission[]
+  lockdownViolations LockdownViolation[]
+  reviewedScenarios GeneratedScenario[]
+  // Merged from leadership-assessment
+  assessmentResults AssessmentResult[]
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  identityVerifications IdentityVerification[]
+  invitationsSent   Invitation[]
 
   @@index([tenantId])
-  @@index([role])
+  @@index([roleId])
   @@map("users")
 }
 
-enum Role {
-  super_admin
-  org_admin
-  manager
-  employee
+// Replaces the old fixed Role enum (super_admin/org_admin/manager/employee/
+// candidate/recruiter/viewer) with real RBAC. `super_admin` is the one
+// tenantId=null role — it's a platform-operator role that acts across every
+// tenant, not scoped to one. Every other role — the 6 former enum values,
+// now seeded per tenant as system roles, plus any custom role an org_admin
+// creates — belongs to exactly one tenant. System roles (isSystem=true)
+// can't be deleted or renamed, but their permission set can still be edited;
+// custom roles are fully free-form.
+model Role {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  permissions RolePermission[]
+  invitations Invitation[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("roles")
+}
+
+enum InvitationStatus {
+  pending
+  accepted
+  expired
+  revoked
+}
+
+// Real invitation lifecycle — replaces the earlier instant-activate invite
+// (which created the User row immediately, before the invitee ever set a
+// password). No User row exists until `accept` succeeds. `token` is the
+// secret in the emailed accept-link; `id` is the internal reference an
+// admin's UI uses for resend/revoke, kept separate so listing invitations
+// never leaks the secret. Only one `pending` invitation per (tenantId,
+// email) is allowed — enforced via a partial unique index in the migration
+// (Prisma's schema DSL can't express a filtered unique constraint).
+model Invitation {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email       String
+  name        String
+  roleId      String
+  role        Role     @relation(fields: [roleId], references: [id])
+  department  String?
+  token       String   @unique
+  status      InvitationStatus @default(pending)
+  invitedById String
+  invitedBy   User     @relation(fields: [invitedById], references: [id])
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([token])
+  @@map("invitations")
+}
+
+// Fixed, code-referenced capability catalog — not user-creatable. Grouped by
+// `category` for the admin UI's permission picker.
+model Permission {
+  id          String @id @default(cuid())
+  key         String @unique
+  description String
+  category    String
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// Merged in from leadership-assessment: fixed assessment "modules" (distinct
+// from assessos's free-form `pillar` + `dimensions` JSON). A config/session
+// may be EITHER pillar-based (leadership) OR module-based — moduleId is
+// optional so both models coexist.
+enum AssessmentModuleId {
+  technical
+  attitude
+  behavioral
+  psychometric
+  communication
 }
 
 model AssessmentSession {
@@ -81,8 +224,40 @@ model AssessmentSession {
   startedAt         DateTime?
   submittedAt       DateTime?
   createdAt         DateTime  @default(now())
+  // Pause/resume: time spent paused doesn't count against timeLimitMin.
+  // pausedAt is set while status='paused'; on resume the elapsed pause is
+  // added to totalPausedSec and pausedAt is cleared.
+  pausedAt          DateTime?
+  totalPausedSec    Int       @default(0)
+  // Merged from leadership-assessment: module-based / adaptive delivery state.
+  // leadership's richer SessionStatus (not_started/in_progress/submitted/
+  // graded/expired) maps onto assessos's pending/active/done at the service
+  // layer. Per-answer rows live in SessionAnswer (below); `answers` JSON
+  // remains for the existing leadership-pillar submission path.
+  moduleId          AssessmentModuleId?
+  questionOrder     String[]
+  currentIndex      Int       @default(0)
+
+  // Advanced proctoring — session binding (continuous-auth pillar). The
+  // session token is tied to a device + IP-range hash + biometric-template
+  // hash; a mismatch/anomaly sets proctoringRevoked so the client is forced
+  // to re-verify or the session is terminated. Hashes only — no raw biometric
+  // or IP is stored here.
+  deviceId          String?
+  ipHash            String?
+  biometricHash     String?
+  proctoringRevoked Boolean   @default(false)
 
   aiReport          AiReport?
+  raterFeedback     RaterFeedback[]
+  sessionAnswers    SessionAnswer[]
+  assessmentResult  AssessmentResult?
+  proctoringEvents  ProctoringEventLog[]
+  identityVerifications IdentityVerification[]
+  environmentScans  EnvironmentScan[]
+  evidenceArtifacts EvidenceArtifact[]
+  integrityLog      IntegrityLogEntry[]
+  proctoringIncidents ProctoringIncident[]
 
   @@index([tenantId])
   @@index([userId])
@@ -92,6 +267,7 @@ model AssessmentSession {
 enum SessionStatus {
   pending
   active
+  paused
   done
 }
 
@@ -105,12 +281,36 @@ model AssessmentConfig {
   passMark          Int
   aiProctoring      Boolean   @default(true)
   benchmarkGroup    String?
+  // Merged from leadership-assessment: module-based config. moduleId is
+  // optional — null = a pillar/dimensions (leadership) config; set = a
+  // fixed-module (technical/attitude/...) config.
+  moduleId          AssessmentModuleId?
+  negativeMarking   Boolean   @default(false)
+  negativePenalty   Float     @default(0.25)
+  shuffleQuestions  Boolean   @default(true)
+  shuffleOptions    Boolean   @default(true)
+  adaptiveMode      Boolean   @default(false)
+  totalQuestions    Int       @default(100)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  // Versioning: rows are immutable once created. Editing an assessment never
+  // updates a row in place — it inserts a new row with the same
+  // assessmentGroupId and version + 1, then flips isCurrent over. Existing
+  // AssessmentSession.configId FKs keep pointing at the exact version they
+  // ran under, so already-graded reports never silently re-score against a
+  // changed definition. assessmentGroupId defaults to the row's own id for a
+  // brand-new assessment (version 1 is its own group).
+  assessmentGroupId String
+  version           Int       @default(1)
+  isCurrent         Boolean   @default(true)
+  publishedAt       DateTime  @default(now())
+
   sessions          AssessmentSession[]
 
+  @@unique([assessmentGroupId, version])
   @@index([tenantId])
+  @@index([assessmentGroupId])
   @@map("assessment_configs")
 }
 
@@ -130,6 +330,8 @@ model AiReport {
   status            ReportStatus @default(pending)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+
+  reviewRequests    DecisionReviewRequest[]
 
   @@index([tenantId])
   @@index([sessionId])
@@ -182,6 +384,21 @@ model Candidate {
   phone             String?
   linkedinUrl       String?
   resumeUrl         String?
+  // ISO 3166-1 alpha-2 (e.g. "US", "DE"). Recruiter-entered at creation.
+  // Drives the EU/EEA + California jurisdiction gate in SelfIdService —
+  // absent for every candidate created before this field existed, and
+  // absent means the gate can't positively identify a restricted
+  // jurisdiction, so it does NOT block. See SelfIdService.isRestrictedJurisdiction.
+  country           String?
+  // ISO 3166-2 subdivision code without the country prefix (e.g. "CA" for
+  // California). Only meaningful when country = "US".
+  usState           String?
+  // Free-text recruiting channel (e.g. "LinkedIn", "Referral", "Careers
+  // Page"), recruiter-entered at creation. Drives the source breakdown in
+  // HiringService.getHiringAnalytics — null for anything created before
+  // this field existed, which that breakdown groups under "unspecified"
+  // rather than dropping silently.
+  source            String?
   stage             PipelineStage @default(screening)
   technicalScore    Float?
   cultureFitScore   Float?
@@ -192,10 +409,157 @@ model Candidate {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  selfId            CandidateSelfId?
+  decisionAudits    HiringDecisionAudit[]
+  biometricConsent  BiometricConsent?
+
   @@index([tenantId])
   @@index([tenantId, jobRoleId])
   @@index([tenantId, stage])
   @@map("candidates")
+}
+
+// BIPA (Illinois) + Illinois AI Video Interview Act: written, informed
+// consent gate before any biometric capture (facial detection today;
+// would also cover eye-tracking/vocal-stress if that scope ships later).
+// Checked by InterviewService.startInterview before ProctoringService is
+// allowed to begin monitoring — see the ForbiddenException there.
+model BiometricConsent {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  candidateId        String    @unique
+  candidate          Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  consentGiven       Boolean   @default(false)
+  // e.g. ["facial_detection", "eye_tracking", "voice_analysis"] — BIPA
+  // requires consent scoped to the specific biometric identifiers collected,
+  // not a blanket "I agree to monitoring."
+  scope              Json      @default("[]")
+  consentedAt        DateTime?
+  // BIPA requires a disclosed retention/destruction schedule — null means
+  // no consent has specified one yet, which itself blocks the gate.
+  retentionExpiresAt DateTime?
+  revokedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@map("biometric_consents")
+}
+
+enum EeoGender {
+  female
+  male
+  non_binary
+  decline_to_state
+}
+
+// EEO-1-aligned race/ethnicity categories (OFCCP/EEOC standard).
+enum EeoRaceEthnicity {
+  hispanic_or_latino
+  white
+  black_or_african_american
+  native_hawaiian_or_pacific_islander
+  asian
+  american_indian_or_alaska_native
+  two_or_more_races
+  decline_to_state
+}
+
+// Binary threshold, not granular bands — ADEA (Age Discrimination in
+// Employment Act) protects 40+ specifically; finer bands only add
+// re-identification risk without adding legal signal.
+enum EeoAgeBand {
+  under_40
+  forty_and_over
+  decline_to_state
+}
+
+// Voluntary EEO self-identification data for adverse-impact (four-fifths
+// rule) analysis. Never joined into hiring-decision views — read only by
+// BiasAuditService for aggregate, small-cell-suppressed reporting.
+//
+// KNOWN GAP: submission currently goes through the same recruiter-facing
+// API surface as the rest of the hiring module (no candidate-facing portal
+// exists in this codebase yet). EEOC best practice is to collect this
+// directly from the candidate, kept separate from anyone making the hiring
+// decision, so it isn't consciously or unconsciously used in scoring. Until
+// a candidate-facing intake flow exists, self-ID data collected here should
+// be treated as provisional / not fully compliant with that separation
+// requirement — tracked as a follow-up, not silently declared solved.
+model CandidateSelfId {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  candidateId    String   @unique
+  candidate      Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  gender         EeoGender        @default(decline_to_state)
+  raceEthnicity  EeoRaceEthnicity @default(decline_to_state)
+  ageBand        EeoAgeBand       @default(decline_to_state)
+  submittedAt    DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("candidate_self_id")
+}
+
+enum HiringDecisionOutcome {
+  advanced
+  rejected
+}
+
+// Immutable audit trail: one row per pipeline-stage transition, snapshotting
+// the AI-derived scores at the moment of decision. Exists independently of
+// CandidateSelfId — this is the "what happened and why" record for dispute
+// defense / external audit; the adverse-impact ratio math in
+// BiasAuditService reads live Candidate.stage instead, since that reflects
+// final disposition rather than every intermediate hop.
+model HiringDecisionAudit {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  candidateId     String
+  candidate       Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  fromStage       PipelineStage
+  toStage         PipelineStage
+  outcome         HiringDecisionOutcome
+  technicalScore  Float?
+  cultureFitScore Float?
+  decidedAt       DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([candidateId])
+  @@map("hiring_decision_audit")
+}
+
+enum DecisionReviewStatus {
+  pending
+  in_review
+  resolved
+}
+
+// GDPR Art. 22 / CPRA: a data subject's request for human review of an
+// automated decision (an AiReport). Distinct from the bias-audit trail
+// (HiringDecisionAudit) — this is subject-initiated, not system-recorded.
+model DecisionReviewRequest {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reportId       String
+  report         AiReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  requestedById  String
+  requestedBy    User     @relation("DecisionReviewRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+  reason         String?
+  status         DecisionReviewStatus @default(pending)
+  resolvedById   String?
+  resolvedBy     User?    @relation("DecisionReviewResolver", fields: [resolvedById], references: [id])
+  resolutionNote String?
+  createdAt      DateTime @default(now())
+  resolvedAt     DateTime?
+
+  @@index([tenantId])
+  @@index([reportId])
+  @@index([status])
+  @@map("decision_review_requests")
 }
 
 // One row per psychometric model submission (DISC, Big Five, MBTI, ...).
@@ -220,4 +584,609 @@ model PsychometricResult {
   @@index([tenantId])
   @@index([userId, modelKey])
   @@map("psychometric_results")
+}
+
+enum RaterRelationship {
+  self
+  manager
+  peer
+  direct_report
+  other
+}
+
+// 360-feedback: one row per rater's submission about one subject, scoped to
+// the subject's assessment session. A rater may only submit once per session
+// (@@unique) — resubmission is an update, not a new row.
+model RaterFeedback {
+  id                String    @id @default(cuid())
+  tenantId          String
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId         String
+  session           AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  subjectId         String
+  subject           User      @relation("RaterFeedbackSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  raterId           String
+  rater             User      @relation("RaterFeedbackRater", fields: [raterId], references: [id], onDelete: Cascade)
+  relationship      RaterRelationship
+  // Per-competency ratings, e.g. { "vision": 4, "execution": 3, ... }
+  ratings           Json
+  comments          String?
+  // When true, the subject's own view of this feedback must omit raterId/rater
+  // identity — enforced at the service layer, not just hidden client-side.
+  isAnonymous       Boolean   @default(true)
+  submittedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([sessionId, raterId])
+  @@index([tenantId])
+  @@index([sessionId])
+  @@index([subjectId])
+  @@map("rater_feedback")
+}
+
+// Tenant-registered webhook subscriptions. Dispatched (fire-and-forget,
+// same error-swallowing pattern as ReportGeneratorService) by
+// WebhookDispatchService on: assessment.completed, report.score_threshold_
+// crossed, bias_audit.alert. Payload is HMAC-SHA256 signed with `secret`
+// (X-Webhook-Signature header) so subscribers can verify authenticity.
+model WebhookSubscription {
+  id         String   @id @default(cuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url        String
+  eventTypes String[]
+  secret     String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("webhook_subscriptions")
+}
+
+enum ScenarioReviewStatus {
+  pending_review
+  approved
+  rejected
+}
+
+// GenAI-generated situational judgment test (SJT) scenarios, gated behind
+// human review before entering a live item bank — see the "human review
+// gate" note in ScenarioGeneratorService. Nothing reads generatedContent
+// into a real assessment flow until status = approved; nothing in this
+// codebase does that wiring yet (that's a separate, later task — this
+// covers generation + review only, per #20's actual scope).
+model GeneratedScenario {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  industry         String
+  role             String
+  difficulty       String
+  dimension        String
+  generatedContent Json
+  status           ScenarioReviewStatus @default(pending_review)
+  reviewedById     String?
+  reviewedBy       User?    @relation(fields: [reviewedById], references: [id])
+  rejectionReason  String?
+  createdAt        DateTime @default(now())
+  reviewedAt       DateTime?
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("generated_scenarios")
+}
+
+// Persists every coding-challenge submission. Didn't exist before this —
+// CodingService.submitSolution previously ran Judge0 and returned the
+// result without storing anything, which also means ProgressService's
+// stats (getProgressStats/getSolvedProblems) are still hardcoded mock data,
+// not derived from this table. Wiring that up is a separate, later task
+// (tracked as a residual gap, not silently fixed here) — this table exists
+// because PlagiarismService needs prior-submission history to compare
+// against, which is the actual scope of #22.
+model CodeSubmission {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problemId           String
+  language            String
+  code                String
+  score               Int
+  valid               Boolean
+  // Highest shingle-similarity ratio (0-1) found against any prior
+  // submission to the same problem/language in this tenant. See
+  // PlagiarismService — shingle/Jaccard structural similarity, not a full
+  // per-language AST diff.
+  similarityScore     Float?
+  matchedSubmissionId String?
+  createdAt           DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([problemId, language])
+  @@map("code_submissions")
+}
+
+// Client-reported lockdown-mode violations (tab switch, devtools opened,
+// copy-paste, VM detected). The lockdown *enforcement* itself is
+// necessarily client-side JS — not built here, this is backend-only scope
+// (#22). This table just gives that future client code somewhere real to
+// report to, instead of the violations vanishing client-side.
+model LockdownViolation {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  context       String
+  violationType String
+  detectedAt    DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("lockdown_violations")
+}
+
+// ─── Merged from leadership-assessment ───────────────────────────────────────
+
+// Per-question answer row for module-based assessments (the leadership backend
+// stored answers per-row rather than as one JSON blob). The assessos
+// pillar/dimensions path still uses AssessmentSession.answers JSON; both
+// coexist.
+model SessionAnswer {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId      String
+  session        AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId     String
+  selectedOption Int?
+  isCorrect      Boolean?
+  isFlagged      Boolean  @default(false)
+  timeSpentSec   Int      @default(0)
+  answeredAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([sessionId, questionId])
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("session_answers")
+}
+
+// Structured, deterministic scored result for module-based assessments
+// (IRT ability estimate + item statistics). Distinct from AiReport, which is
+// the Claude-generated narrative for leadership-pillar assessments. A session
+// can have at most one of each.
+model AssessmentResult {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId      String   @unique
+  session        AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  moduleId       AssessmentModuleId?
+  score          Float
+  percentile     Float?
+  passed         Boolean
+  totalQuestions Int
+  correctAnswers Int
+  wrongAnswers   Int
+  skippedAnswers Int
+  // 3PL-IRT ability estimate + standard error + tier band
+  irtTheta       Float?
+  irtSe          Float?
+  irtTier        String?
+  subTopicScores Json?
+  aiInsights     String[]
+  proctoringRisk Int      @default(0)
+  violations     Int      @default(0)
+  warnings       Int      @default(0)
+  gradedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([moduleId])
+  @@map("assessment_results")
+}
+
+// Structured proctoring event stream (assessos previously only stored a
+// coarse LockdownViolation row; this captures the risk-scored event log the
+// leadership proctor produced).
+model ProctoringEventLog {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId   String
+  session     AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventType   String
+  riskDelta   Int      @default(0)
+  totalRisk   Int      @default(0)
+  metadata    Json?
+  occurredAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("proctoring_events")
+}
+
+enum AuditAction {
+  login
+  logout
+  register
+  assessment_started
+  assessment_submitted
+  assessment_graded
+  proctor_event
+  config_updated
+  user_created
+  user_updated
+  user_deleted
+  report_generated
+  integration_connected
+  integration_disconnected
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  tenantId    String
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action      AuditAction
+  resource    String?
+  resourceId  String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+}
+
+// Tenant-scoped external integration connection (HRIS/LMS/ATS). leadership
+// modelled this globally with a unique name; scoped per-tenant here to match
+// assessos multi-tenancy.
+model Integration {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  category    String
+  status      String   @default("disconnected")
+  config      Json?
+  lastSyncAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("integrations")
+}
+
+// ─── Advanced proctoring — identity & continuous authentication ──────────────
+
+enum IdentityVerificationStatus {
+  pending
+  verified
+  failed
+  manual_review
+}
+
+enum LivenessMode {
+  passive
+  active
+}
+
+// The "who is taking the test" pillar. The backend does NOT run OCR / face
+// match / liveness itself — those run in the client or a dedicated ML/vendor
+// pipeline. This row RECORDS the results those produce (document authenticity
+// score, 1:1 face-match score, liveness pass), computes an overall status, and
+// gates session start + drives continuous re-verification. Explainable by
+// design (every score + timestamp retained) for high-stakes appeals.
+model IdentityVerification {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId        String?
+  session          AssessmentSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  // Pre-session document + biometric checks (results from client/vendor).
+  documentType     String?  // passport | national_id | drivers_license
+  documentVerified Boolean  @default(false)
+  documentScore    Float?   // authenticity confidence 0-1
+  faceMatchScore   Float?   // 1:1 document-vs-live 0-1
+  livenessPassed   Boolean  @default(false)
+  livenessMode     LivenessMode @default(passive)
+  otpVerified      Boolean  @default(false)
+
+  status           IdentityVerificationStatus @default(pending)
+
+  // Continuous authentication (in-session).
+  reverifiedAt     DateTime?
+  reverifyCount    Int      @default(0)
+  driftDetected    Boolean  @default(false)
+
+  metadata         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([status])
+  @@map("identity_verifications")
+}
+
+// ─── Advanced proctoring — environment, device & policy ──────────────────────
+
+enum PolicyAction {
+  allow
+  flag
+  block
+}
+
+// Per-tenant (optionally per-config) proctoring policy. Drives what's required
+// before/around a session and how anomalies are treated. configId null = the
+// tenant's default policy.
+model ProctoringPolicy {
+  id                       String   @id @default(cuid())
+  tenantId                 String
+  tenant                   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  configId                 String?
+
+  // identity / continuous auth
+  requireIdentityVerification Boolean @default(false)
+  requireLiveness          Boolean  @default(false)
+  reverifyIntervalSec      Int      @default(300)
+
+  // environment
+  requireRoomScan          Boolean  @default(false)
+  maxExtraPersons          Int      @default(0)
+  allowSecondScreen        Boolean  @default(false)
+
+  // network / location
+  vpnAction                PolicyAction @default(flag)
+
+  // device
+  requireLockdownBrowser   Boolean  @default(false)
+  blockRemoteAccess        Boolean  @default(true)
+
+  // risk thresholds (override the engine defaults)
+  warningThreshold         Int      @default(30)
+  criticalThreshold        Int      @default(70)
+  autoTerminateThreshold   Int      @default(100)
+
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@unique([tenantId, configId])
+  @@index([tenantId])
+  @@map("proctoring_policies")
+}
+
+enum EnvironmentScanStatus {
+  pending
+  clear
+  flagged
+  blocked
+}
+
+// A room/device/network scan snapshot (pre-session or periodic). Detections
+// come from the client (webcam CV, network/device probes) — the backend
+// evaluates them against the ProctoringPolicy, computes a status + findings,
+// and raises proctoring events so anomalies feed the session risk score.
+model EnvironmentScan {
+  id                   String   @id @default(cuid())
+  tenantId             String
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId               String
+  sessionId            String?
+  session              AssessmentSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  scanType             String   @default("pre_session") // pre_session | periodic
+
+  // room detections (client CV)
+  personsDetected      Int      @default(1)
+  monitorsDetected     Int      @default(1)
+  phoneDetected        Boolean  @default(false)
+  notesDetected        Boolean  @default(false)
+  whiteboardDetected   Boolean  @default(false)
+
+  // environment quality
+  lightingOk           Boolean  @default(true)
+  faceVisible          Boolean  @default(true)
+  audioBaselineDb      Float?
+
+  // network / location
+  ipCountry            String?
+  declaredCountry      String?
+  vpnDetected          Boolean  @default(false)
+  proxyDetected        Boolean  @default(false)
+  torDetected          Boolean  @default(false)
+
+  // device posture
+  lockdownActive       Boolean  @default(false)
+  remoteAccessDetected Boolean  @default(false)
+  vmDetected           Boolean  @default(false)
+  screenShareDetected  Boolean  @default(false)
+
+  status               EnvironmentScanStatus @default(pending)
+  findings             String[]
+  metadata             Json?
+  createdAt            DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([sessionId])
+  @@index([status])
+  @@map("environment_scans")
+}
+
+// ─── Advanced proctoring — evidence & tamper-evident audit ───────────────────
+
+enum EvidenceType {
+  face_cam
+  room_cam
+  screen
+  audio
+  snapshot
+  clip
+  document
+}
+
+// A captured piece of evidence. The blob itself lives in encrypted object
+// storage (storageRef points to it); this row holds the reference + a SHA-256
+// contentHash so tampering with the stored blob is detectable. Optionally
+// linked to the proctoring event that triggered the capture.
+model EvidenceArtifact {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId   String
+  session     AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  eventId     String?  // optional link to a ProctoringEventLog id
+  type        EvidenceType
+  storageRef  String   // key/URL into encrypted object storage
+  contentHash String   // SHA-256 of the artifact bytes
+  mimeType    String?
+  sizeBytes   Int?
+  durationSec Int?
+  capturedAt  DateTime @default(now())
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("evidence_artifacts")
+}
+
+// Append-only, per-session hash chain. Each entry's entryHash =
+// SHA-256(seq | entryType | prevHash | canonical(payload)); the first entry
+// chains off a fixed genesis hash. Altering or deleting any entry breaks every
+// subsequent hash, so the integrity trail is tamper-evident and verifiable
+// (see IntegrityChainService.verify). This is distinct from the general
+// AuditLog — it is the immutable evidence/decision chain for appeals.
+model IntegrityLogEntry {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId String
+  session   AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seq       Int
+  entryType String   // proctoring_event | evidence_captured | proctor_action | identity_check | scan | system
+  payload   Json
+  prevHash  String
+  entryHash String
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, seq])
+  @@index([tenantId])
+  @@index([sessionId])
+  @@map("integrity_log")
+}
+
+// ─── Advanced proctoring — incidents, review & appeals ───────────────────────
+
+enum IncidentSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum IncidentStatus {
+  open
+  in_review
+  resolved
+  dismissed
+}
+
+enum IncidentResolution {
+  no_action
+  warning_issued
+  result_flagged
+  result_cancelled
+  candidate_banned
+}
+
+enum AppealStatus {
+  none
+  requested
+  under_review
+  upheld
+  overturned
+}
+
+// A flagged integrity concern for human review — the "act on it & appeal"
+// layer. Opened by the system (auto, on a critical risk level) or a proctor,
+// worked through review -> resolution, with an appeal path. Every state change
+// is committed to the session integrity chain, so the decision trail is
+// tamper-evident and exportable for appeals.
+model ProctoringIncident {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sessionId          String
+  session            AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId             String   // subject of the incident
+
+  category           String   // taxonomy slug (e.g. extra_person, phone_detected, identity_drift)
+  severity           IncidentSeverity
+  status             IncidentStatus @default(open)
+  riskScore          Int?
+  description        String?
+  openedBy           String   @default("system") // system | proctor | <userId>
+  assignedTo         String?
+  slaDueAt           DateTime?
+
+  // human review decision
+  resolution         IncidentResolution?
+  resolutionNote     String?
+  reviewedById       String?
+  reviewedAt         DateTime?
+
+  // appeal workflow
+  appealStatus       AppealStatus @default(none)
+  appealReason       String?
+  appealResolvedById String?
+  appealResolvedAt   DateTime?
+  appealNote         String?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([sessionId])
+  @@index([status])
+  @@index([severity])
+  @@map("proctoring_incidents")
 }

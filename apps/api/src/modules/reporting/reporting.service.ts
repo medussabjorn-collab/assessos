@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, Scope } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  Scope,
+} from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
@@ -16,7 +21,18 @@ export class ReportingService {
     this.tenantId = request.headers['x-tenant-id'];
   }
 
-  async getReport(reportId: string, userId: string) {
+  private async resolveUserId(firebaseUid: string): Promise<string> {
+    const user = await this.prisma.user.findFirst({
+      where: { firebaseUid, tenantId: this.tenantId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user.id;
+  }
+
+  async getReport(reportId: string, firebaseUid: string) {
+    const userId = await this.resolveUserId(firebaseUid);
     const report = await this.prisma.aiReport.findUnique({
       where: { id: reportId },
     });
@@ -28,7 +44,8 @@ export class ReportingService {
     return report;
   }
 
-  async requestReportGeneration(sessionId: string, userId: string) {
+  async requestReportGeneration(sessionId: string, firebaseUid: string) {
+    const userId = await this.resolveUserId(firebaseUid);
     const session = await this.prisma.assessmentSession.findUnique({
       where: { id: sessionId },
       include: { config: true, user: true },
@@ -68,7 +85,8 @@ export class ReportingService {
     return report;
   }
 
-  async listReports(userId: string) {
+  async listReports(firebaseUid: string) {
+    const userId = await this.resolveUserId(firebaseUid);
     const reports = await this.prisma.aiReport.findMany({
       where: {
         tenantId: this.tenantId,

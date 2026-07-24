@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "leadership": "Leadership",
+    "hiring": "Hiring",
+    "pipeline": "Pipeline",
+    "practice": "Practice",
+    "interviews": "Interviews",
+    "challenges": "Challenges",
+    "hackathons": "Hackathons",
+    "analytics": "Analytics",
+    "integrations": "Integrations",
+    "compliance": "Compliance",
+    "identityReview": "Identity Review",
+    "admin": "Admin",
+    "roles": "Roles",
+    "assessments": "Assessments",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "close": "Close",
+    "view": "View",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "hours": "hours",
+    "darkMode": "Dark Mode",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "offline": "Offline",
+    "online": "Online"
+  },
+  "topbar": {
+    "searchPlaceholder": "Search assessments, candidates, problems…",
+    "workspace": "Workspace",
+    "currentPlan": "Current plan"
+  }
+}
