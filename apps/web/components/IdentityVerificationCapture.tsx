@@ -113,7 +113,7 @@ export default function IdentityVerificationCapture({ onVerified }: IdentityVeri
     }
 
     setStep('submitting');
-    const faceMatchScore = matchScore(selfieDescriptorRef.current, descriptor2);
+    const faceMatchScore = await matchScore(selfieDescriptorRef.current, descriptor2);
 
     try {
       const result = await submitVerification({

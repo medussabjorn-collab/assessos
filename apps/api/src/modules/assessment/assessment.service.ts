@@ -40,7 +40,7 @@ export class AssessmentService {
 
   // Never send the answer key to the candidate.
   private stripAnswerKey(question: any) {
-    const { correctIndex, explanation, ...safe } = question;
+    const { correctIndex: _correctIndex, explanation: _explanation, ...safe } = question;
     return safe;
   }
 

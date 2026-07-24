@@ -110,7 +110,7 @@ export function useSessionBinding({
         const descriptor = await captureDescriptor(frame);
         if (!descriptor) return;
 
-        const score = matchScore(baseline, descriptor);
+        const score = await matchScore(baseline, descriptor);
         const driftDetected = score < DRIFT_THRESHOLD;
         const result = await reverify(verificationId, { faceMatchScore: score, driftDetected });
         setState((s) => ({

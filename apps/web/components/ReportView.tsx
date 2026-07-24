@@ -142,7 +142,6 @@ export default function ReportView({ reportId }: ReportViewProps) {
 
   useEffect(() => {
     if (report?.sessionId) loadFeedback(report.sessionId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report?.sessionId]);
 
   const setRating = (dimension: string, value: number) => {

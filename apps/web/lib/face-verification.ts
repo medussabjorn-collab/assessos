@@ -1,6 +1,20 @@
 'use client';
 
-import * as faceapi from '@vladmandic/face-api';
+// face-api is loaded via a lazy dynamic import, never a static top-level
+// one. @vladmandic/face-api's package.json "main" points at a Node-specific
+// build (dist/face-api.node.js) that Next.js resolves when this module gets
+// pulled into the SERVER bundle for prerendering — requiring it there
+// throws ("this.util.TextEncoder is not a constructor") and fails `next
+// build` entirely, even though nothing here ever runs server-side. A
+// dynamic import() is only evaluated when actually called (i.e. client-side,
+// inside a useEffect/event handler), so it's never eagerly required during
+// the Node prerender pass.
+type FaceApiModule = typeof import('@vladmandic/face-api');
+let faceApiModulePromise: Promise<FaceApiModule> | null = null;
+function getFaceApi(): Promise<FaceApiModule> {
+  if (!faceApiModulePromise) faceApiModulePromise = import('@vladmandic/face-api');
+  return faceApiModulePromise;
+}
 
 // Same three models the existing violation-detection worker uses
 // (tinyFaceDetector, faceLandmark68TinyNet) plus faceRecognitionNet, which
@@ -8,17 +22,19 @@ import * as faceapi from '@vladmandic/face-api';
 // now, so no real face-match score was computable client-side. Loaded on
 // the main thread (not the worker) since this runs once per verification
 // action, not per animation frame.
-let loadPromise: Promise<void> | null = null;
+let modelsLoadPromise: Promise<void> | null = null;
 
 export function loadFaceModels(modelsUrl = '/models'): Promise<void> {
-  if (!loadPromise) {
-    loadPromise = Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(modelsUrl),
-      faceapi.nets.faceLandmark68TinyNet.loadFromUri(modelsUrl),
-      faceapi.nets.faceRecognitionNet.loadFromUri(modelsUrl),
-    ]).then(() => undefined);
+  if (!modelsLoadPromise) {
+    modelsLoadPromise = getFaceApi().then((faceapi) =>
+      Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(modelsUrl),
+        faceapi.nets.faceLandmark68TinyNet.loadFromUri(modelsUrl),
+        faceapi.nets.faceRecognitionNet.loadFromUri(modelsUrl),
+      ]).then(() => undefined),
+    );
   }
-  return loadPromise;
+  return modelsLoadPromise;
 }
 
 type ImageSource = HTMLVideoElement | HTMLCanvasElement | HTMLImageElement;
@@ -28,6 +44,7 @@ type ImageSource = HTMLVideoElement | HTMLCanvasElement | HTMLImageElement;
 // no document-verification vendor is integrated, so documentVerified/
 // documentScore only ever reflect this real but narrow signal.
 export async function detectFaceConfidence(source: ImageSource): Promise<number> {
+  const faceapi = await getFaceApi();
   const detection = await faceapi
     .detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
     .withFaceLandmarks(true);
@@ -37,6 +54,7 @@ export async function detectFaceConfidence(source: ImageSource): Promise<number>
 // Real 128-d face descriptor via faceRecognitionNet. Returns null if no
 // single face is confidently detected.
 export async function captureDescriptor(source: ImageSource): Promise<Float32Array | null> {
+  const faceapi = await getFaceApi();
   const detection = await faceapi
     .detectSingleFace(source, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
     .withFaceLandmarks(true)
@@ -55,7 +73,8 @@ export async function captureDescriptor(source: ImageSource): Promise<Float32Arr
 // same-person match by face-api's own standard), which the linear mapping
 // scored only 0.6, below FACE_MATCH_MIN, forcing manual_review on a
 // genuine match. Quadratic scores that same 0.24 at 0.84.
-export function matchScore(a: Float32Array, b: Float32Array): number {
+export async function matchScore(a: Float32Array, b: Float32Array): Promise<number> {
+  const faceapi = await getFaceApi();
   const distance = faceapi.euclideanDistance(a, b);
   const ratio = Math.max(0, Math.min(1, distance / 0.6));
   return 1 - ratio * ratio;

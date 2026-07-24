@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
 
 interface QuestionOption {
@@ -51,7 +50,6 @@ export default function AdaptiveAssessmentView({
   initialProgress,
   initialAbility,
 }: AdaptiveAssessmentViewProps) {
-  const { user } = useAuth();
   const [question, setQuestion] = useState(initialQuestion);
   const [progress, setProgress] = useState(initialProgress);
   const [ability, setAbility] = useState(initialAbility);
