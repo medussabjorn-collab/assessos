@@ -172,14 +172,12 @@ export default function IdentityVerificationCapture({ onVerified }: IdentityVeri
         </p>
         <p className="text-sm text-subtle">
           {record.status === 'manual_review'
-            ? "We couldn't confirm your identity automatically. An admin will need to review this before you can start."
+            ? "We couldn't confirm your identity automatically. Try again with better lighting, or wait for an admin to review this submission."
             : 'The face match confidence was too low. Make sure you\'re well-lit and looking directly at the camera.'}
         </p>
-        {record.status === 'failed' && (
-          <button onClick={retry} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition text-sm">
-            Try again
-          </button>
-        )}
+        <button onClick={retry} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition text-sm">
+          Try again
+        </button>
       </div>
     );
   }

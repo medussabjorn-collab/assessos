@@ -128,6 +128,46 @@ export class IdentityService {
     return !!latest;
   }
 
+  // Admin queue: records the automated pipeline couldn't resolve on its own
+  // (low document-authenticity confidence, or an ambiguous face match — see
+  // computeStatus). Without a human decision here these are a permanent
+  // dead end for the candidate, since nothing else moves a record off
+  // manual_review.
+  async listPendingReview(tenantId: string) {
+    return this.prisma.identityVerification.findMany({
+      where: { tenantId, status: 'manual_review' },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  // Human decision on a manual_review record. Recorded in metadata rather
+  // than dedicated columns — this is a low-volume admin action, not a
+  // reportable field anything else queries.
+  async overrideStatus(
+    tenantId: string,
+    id: string,
+    reviewerId: string,
+    decision: 'verified' | 'failed',
+    note?: string,
+  ) {
+    const existing = await this.prisma.identityVerification.findFirst({ where: { id, tenantId } });
+    if (!existing) throw new NotFoundException('Identity verification not found');
+
+    const existingMetadata = (existing.metadata as Record<string, unknown> | null) ?? {};
+    return this.prisma.identityVerification.update({
+      where: { id },
+      data: {
+        status: decision,
+        metadata: {
+          ...existingMetadata,
+          reviewedBy: reviewerId,
+          reviewedAt: new Date().toISOString(),
+          reviewNote: note ?? null,
+        } as Prisma.InputJsonValue,
+      },
+    });
+  }
+
   // In-session periodic re-check. A confirmed drift (different person) both
   // flags the record and raises an identity_drift proctoring event, and revokes
   // the session binding so the client must re-authenticate.

@@ -119,3 +119,18 @@ export async function checkBinding(
   );
   return res.data.data;
 }
+
+// Admin queue — requires proctoring.incidents.review.
+export async function listPendingReview(): Promise<IdentityVerificationRecord[]> {
+  const res = await api.get('/api/proctoring/identity/pending-review');
+  return res.data.data;
+}
+
+export async function overrideVerification(
+  id: string,
+  decision: 'verified' | 'failed',
+  note?: string,
+): Promise<IdentityVerificationRecord> {
+  const res = await api.post(`/api/proctoring/identity/${id}/override`, { decision, note });
+  return res.data.data;
+}

@@ -14,6 +14,7 @@ describe('IdentityService', () => {
       identityVerification: {
         create: jest.fn(),
         findFirst: jest.fn(),
+        findMany: jest.fn(),
         update: jest.fn(),
       },
       assessmentSession: {
@@ -240,6 +241,53 @@ describe('IdentityService', () => {
       await expect(
         service.reverify(tenantId, userId, 'idv-missing', {}),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('listPendingReview / overrideStatus', () => {
+    it('lists only manual_review records for the tenant, oldest first', async () => {
+      prisma.identityVerification.findMany.mockResolvedValue([{ id: 'idv-1', status: 'manual_review' }]);
+
+      const result = await service.listPendingReview(tenantId);
+
+      expect(result).toEqual([{ id: 'idv-1', status: 'manual_review' }]);
+      expect(prisma.identityVerification.findMany).toHaveBeenCalledWith({
+        where: { tenantId, status: 'manual_review' },
+        orderBy: { createdAt: 'asc' },
+      });
+    });
+
+    it('overrideStatus moves a manual_review record to verified and records who decided', async () => {
+      prisma.identityVerification.findFirst.mockResolvedValue({
+        id: 'idv-1',
+        tenantId,
+        status: 'manual_review',
+        metadata: { some: 'thing' },
+      });
+      prisma.identityVerification.update.mockResolvedValue({ id: 'idv-1', status: 'verified' });
+
+      await service.overrideStatus(tenantId, 'idv-1', 'usr-admin', 'verified', 'looks fine on manual check');
+
+      expect(prisma.identityVerification.update).toHaveBeenCalledWith({
+        where: { id: 'idv-1' },
+        data: {
+          status: 'verified',
+          metadata: expect.objectContaining({
+            some: 'thing',
+            reviewedBy: 'usr-admin',
+            reviewNote: 'looks fine on manual check',
+          }),
+        },
+      });
+    });
+
+    it('overrideStatus throws NotFoundException for a record outside the tenant', async () => {
+      prisma.identityVerification.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.overrideStatus(tenantId, 'idv-missing', 'usr-admin', 'failed'),
+      ).rejects.toThrow(NotFoundException);
+      expect(prisma.identityVerification.update).not.toHaveBeenCalled();
     });
   });
 });

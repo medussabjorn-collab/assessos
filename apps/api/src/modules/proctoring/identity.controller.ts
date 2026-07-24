@@ -10,6 +10,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { RequirePermission } from '../auth/permissions.decorator';
+import { PERMISSIONS } from '../auth/permissions.constants';
 import { PrismaService } from '../../database/prisma.service';
 import {
   IdentityService,
@@ -82,6 +85,31 @@ export class IdentityController {
   ) {
     const tenantId = req.headers['x-tenant-id'];
     const data = await this.identity.checkBinding(tenantId, sessionId, body);
+    return { success: true, data };
+  }
+
+  // Admin queue for records the automated pipeline couldn't resolve.
+  @Get('pending-review')
+  @UseGuards(PermissionsGuard)
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_REVIEW)
+  async pendingReview(@Request() req: any) {
+    const tenantId = req.headers['x-tenant-id'];
+    const data = await this.identity.listPendingReview(tenantId);
+    return { success: true, data };
+  }
+
+  @Post(':id/override')
+  @UseGuards(PermissionsGuard)
+  @RequirePermission(PERMISSIONS.PROCTORING_INCIDENTS_REVIEW)
+  async override(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: { decision: 'verified' | 'failed'; note?: string },
+  ) {
+    const tenantId = req.headers['x-tenant-id'];
+    const user = await this.prisma.user.findFirst({ where: { firebaseUid: req.user.uid, tenantId } });
+    if (!user) throw new NotFoundException('User not found');
+    const data = await this.identity.overrideStatus(tenantId, id, user.id, body.decision, body.note);
     return { success: true, data };
   }
 }
