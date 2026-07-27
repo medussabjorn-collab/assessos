@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
-import axios from 'axios';
+import { api } from '@/lib/api';
 import { Check } from 'lucide-react';
 
 type Plan = 'free' | 'pro' | 'enterprise';
@@ -93,22 +93,19 @@ export default function SignupPage() {
 
     try {
       const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
-
-      const idToken = await userCredential.user.getIdToken();
+      await createUserWithEmailAndPassword(auth, email, password);
 
       // Create tenant and subscription via backend. Non-fatal: the account
       // already exists in Firebase, so a backend hiccup shouldn't block
       // onboarding (the API provisions the tenant lazily on first call).
+      // Uses the shared `api` client (relative baseURL through Next's
+      // rewrite proxy) — a hardcoded http://localhost:3000 here previously
+      // meant this call silently failed in every deployed environment,
+      // since the browser has nothing listening on localhost:3000.
       try {
-        await axios.post(
-          'http://localhost:3000/api/auth/register',
+        await api.post(
+          '/api/auth/register',
           { email, plan: selectedPlan, companyName },
-          { headers: { Authorization: `Bearer ${idToken}` } },
         );
       } catch {
         // continue to onboarding regardless
