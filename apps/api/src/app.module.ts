@@ -35,9 +35,30 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     // Mongo powers the question item bank (merged from leadership-assessment).
+    // retryAttempts/retryDelay give up to ~2min of backoff for cold-starting
+    // Mongo containers on redeploy — a real failure we hit where the api
+    // crashed on boot because Mongo wasn't reachable within the old 3x2s
+    // window. connectionFactory logs each connect/error/disconnect so a
+    // future cold-start race is visible in deploy logs instead of a bare crash.
     MongooseModule.forRoot(
       process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/assessos',
-      { retryAttempts: 3, retryDelay: 2000 },
+      {
+        retryAttempts: 20,
+        retryDelay: 5000,
+        connectionFactory: (connection) => {
+          // connectionFactory only runs once mongoose has already resolved
+          // the connection, so log here directly — a 'connected' listener
+          // attached at this point races the event and never fires.
+          console.log('[Mongo] connected');
+          connection.on('error', (err: Error) => {
+            console.error('[Mongo] connection error:', err.message);
+          });
+          connection.on('disconnected', () => {
+            console.warn('[Mongo] disconnected');
+          });
+          return connection;
+        },
+      },
     ),
     AuthModule,
     TenantModule,
