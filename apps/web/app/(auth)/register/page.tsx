@@ -32,7 +32,7 @@ export default function RegisterPage() {
       );
 
       const idToken = await userCredential.user.getIdToken();
-      await fetch('/api/auth/register', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,6 +40,12 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({ email }),
       });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.message || 'Registration failed');
+        return;
+      }
 
       router.push('/onboarding');
     } catch (err: any) {
