@@ -11,6 +11,7 @@ describe('RetentionRiskService', () => {
     prisma = {
       assessmentSession: { findMany: jest.fn().mockResolvedValue([]) },
       raterFeedback: { findMany: jest.fn().mockResolvedValue([]) },
+      talentPredictionSnapshot: { create: jest.fn().mockResolvedValue({}) },
     };
     const request = { headers: { 'x-tenant-id': tenantId } };
     service = new RetentionRiskService(prisma, request);
@@ -118,5 +119,19 @@ describe('RetentionRiskService', () => {
     const result = await service.computeRiskScore('usr-1');
 
     expect(result.methodologyNote).toMatch(/not a trained or validated predictive model/i);
+  });
+
+  it('persists a talent prediction snapshot on every compute', async () => {
+    const result = await service.computeRiskScore('usr-1');
+
+    expect(prisma.talentPredictionSnapshot.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        tenantId,
+        userId: 'usr-1',
+        predictionType: 'retention_risk',
+        result,
+        methodologyVersion: 'heuristic-v1',
+      }),
+    });
   });
 });

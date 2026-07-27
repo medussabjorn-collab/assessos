@@ -53,6 +53,8 @@ model Tenant {
   proctoringIncidents ProctoringIncident[]
   roles             Role[]
   invitations       Invitation[]
+  talentOutcomes    TalentOutcome[]
+  talentPredictionSnapshots TalentPredictionSnapshot[]
 
   @@map("tenants")
 }
@@ -101,6 +103,9 @@ model User {
   notifications     Notification[]
   identityVerifications IdentityVerification[]
   invitationsSent   Invitation[]
+  talentOutcomes    TalentOutcome[] @relation("TalentOutcomeSubject")
+  talentOutcomesRecorded TalentOutcome[] @relation("TalentOutcomeRecorder")
+  talentPredictionSnapshots TalentPredictionSnapshot[]
 
   @@index([tenantId])
   @@index([roleId])
@@ -1189,4 +1194,80 @@ model ProctoringIncident {
   @@index([status])
   @@index([severity])
   @@map("proctoring_incidents")
+}
+
+// Predictive talent analytics — ground truth + prediction history.
+//
+// RetentionRiskService/PromotionReadinessService/PerformanceForecastService
+// are all disclosed heuristics, not trained ML models, because no labeled
+// outcome data existed anywhere in this schema to train or validate one
+// against (see each service's top-of-file comment). These two models don't
+// change that today, but they're the actual prerequisite for ever changing
+// it: TalentOutcome starts collecting real ground truth (who actually left,
+// was promoted, or got what rating, and when) from the moment this ships,
+// and TalentPredictionSnapshot persists every heuristic prediction made
+// along the way. Once enough paired prediction→outcome data accumulates,
+// that pairing is what a real model would need to train and validate
+// against — building the model before this data exists would just be a
+// hollow wrapper around arbitrary numbers, same reasoning as the services
+// themselves.
+enum TalentOutcomeType {
+  departure_voluntary
+  departure_involuntary
+  promotion
+  performance_rating
+}
+
+model TalentOutcome {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation("TalentOutcomeSubject", fields: [userId], references: [id], onDelete: Cascade)
+  outcomeType  TalentOutcomeType
+  occurredAt   DateTime
+  // promotion: { newTitle, newLevel }. performance_rating: { rating, scale, cycle }.
+  // departure_*: { reason? } — free-text, not a structured taxonomy (avoids
+  // pretending exit-interview categorization is more standardized than it is).
+  details      Json?
+  note         String?
+  recordedById String
+  recordedBy   User     @relation("TalentOutcomeRecorder", fields: [recordedById], references: [id])
+  recordedAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([outcomeType])
+  @@map("talent_outcomes")
+}
+
+enum TalentPredictionType {
+  retention_risk
+  promotion_readiness
+  performance_forecast
+}
+
+model TalentPredictionSnapshot {
+  id                 String               @id @default(cuid())
+  tenantId           String
+  tenant             Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  predictionType     TalentPredictionType
+  // The full result object each service already returns (score/band/
+  // trajectory + factors + methodologyNote) — stored as-is rather than
+  // pulled apart into typed columns, since the shape differs per
+  // predictionType and duplicating it into three near-identical tables
+  // would just be schema noise for no query benefit here.
+  result             Json
+  // Bump when a service's weighting/formula changes, so a later analysis
+  // comparing predictions to outcomes can tell which methodology version
+  // produced which prediction.
+  methodologyVersion String
+  computedAt         DateTime             @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([predictionType])
+  @@map("talent_prediction_snapshots")
 }

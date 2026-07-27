@@ -24,6 +24,8 @@ const WEIGHTS = {
 // derived/validated cutoff.
 const INACTIVITY_CEILING_DAYS = 90;
 
+const METHODOLOGY_VERSION = 'heuristic-v1';
+
 export interface RetentionRiskResult {
   riskScore: number; // 0-100, higher = more risk signal
   riskBand: 'low' | 'medium' | 'high';
@@ -91,7 +93,7 @@ export class RetentionRiskService {
         feedbackDeclineScore * weightsUsed.feedbackDecline,
     );
 
-    return {
+    const result: RetentionRiskResult = {
       riskScore,
       riskBand: riskScore >= 66 ? 'high' : riskScore >= 33 ? 'medium' : 'low',
       factors: {
@@ -104,6 +106,18 @@ export class RetentionRiskService {
         'feedback-rating trend. Not a trained or validated predictive model — no labeled ' +
         'retention outcome data exists in this system to train or validate one against.',
     };
+
+    await this.prisma.talentPredictionSnapshot.create({
+      data: {
+        tenantId: this.tenantId,
+        userId,
+        predictionType: 'retention_risk',
+        result: result as unknown as object,
+        methodologyVersion: METHODOLOGY_VERSION,
+      },
+    });
+
+    return result;
   }
 
   private mostRecentDate(dates: Date[]): Date | null {

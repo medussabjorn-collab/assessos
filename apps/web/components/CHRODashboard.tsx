@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
 import { Users, TrendingUp, Award, AlertCircle, Loader } from 'lucide-react';
+import TalentPredictionsPanel from './TalentPredictionsPanel';
 
 interface DashboardData {
   summary: {
@@ -51,6 +52,7 @@ export default function CHRODashboard() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLeader, setSelectedLeader] = useState<{ userId: string; userName: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -138,13 +140,25 @@ export default function CHRODashboard() {
         </div>
       </div>
 
+      {selectedLeader && (
+        <TalentPredictionsPanel
+          userId={selectedLeader.userId}
+          userName={selectedLeader.userName}
+          onClose={() => setSelectedLeader(null)}
+        />
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Top Performers */}
         <div className="frost-card p-6">
           <h2 className="text-lg font-bold text-ink mb-4">Top Performers</h2>
           <div className="space-y-3">
             {topPerformers.map((leader, idx) => (
-              <div key={leader.userId} className="flex items-center justify-between pb-3 border-b border-hairline last:border-b-0">
+              <button
+                key={leader.userId}
+                onClick={() => setSelectedLeader({ userId: leader.userId, userName: leader.userName })}
+                className="w-full flex items-center justify-between pb-3 border-b border-hairline last:border-b-0 text-left hover:bg-canvas rounded-lg px-2 -mx-2 transition"
+              >
                 <div>
                   <p className="font-semibold text-ink text-sm">{idx + 1}. {leader.userName}</p>
                   <p className="text-xs text-subtle">{leader.department}</p>
@@ -155,7 +169,7 @@ export default function CHRODashboard() {
                     {leader.tier}
                   </span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -195,7 +209,11 @@ export default function CHRODashboard() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {developmentPriorities.map((leader) => (
-            <div key={leader.userId} className="border-l-4 border-accent-coral pl-4 py-2">
+            <button
+              key={leader.userId}
+              onClick={() => setSelectedLeader({ userId: leader.userId, userName: leader.userName })}
+              className="border-l-4 border-accent-coral pl-4 py-2 text-left hover:bg-canvas rounded-r-lg transition"
+            >
               <p className="font-semibold text-ink text-sm">{leader.userName}</p>
               <p className="text-xs text-subtle mb-2">{leader.department}</p>
               <div className="flex items-center justify-between">
@@ -206,7 +224,7 @@ export default function CHRODashboard() {
                   {leader.leadershipIndex.toFixed(2)}/5
                 </span>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>

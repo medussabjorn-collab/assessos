@@ -1,22 +1,35 @@
 import {
+  Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
+  Post,
+  Query,
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { TalentOutcomeType } from '@prisma/client';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermission } from '../auth/permissions.decorator';
 import { PERMISSIONS } from '../auth/permissions.constants';
+import { PrismaService } from '../../database/prisma.service';
 import { AnalyticsService } from './analytics.service';
 import { RetentionRiskService } from './retention-risk.service';
+import { PromotionReadinessService } from './promotion-readiness.service';
+import { PerformanceForecastService } from './performance-forecast.service';
+import { RecordOutcomeInput, TalentOutcomeService } from './talent-outcome.service';
 
 @Controller('api/analytics')
 export class AnalyticsController {
   constructor(
     private analyticsService: AnalyticsService,
     private retentionRisk: RetentionRiskService,
+    private promotionReadiness: PromotionReadinessService,
+    private performanceForecast: PerformanceForecastService,
+    private talentOutcome: TalentOutcomeService,
+    private prisma: PrismaService,
   ) {}
 
   @Get('dashboard')
@@ -54,6 +67,71 @@ export class AnalyticsController {
   @RequirePermission(PERMISSIONS.ANALYTICS_RETENTION_RISK_VIEW)
   async getRetentionRisk(@Param('userId') userId: string) {
     const result = await this.retentionRisk.computeRiskScore(userId);
+    return { success: true, data: result };
+  }
+
+  // Same sensitivity class as retention-risk — a heuristic assessment of
+  // another employee's future, not a self-service candidate feature.
+  @Get('promotion-readiness/:userId')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.ANALYTICS_RETENTION_RISK_VIEW)
+  async getPromotionReadiness(@Param('userId') userId: string) {
+    const result = await this.promotionReadiness.computeReadiness(userId);
+    return { success: true, data: result };
+  }
+
+  @Get('performance-forecast/:userId')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.ANALYTICS_RETENTION_RISK_VIEW)
+  async getPerformanceForecast(@Param('userId') userId: string) {
+    // Reuse the retention-risk band as a forecast input rather than have
+    // PerformanceForecastService duplicate RetentionRiskService's queries.
+    const risk = await this.retentionRisk.computeRiskScore(userId);
+    const result = await this.performanceForecast.computeForecast(userId, risk.riskBand);
+    return { success: true, data: result };
+  }
+
+  // Ground-truth recording — the actual data-collection point every
+  // prediction service's disclosed limitation points at. HR-admin action on
+  // another employee's record, so it reuses users.manage rather than the
+  // read-only analytics permission above.
+  @Post('talent-outcomes')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.USERS_MANAGE)
+  async recordTalentOutcome(
+    @Request() req: any,
+    @Body() body: { userId: string; outcomeType: TalentOutcomeType; occurredAt: string; details?: Record<string, unknown>; note?: string },
+  ) {
+    const tenantId = req.headers['x-tenant-id'];
+    const recorder = await this.prisma.user.findFirst({
+      where: { firebaseUid: req.user.uid, tenantId },
+    });
+    if (!recorder) throw new NotFoundException('User not found');
+
+    const input: RecordOutcomeInput = {
+      userId: body.userId,
+      outcomeType: body.outcomeType,
+      occurredAt: body.occurredAt,
+      details: body.details,
+      note: body.note,
+    };
+    const result = await this.talentOutcome.recordOutcome(input, recorder.id);
+    return { success: true, data: result };
+  }
+
+  @Get('talent-outcomes/:userId')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.ANALYTICS_RETENTION_RISK_VIEW)
+  async listTalentOutcomesForUser(@Param('userId') userId: string) {
+    const result = await this.talentOutcome.listForUser(userId);
+    return { success: true, data: result };
+  }
+
+  @Get('talent-outcomes')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.USERS_MANAGE)
+  async listRecentTalentOutcomes(@Query('limit') limit?: string) {
+    const result = await this.talentOutcome.listRecent(limit ? parseInt(limit, 10) : undefined);
     return { success: true, data: result };
   }
 }
