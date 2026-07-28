@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { LockdownViolationService } from './lockdown-violation.service';
 
 describe('LockdownViolationService', () => {
@@ -13,6 +13,14 @@ describe('LockdownViolationService', () => {
     };
     const request = { headers: { 'x-tenant-id': tenantId } };
     service = new LockdownViolationService(prisma, request);
+  });
+
+  it('throws BadRequestException for an unknown violationType, before touching the DB', async () => {
+    await expect(
+      service.record('firebase-uid', 'coding:two-sum', 'made_up_violation'),
+    ).rejects.toThrow(BadRequestException);
+    expect(prisma.user.findFirst).not.toHaveBeenCalled();
+    expect(prisma.lockdownViolation.create).not.toHaveBeenCalled();
   });
 
   it('throws NotFoundException for an unknown user', async () => {

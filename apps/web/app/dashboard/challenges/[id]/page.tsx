@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CheckCircle2, XCircle, Trophy, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
 import CodeEditor, { SupportedLanguage } from '@/components/CodeEditor';
+import { useLockdownDetection } from '@/lib/use-lockdown-detection';
 
 interface Problem {
   id: string;
@@ -49,6 +50,8 @@ export default function ChallengePage() {
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useLockdownDetection({ context: `coding:${id}`, enabled: !!problem && !result });
 
   useEffect(() => {
     setProblem(null);
