@@ -7,7 +7,9 @@ import { api } from '@/lib/api';
 import AssessmentView from '@/components/AssessmentView';
 import AdaptiveAssessmentView from '@/components/AdaptiveAssessmentView';
 import IdentityVerificationCapture from '@/components/IdentityVerificationCapture';
+import ProctoringPanel from '@/components/ProctoringPanel';
 import { useSessionBinding } from '@/lib/use-session-binding';
+import { useCheatDetection } from '@/lib/use-cheat-detection';
 
 const VERIFICATION_REQUIRED_MESSAGE = 'Identity verification required before starting this assessment';
 
@@ -67,6 +69,13 @@ function AssessmentPageContent() {
     enabled: phase === 'ready' && !!startData?.sessionId && !!startData?.aiProctoring,
   });
 
+  // Tab-switch/blur/copy-paste/fullscreen-exit detection — no visual output,
+  // reports straight to the same risk engine ProctoringPanel feeds.
+  useCheatDetection({
+    sessionId: startData?.sessionId ?? '',
+    enabled: phase === 'ready' && !!startData?.sessionId && !!startData?.aiProctoring,
+  });
+
   if (phase === 'starting') return <div className="p-8">Starting assessment...</div>;
   if (phase === 'error') return <div className="p-8 text-red-500">{error}</div>;
 
@@ -94,24 +103,25 @@ function AssessmentPageContent() {
   // Module-based configs run the real-time adaptive flow (question served
   // directly in the start response); pillar configs keep the existing
   // fixed-batch flow.
-  if (startData.question) {
-    return (
-      <AdaptiveAssessmentView
-        sessionId={startData.sessionId}
-        moduleId={startData.moduleId}
-        initialQuestion={startData.question}
-        initialProgress={startData.progress}
-        initialAbility={startData.ability}
-      />
-    );
-  }
-
   return (
-    <AssessmentView
-      sessionId={startData.sessionId}
-      questions={startData.questions ?? []}
-      timeLimitMin={startData.timeLimitMin}
-    />
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 items-start">
+      {startData.question ? (
+        <AdaptiveAssessmentView
+          sessionId={startData.sessionId}
+          moduleId={startData.moduleId}
+          initialQuestion={startData.question}
+          initialProgress={startData.progress}
+          initialAbility={startData.ability}
+        />
+      ) : (
+        <AssessmentView
+          sessionId={startData.sessionId}
+          questions={startData.questions ?? []}
+          timeLimitMin={startData.timeLimitMin}
+        />
+      )}
+      <ProctoringPanel sessionId={startData.sessionId} enabled={!!startData.aiProctoring} />
+    </div>
   );
 }
 
