@@ -16,6 +16,7 @@ import { AdaptiveTestingService, AnsweredItem } from '../question-bank/adaptive-
 import { IrtAbility } from '../question-bank/three-pl-irt.service';
 import { PillarQuestionService } from '../pillar-questions/pillar-question.service';
 import { IdentityService } from '../proctoring/identity.service';
+import { PolicyService } from '../proctoring/policy.service';
 
 // Fallback adaptive-test length when a module config's totalQuestions isn't
 // set to something sane (0 default from a config that was only ever meant
@@ -33,6 +34,7 @@ export class AssessmentService {
     private adaptiveTesting: AdaptiveTestingService,
     private pillarQuestions: PillarQuestionService,
     private identity: IdentityService,
+    private policy: PolicyService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
@@ -90,12 +92,30 @@ export class AssessmentService {
       throw new BadRequestException('Assessment config not found');
     }
 
+    // config.aiProctoring stays the primary per-config gate (unchanged
+    // behavior: always requires identity verification when on). OR'd with
+    // the tenant's ProctoringPolicy.requireIdentityVerification, which was
+    // previously stored but never read anywhere — a tenant can now require
+    // identity verification tenant-wide (or for a specific config) even when
+    // that config's own aiProctoring flag is off, but the policy can only
+    // ADD this requirement, never remove one an existing config already
+    // relies on.
     if (config.aiProctoring) {
       const verified = await this.identity.isVerifiedForUser(this.tenantId, userId);
       if (!verified) {
         throw new BadRequestException(
           'Identity verification required before starting this assessment',
         );
+      }
+    } else {
+      const policy = await this.policy.getEffective(this.tenantId, configId);
+      if (policy.requireIdentityVerification) {
+        const verified = await this.identity.isVerifiedForUser(this.tenantId, userId);
+        if (!verified) {
+          throw new BadRequestException(
+            'Identity verification required before starting this assessment',
+          );
+        }
       }
     }
 

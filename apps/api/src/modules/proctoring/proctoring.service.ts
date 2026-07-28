@@ -4,6 +4,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { IntegrityChainService } from './integrity-chain.service';
 import { IncidentService } from './incident.service';
+import { PolicyService } from './policy.service';
 
 // Unified proctoring — merges the two implementations:
 //   - leadership: the strong core — per-event risk weights + exponential
@@ -96,6 +97,10 @@ const RISK_WEIGHTS: Record<ProctoringEventType, RiskWeight> = {
   rapid_answer_switching: { score: 10, decayHalfLife: 90 },
 };
 
+// Fallback defaults — used by getReport's post-hoc summary banding (no live
+// session/policy context there) and as the DEFAULT_POLICY values. The live
+// per-event path in logEvent() below reads the tenant's actual
+// ProctoringPolicy thresholds instead of these.
 const RISK_THRESHOLD_WARNING = 30;
 const RISK_THRESHOLD_CRITICAL = 70;
 
@@ -115,11 +120,12 @@ export class ProctoringService {
     private readonly notifications: NotificationsService,
     private readonly chain: IntegrityChainService,
     private readonly incidents: IncidentService,
+    private readonly policy: PolicyService,
   ) {}
 
-  private levelOf(risk: number): RiskLevel {
-    if (risk >= RISK_THRESHOLD_CRITICAL) return 'critical';
-    if (risk >= RISK_THRESHOLD_WARNING) return 'warning';
+  private levelOf(risk: number, warningThreshold: number, criticalThreshold: number): RiskLevel {
+    if (risk >= criticalThreshold) return 'critical';
+    if (risk >= warningThreshold) return 'warning';
     return 'safe';
   }
 
@@ -130,6 +136,11 @@ export class ProctoringService {
     if (!session || session.status === 'done') {
       throw new NotFoundException('Active assessment session not found');
     }
+
+    // Previously hardcoded RISK_THRESHOLD_WARNING/CRITICAL regardless of
+    // tenant configuration — ProctoringPolicy.warningThreshold/
+    // criticalThreshold/autoTerminateThreshold were stored but never read.
+    const effectivePolicy = await this.policy.getEffective(tenantId, session.configId);
 
     const weight = RISK_WEIGHTS[input.eventType] ?? { score: 5, decayHalfLife: 60 };
 
@@ -160,7 +171,7 @@ export class ProctoringService {
       },
     });
 
-    const level = this.levelOf(totalRisk);
+    const level = this.levelOf(totalRisk, effectivePolicy.warningThreshold, effectivePolicy.criticalThreshold);
 
     // Commit the event into the per-session tamper-evident integrity chain.
     await this.chain
@@ -185,6 +196,26 @@ export class ProctoringService {
     if (level === 'critical') {
       await this.incidents
         .autoOpenOnCritical(tenantId, userId, input.sessionId, input.eventType, totalRisk)
+        .catch(() => undefined);
+    }
+
+    // autoTerminateThreshold was stored on ProctoringPolicy but had no
+    // enforcement anywhere — this is that enforcement. Reuses the same
+    // proctoringRevoked flag identity drift/session-binding mismatches set
+    // (see identity.service.ts), so AssessmentService's existing
+    // assertNotRevoked() check rejects further submits with no extra wiring.
+    if (totalRisk >= effectivePolicy.autoTerminateThreshold && !session.proctoringRevoked) {
+      await this.prisma.assessmentSession.update({
+        where: { id: input.sessionId },
+        data: { proctoringRevoked: true },
+      });
+      await this.chain
+        .append(tenantId, input.sessionId, 'system', {
+          action: 'session_auto_terminated',
+          reason: 'risk_score_exceeded_auto_terminate_threshold',
+          totalRisk,
+          autoTerminateThreshold: effectivePolicy.autoTerminateThreshold,
+        })
         .catch(() => undefined);
     }
 

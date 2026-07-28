@@ -26,6 +26,7 @@ describe('AssessmentService', () => {
     const adaptiveTesting = { next: jest.fn() };
     const pillarQuestions = { getQuestionsForDimension: jest.fn().mockResolvedValue([]), getQuestionById: jest.fn() };
     identity = { isVerifiedForUser: jest.fn().mockResolvedValue(true) };
+    const policy = { getEffective: jest.fn().mockResolvedValue({ requireIdentityVerification: false }) };
     const request = { headers: { 'x-tenant-id': tenantId } };
     service = new AssessmentService(
       prisma,
@@ -34,6 +35,7 @@ describe('AssessmentService', () => {
       adaptiveTesting as any,
       pillarQuestions as any,
       identity as any,
+      policy as any,
       request,
     );
   });
@@ -122,6 +124,62 @@ describe('AssessmentService', () => {
       const result = await service.startSession(firebaseUid, { configId: 'cfg-1' } as any);
 
       expect(result.aiProctoring).toBe(false);
+    });
+
+    it('also requires identity verification when aiProctoring is off but the tenant policy requires it', async () => {
+      const policy = { getEffective: jest.fn().mockResolvedValue({ requireIdentityVerification: true }) };
+      service = new AssessmentService(
+        prisma,
+        webhookDispatch,
+        {} as any,
+        {} as any,
+        { getQuestionsForDimension: jest.fn().mockResolvedValue([]) } as any,
+        identity as any,
+        policy as any,
+        { headers: { 'x-tenant-id': tenantId } },
+      );
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentConfig.findUnique.mockResolvedValue({
+        id: 'cfg-1',
+        tenantId,
+        pillar: 'vision',
+        timeLimitMin: 30,
+        aiProctoring: false,
+      });
+      identity.isVerifiedForUser.mockResolvedValue(false);
+
+      await expect(service.startSession(firebaseUid, { configId: 'cfg-1' } as any)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(policy.getEffective).toHaveBeenCalledWith(tenantId, 'cfg-1');
+    });
+
+    it('does not consult policy at all when aiProctoring is already on (avoids an extra query on the common path)', async () => {
+      const policy = { getEffective: jest.fn() };
+      service = new AssessmentService(
+        prisma,
+        webhookDispatch,
+        {} as any,
+        {} as any,
+        { getQuestionsForDimension: jest.fn().mockResolvedValue([]) } as any,
+        identity as any,
+        policy as any,
+        { headers: { 'x-tenant-id': tenantId } },
+      );
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentConfig.findUnique.mockResolvedValue({
+        id: 'cfg-1',
+        tenantId,
+        pillar: 'vision',
+        timeLimitMin: 30,
+        aiProctoring: true,
+      });
+      prisma.assessmentSession.create.mockResolvedValue({ id: 'sess-1', pillar: 'vision' });
+      identity.isVerifiedForUser.mockResolvedValue(true);
+
+      await service.startSession(firebaseUid, { configId: 'cfg-1' } as any);
+
+      expect(policy.getEffective).not.toHaveBeenCalled();
     });
   });
 
