@@ -73,6 +73,7 @@ const NAV: NavGroup[] = [
       { labelKey: 'nav.integrations', href: '/dashboard/integrations', icon: Plug },
       { labelKey: 'nav.compliance', href: '/dashboard/compliance', icon: ShieldAlert },
       { labelKey: 'nav.identityReview', href: '/dashboard/proctoring/identity-review', icon: UserCheck },
+      { labelKey: 'nav.incidents', href: '/dashboard/proctoring/incidents', icon: ShieldAlert },
       { labelKey: 'nav.admin', href: '/dashboard/admin', icon: Shield },
       { labelKey: 'nav.roles', href: '/dashboard/roles', icon: KeyRound },
       { labelKey: 'nav.assessments', href: '/dashboard/assessments', icon: ClipboardList },
