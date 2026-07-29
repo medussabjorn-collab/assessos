@@ -7,13 +7,15 @@ import { api } from '@/lib/api';
 import AssessmentView from '@/components/AssessmentView';
 import AdaptiveAssessmentView from '@/components/AdaptiveAssessmentView';
 import IdentityVerificationCapture from '@/components/IdentityVerificationCapture';
+import EnvironmentScanCapture from '@/components/EnvironmentScanCapture';
 import ProctoringPanel from '@/components/ProctoringPanel';
 import { useSessionBinding } from '@/lib/use-session-binding';
 import { useCheatDetection } from '@/lib/use-cheat-detection';
 
 const VERIFICATION_REQUIRED_MESSAGE = 'Identity verification required before starting this assessment';
+const ROOM_SCAN_REQUIRED_MESSAGE = 'Room scan required before starting this assessment';
 
-type Phase = 'starting' | 'needs-verification' | 'ready' | 'error';
+type Phase = 'starting' | 'needs-verification' | 'needs-room-scan' | 'ready' | 'error';
 
 function AssessmentPageContent() {
   const { user } = useAuth();
@@ -38,6 +40,8 @@ function AssessmentPageContent() {
       const message = err?.response?.data?.message;
       if (message === VERIFICATION_REQUIRED_MESSAGE) {
         setPhase('needs-verification');
+      } else if (message === ROOM_SCAN_REQUIRED_MESSAGE) {
+        setPhase('needs-room-scan');
       } else {
         setError('Failed to start assessment');
         setPhase('error');
@@ -83,6 +87,14 @@ function AssessmentPageContent() {
     return (
       <div className="p-8">
         <IdentityVerificationCapture onVerified={handleVerified} />
+      </div>
+    );
+  }
+
+  if (phase === 'needs-room-scan') {
+    return (
+      <div className="p-8">
+        <EnvironmentScanCapture configId={configId!} onComplete={attemptStart} />
       </div>
     );
   }

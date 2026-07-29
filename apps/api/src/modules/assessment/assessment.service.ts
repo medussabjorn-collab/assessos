@@ -17,6 +17,7 @@ import { IrtAbility } from '../question-bank/three-pl-irt.service';
 import { PillarQuestionService } from '../pillar-questions/pillar-question.service';
 import { IdentityService } from '../proctoring/identity.service';
 import { PolicyService } from '../proctoring/policy.service';
+import { EnvironmentService } from '../proctoring/environment.service';
 
 // Fallback adaptive-test length when a module config's totalQuestions isn't
 // set to something sane (0 default from a config that was only ever meant
@@ -35,6 +36,7 @@ export class AssessmentService {
     private pillarQuestions: PillarQuestionService,
     private identity: IdentityService,
     private policy: PolicyService,
+    private environment: EnvironmentService,
     @Inject(REQUEST) private request: any,
   ) {
     this.tenantId = request.headers['x-tenant-id'];
@@ -92,30 +94,31 @@ export class AssessmentService {
       throw new BadRequestException('Assessment config not found');
     }
 
-    // config.aiProctoring stays the primary per-config gate (unchanged
-    // behavior: always requires identity verification when on). OR'd with
-    // the tenant's ProctoringPolicy.requireIdentityVerification, which was
-    // previously stored but never read anywhere — a tenant can now require
-    // identity verification tenant-wide (or for a specific config) even when
-    // that config's own aiProctoring flag is off, but the policy can only
-    // ADD this requirement, never remove one an existing config already
-    // relies on.
-    if (config.aiProctoring) {
+    // config.aiProctoring stays the primary per-config gate for identity
+    // verification (unchanged behavior: always required when on) — OR'd
+    // with the tenant's ProctoringPolicy.requireIdentityVerification, so a
+    // tenant policy can only ADD this requirement, never silently remove
+    // one an existing config already relies on. requireRoomScan has no
+    // hardcoded precedent (this gate didn't exist before at all), so it's
+    // governed purely by policy — inert for every existing tenant/config
+    // until someone explicitly sets it via PUT /api/proctoring/policy,
+    // since DEFAULT_POLICY.requireRoomScan is false and no seeded tenant
+    // has a ProctoringPolicy row.
+    const policy = await this.policy.getEffective(this.tenantId, configId);
+
+    if (config.aiProctoring || policy.requireIdentityVerification) {
       const verified = await this.identity.isVerifiedForUser(this.tenantId, userId);
       if (!verified) {
         throw new BadRequestException(
           'Identity verification required before starting this assessment',
         );
       }
-    } else {
-      const policy = await this.policy.getEffective(this.tenantId, configId);
-      if (policy.requireIdentityVerification) {
-        const verified = await this.identity.isVerifiedForUser(this.tenantId, userId);
-        if (!verified) {
-          throw new BadRequestException(
-            'Identity verification required before starting this assessment',
-          );
-        }
+    }
+
+    if (policy.requireRoomScan) {
+      const clear = await this.environment.hasCleanPreSessionScan(this.tenantId, userId);
+      if (!clear) {
+        throw new BadRequestException('Room scan required before starting this assessment');
       }
     }
 

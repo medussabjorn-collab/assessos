@@ -80,6 +80,19 @@ export async function matchScore(a: Float32Array, b: Float32Array): Promise<numb
   return 1 - ratio * ratio;
 }
 
+// Face count in one frame — the real signal the room-scan's personsDetected
+// field needs (extra person in frame). Distinct from detectSingleFace above:
+// detectAllFaces has no upper bound, so this genuinely counts, it doesn't
+// just confirm "at least one".
+export async function detectFaceCount(source: ImageSource): Promise<number> {
+  const faceapi = await getFaceApi();
+  const detections = await faceapi.detectAllFaces(
+    source,
+    new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }),
+  );
+  return detections.length;
+}
+
 export function captureVideoFrame(video: HTMLVideoElement): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = video.videoWidth || 320;

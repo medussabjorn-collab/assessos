@@ -180,4 +180,19 @@ export class EnvironmentService {
     });
     return latest?.status === 'clear';
   }
+
+  // Pre-session gate helper (no sessionId exists yet at this point — mirrors
+  // IdentityService.isVerifiedForUser, which likewise has no recency window
+  // and just checks the latest record). Unlike isClear() above, 'flagged' is
+  // accepted here, not just 'clear': evaluate() already chose not to hard-
+  // block on flagged-only findings (second monitor, notes, low lighting), so
+  // gating session start on zero flags at all would be stricter than the
+  // scan evaluation itself intends.
+  async hasCleanPreSessionScan(tenantId: string, userId: string): Promise<boolean> {
+    const latest = await this.prisma.environmentScan.findFirst({
+      where: { tenantId, userId, scanType: 'pre_session' },
+      orderBy: { createdAt: 'desc' },
+    });
+    return !!latest && latest.status !== 'blocked';
+  }
 }

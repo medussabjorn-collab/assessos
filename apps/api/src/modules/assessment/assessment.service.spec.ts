@@ -26,7 +26,10 @@ describe('AssessmentService', () => {
     const adaptiveTesting = { next: jest.fn() };
     const pillarQuestions = { getQuestionsForDimension: jest.fn().mockResolvedValue([]), getQuestionById: jest.fn() };
     identity = { isVerifiedForUser: jest.fn().mockResolvedValue(true) };
-    const policy = { getEffective: jest.fn().mockResolvedValue({ requireIdentityVerification: false }) };
+    const policy = {
+      getEffective: jest.fn().mockResolvedValue({ requireIdentityVerification: false, requireRoomScan: false }),
+    };
+    const environment = { hasCleanPreSessionScan: jest.fn().mockResolvedValue(true) };
     const request = { headers: { 'x-tenant-id': tenantId } };
     service = new AssessmentService(
       prisma,
@@ -36,6 +39,7 @@ describe('AssessmentService', () => {
       pillarQuestions as any,
       identity as any,
       policy as any,
+      environment as any,
       request,
     );
   });
@@ -127,7 +131,10 @@ describe('AssessmentService', () => {
     });
 
     it('also requires identity verification when aiProctoring is off but the tenant policy requires it', async () => {
-      const policy = { getEffective: jest.fn().mockResolvedValue({ requireIdentityVerification: true }) };
+      const policy = {
+        getEffective: jest.fn().mockResolvedValue({ requireIdentityVerification: true, requireRoomScan: false }),
+      };
+      const environment = { hasCleanPreSessionScan: jest.fn().mockResolvedValue(true) };
       service = new AssessmentService(
         prisma,
         webhookDispatch,
@@ -136,6 +143,7 @@ describe('AssessmentService', () => {
         { getQuestionsForDimension: jest.fn().mockResolvedValue([]) } as any,
         identity as any,
         policy as any,
+        environment as any,
         { headers: { 'x-tenant-id': tenantId } },
       );
       prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
@@ -154,8 +162,11 @@ describe('AssessmentService', () => {
       expect(policy.getEffective).toHaveBeenCalledWith(tenantId, 'cfg-1');
     });
 
-    it('does not consult policy at all when aiProctoring is already on (avoids an extra query on the common path)', async () => {
-      const policy = { getEffective: jest.fn() };
+    it('rejects when the tenant policy requires a room scan and no clean pre-session scan exists', async () => {
+      const policy = {
+        getEffective: jest.fn().mockResolvedValue({ requireIdentityVerification: false, requireRoomScan: true }),
+      };
+      const environment = { hasCleanPreSessionScan: jest.fn().mockResolvedValue(false) };
       service = new AssessmentService(
         prisma,
         webhookDispatch,
@@ -164,6 +175,7 @@ describe('AssessmentService', () => {
         { getQuestionsForDimension: jest.fn().mockResolvedValue([]) } as any,
         identity as any,
         policy as any,
+        environment as any,
         { headers: { 'x-tenant-id': tenantId } },
       );
       prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
@@ -172,14 +184,45 @@ describe('AssessmentService', () => {
         tenantId,
         pillar: 'vision',
         timeLimitMin: 30,
-        aiProctoring: true,
+        aiProctoring: false,
+      });
+
+      await expect(service.startSession(firebaseUid, { configId: 'cfg-1' } as any)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(environment.hasCleanPreSessionScan).toHaveBeenCalledWith(tenantId, internalUserId);
+      expect(prisma.assessmentSession.create).not.toHaveBeenCalled();
+    });
+
+    it('allows starting when the tenant policy requires a room scan and a clean scan exists', async () => {
+      const policy = {
+        getEffective: jest.fn().mockResolvedValue({ requireIdentityVerification: false, requireRoomScan: true }),
+      };
+      const environment = { hasCleanPreSessionScan: jest.fn().mockResolvedValue(true) };
+      service = new AssessmentService(
+        prisma,
+        webhookDispatch,
+        {} as any,
+        {} as any,
+        { getQuestionsForDimension: jest.fn().mockResolvedValue([]) } as any,
+        identity as any,
+        policy as any,
+        environment as any,
+        { headers: { 'x-tenant-id': tenantId } },
+      );
+      prisma.user.findFirst.mockResolvedValue({ id: internalUserId });
+      prisma.assessmentConfig.findUnique.mockResolvedValue({
+        id: 'cfg-1',
+        tenantId,
+        pillar: 'vision',
+        timeLimitMin: 30,
+        aiProctoring: false,
       });
       prisma.assessmentSession.create.mockResolvedValue({ id: 'sess-1', pillar: 'vision' });
-      identity.isVerifiedForUser.mockResolvedValue(true);
 
       await service.startSession(firebaseUid, { configId: 'cfg-1' } as any);
 
-      expect(policy.getEffective).not.toHaveBeenCalled();
+      expect(prisma.assessmentSession.create).toHaveBeenCalled();
     });
   });
 
