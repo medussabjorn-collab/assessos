@@ -11,7 +11,7 @@ import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermission } from '../auth/permissions.decorator';
 import { PERMISSIONS } from '../auth/permissions.constants';
-import { EvidenceService, RecordEvidenceInput } from './evidence.service';
+import { EvidenceService, RecordEvidenceInput, CaptureEvidenceInput } from './evidence.service';
 import { IntegrityChainService } from './integrity-chain.service';
 
 @Controller('api/proctoring/evidence')
@@ -23,6 +23,16 @@ export class EvidenceController {
   async record(@Request() req: any, @Body() body: RecordEvidenceInput) {
     const tenantId = req.headers['x-tenant-id'];
     const data = await this.evidence.record(tenantId, body);
+    return { success: true, data };
+  }
+
+  // Real capture entry point — uploads the actual image bytes to object
+  // storage server-side, unlike record() above which only ever stored a
+  // caller-supplied reference.
+  @Post('capture')
+  async capture(@Request() req: any, @Body() body: CaptureEvidenceInput) {
+    const tenantId = req.headers['x-tenant-id'];
+    const data = await this.evidence.captureAndRecord(tenantId, body);
     return { success: true, data };
   }
 

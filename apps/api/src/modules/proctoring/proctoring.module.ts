@@ -9,6 +9,7 @@ import { PolicyController } from './policy.controller';
 import { PolicyService } from './policy.service';
 import { EvidenceController, IntegrityController } from './evidence.controller';
 import { EvidenceService } from './evidence.service';
+import { StorageService } from './storage.service';
 import { IntegrityChainService } from './integrity-chain.service';
 import { IncidentController } from './incident.controller';
 import { IncidentService } from './incident.service';
@@ -32,6 +33,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     EnvironmentService,
     PolicyService,
     EvidenceService,
+    StorageService,
     IntegrityChainService,
     IncidentService,
     PrismaService,

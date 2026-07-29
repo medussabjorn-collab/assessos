@@ -5,6 +5,8 @@ import { ShieldAlert, ShieldCheck, Video, VideoOff } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAIProctoring, ProctoringViolation } from '../lib/use-ai-proctoring';
 import { offlineSyncService } from '../lib/offline-sync';
+import { captureVideoFrame } from '../lib/face-verification';
+import { captureEvidence } from '../lib/evidence-capture';
 
 // Maps the client-side worker event kind to the backend's ProctoringEventType
 // (modules/proctoring/proctoring.service.ts) so violations feed the real,
@@ -28,10 +30,15 @@ interface ProctoringPanelProps {
  * request interceptor), so the server-side risk engine, incident
  * auto-escalation, and integrity chain all see it, not just this panel.
  */
+// Cooldown between evidence snapshots — a warning/critical run of events
+// shouldn't upload a new frame on every single one.
+const EVIDENCE_COOLDOWN_MS = 60_000;
+
 export default function ProctoringPanel({ sessionId, enabled }: ProctoringPanelProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [camError, setCamError] = useState<string | null>(null);
   const [lastServerLevel, setLastServerLevel] = useState<'safe' | 'warning' | 'critical' | null>(null);
+  const lastEvidenceCaptureRef = useRef(0);
 
   useEffect(() => {
     if (!enabled) return;
@@ -66,13 +73,36 @@ export default function ProctoringPanel({ sessionId, enabled }: ProctoringPanelP
     };
   }, [enabled]);
 
+  // Real evidence-capture producer — EvidenceService's /capture endpoint
+  // previously had nothing calling it anywhere in the client. Snapshots the
+  // same video frame the violation was detected from and uploads it, so an
+  // incident's evidence-export bundle actually has something in it.
+  const captureSnapshotEvidence = () => {
+    const now = Date.now();
+    if (now - lastEvidenceCaptureRef.current < EVIDENCE_COOLDOWN_MS) return;
+    if (!videoRef.current) return;
+    lastEvidenceCaptureRef.current = now;
+
+    const frame = captureVideoFrame(videoRef.current);
+    const imageBase64 = frame.toDataURL('image/jpeg', 0.7);
+    captureEvidence({ sessionId, type: 'face_cam', imageBase64 }).catch(() => {
+      // Storage not configured for this tenant, or a transient failure —
+      // non-fatal, the risk score/incident already landed via the event
+      // POST regardless of whether a snapshot backs it up.
+    });
+  };
+
   const handleViolation = (v: ProctoringViolation) => {
     const eventType = EVENT_TYPE_MAP[v.kind];
     if (!eventType) return;
 
     api
       .post('/api/proctoring/event', { sessionId, eventType })
-      .then((res) => setLastServerLevel(res.data?.data?.level ?? null))
+      .then((res) => {
+        const level = res.data?.data?.level ?? null;
+        setLastServerLevel(level);
+        if (level === 'warning' || level === 'critical') captureSnapshotEvidence();
+      })
       .catch(() => {
         // Offline or unreachable — queue it. useOfflineSync (mounted in the
         // dashboard layout) flushes this via /api/offline-sync/sync as soon
