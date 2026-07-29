@@ -9,12 +9,18 @@
  *
  * Receives ImageBitmap frames from useAIProctoring, runs face detection,
  * posts typed events back: READY, FACE_DETECTED, NO_FACE, MULTIPLE_FACES,
- * FACE_AWAY, ERROR.
+ * FACE_AWAY, PHONE_DETECTED, ERROR.
  */
 
 importScripts('/vendor/face-api.js');
+// coco-ssd.min.js's UMD build reads the `tf` global directly rather than
+// bundling tfjs-core itself (see e.tf reference in its factory function) —
+// tf.min.js must load first.
+importScripts('/vendor/tf.min.js');
+importScripts('/vendor/coco-ssd.min.js');
 
 let modelsLoaded = false;
+let objectModel = null;
 let canvas = null;
 let ctx = null;
 
@@ -22,9 +28,17 @@ let ctx = null;
 const FRAME_INTERVAL_MS = 800;
 let lastProcessed = 0;
 
+// Object detection (phone) is far more expensive than the tiny face
+// detector — runs on a much slower cadence, piggybacking on whichever
+// FRAME tick crosses this interval rather than every face-detection tick.
+const OBJECT_FRAME_INTERVAL_MS = 3000;
+let lastObjectProcessed = 0;
+
 // Consecutive no-face frames before raising an event.
 let consecutiveNoFace = 0;
 const NO_FACE_THRESHOLD = 3;
+
+const PHONE_MIN_SCORE = 0.6;
 
 self.onmessage = async (e) => {
   const msg = e.data;
@@ -34,6 +48,10 @@ self.onmessage = async (e) => {
       try {
         await faceapi.nets.tinyFaceDetector.loadFromUri(msg.modelsUrl);
         await faceapi.nets.faceLandmark68TinyNet.loadFromUri(msg.modelsUrl);
+        // Local model.json + shards under public/models/coco-ssd — never
+        // fetches Google's hosted CDN copy, same offline-capable pattern as
+        // the face-api models above.
+        objectModel = await cocoSsd.load({ modelUrl: '/models/coco-ssd/model.json' });
         modelsLoaded = true;
         self.postMessage({ kind: 'READY' });
       } catch (err) {
@@ -61,6 +79,22 @@ self.onmessage = async (e) => {
         }
         ctx.drawImage(msg.bitmap, 0, 0);
         msg.bitmap.close();
+
+        if (now - lastObjectProcessed >= OBJECT_FRAME_INTERVAL_MS) {
+          lastObjectProcessed = now;
+          // Fire-and-forget on its own cadence — never blocks the face-
+          // detection path below, and a slow/failed inference just skips
+          // this tick rather than stalling FRAME processing.
+          objectModel
+            .detect(canvas, 5, PHONE_MIN_SCORE)
+            .then((objects) => {
+              const phone = objects.find((o) => o.class === 'cell phone');
+              if (phone) self.postMessage({ kind: 'PHONE_DETECTED', ts: now, score: phone.score });
+            })
+            .catch(() => {
+              // Skip this tick — don't crash the worker on a bad frame.
+            });
+        }
 
         const detections = await faceapi
           .detectAllFaces(canvas, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))

@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow/tfjs": "^4.22.0",
     "@vladmandic/face-api": "^1.7.15",
     "axios": "^1.6.2",
     "chart.js": "^4.5.1",

@@ -15,6 +15,7 @@ const EVENT_TYPE_MAP: Record<string, string> = {
   NO_FACE: 'face_not_detected',
   MULTIPLE_FACES: 'multiple_faces',
   FACE_AWAY: 'looking_away',
+  PHONE_DETECTED: 'phone_detected',
 };
 
 interface ProctoringPanelProps {

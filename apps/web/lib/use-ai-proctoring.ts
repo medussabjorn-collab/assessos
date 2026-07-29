@@ -11,6 +11,7 @@ export type ProctoringWorkerEvent =
   | { kind: 'MULTIPLE_FACES'; ts: number; count: number }
   | { kind: 'FACE_AWAY'; ts: number; yaw: number; pitch: number }
   | { kind: 'FACE_DETECTED'; ts: number }
+  | { kind: 'PHONE_DETECTED'; ts: number; score: number }
   | { kind: 'READY' }
   | { kind: 'ERROR'; message: string };
 
@@ -41,6 +42,7 @@ const RISK_WEIGHTS: Record<string, number> = {
   NO_FACE: 8,
   MULTIPLE_FACES: 15,
   FACE_AWAY: 5,
+  PHONE_DETECTED: 20,
 };
 
 export function useAIProctoring({ videoRef, sessionId: _sessionId, enabled, onViolation }: Options) {
@@ -131,6 +133,10 @@ export function useAIProctoring({ videoRef, sessionId: _sessionId, enabled, onVi
 
         case 'FACE_AWAY':
           addEvent({ kind: 'FACE_AWAY', ts: ev.ts, riskDelta: RISK_WEIGHTS.FACE_AWAY, message: 'Looking away from screen' });
+          break;
+
+        case 'PHONE_DETECTED':
+          addEvent({ kind: 'PHONE_DETECTED', ts: ev.ts, riskDelta: RISK_WEIGHTS.PHONE_DETECTED, message: 'Phone detected in frame' });
           break;
 
         case 'ERROR':

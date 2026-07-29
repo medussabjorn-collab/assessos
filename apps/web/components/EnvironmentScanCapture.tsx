@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ScanEye, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { submitEnvironmentScan, EnvironmentScan } from '../lib/environment-scan';
 import { loadFaceModels, detectFaceCount, captureVideoFrame } from '../lib/face-verification';
+import { loadObjectDetectionModel, detectPhone } from '../lib/object-detection';
 
 type Step = 'loading' | 'ready' | 'scanning' | 'result';
 
@@ -14,19 +15,22 @@ interface EnvironmentScanCaptureProps {
 
 /**
  * Pre-session room scan. Honest scope, matching the disclosure pattern in
- * IdentityVerificationCapture: this only actually detects what a webcam
- * face-detector genuinely can —
+ * IdentityVerificationCapture: this only actually detects what a real,
+ * locally-vendored model genuinely can —
  *  - personsDetected: real face count in one frame (detectFaceCount).
  *  - faceVisible: personsDetected >= 1.
  *  - monitorsDetected: window.screen.isExtended when the browser supports it
  *    (Chrome/Edge), otherwise left at the default of 1 rather than guessing.
- * phoneDetected / notesDetected / whiteboardDetected / vmDetected /
- * remoteAccessDetected / screenShareDetected / vpn-or-proxy-or-tor are all
- * left undetected (omitted from the submission) — there is no object-
- * detection model or network-probe vendored in this codebase, and reporting
- * false negatives with unearned confidence would be worse than reporting
- * nothing. EnvironmentService.evaluate() on the backend still runs its full
- * policy check against whatever real fields this does send.
+ *  - phoneDetected: real coco-ssd object detection ('cell phone' class,
+ *    score >= 0.6) via detectPhone — see lib/object-detection.ts.
+ * notesDetected / whiteboardDetected / vmDetected / remoteAccessDetected /
+ * screenShareDetected / vpn-or-proxy-or-tor are still left undetected
+ * (omitted from the submission) — no object-detection class distinguishes a
+ * notebook from a whiteboard, and there is no network-probe or VM/remote-
+ * desktop fingerprint vendored in this codebase; reporting false negatives
+ * with unearned confidence would be worse than reporting nothing.
+ * EnvironmentService.evaluate() on the backend still runs its full policy
+ * check against whatever real fields this does send.
  */
 export default function EnvironmentScanCapture({ configId, onComplete }: EnvironmentScanCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -37,7 +41,7 @@ export default function EnvironmentScanCapture({ configId, onComplete }: Environ
 
   useEffect(() => {
     let cancelled = false;
-    loadFaceModels()
+    Promise.all([loadFaceModels(), loadObjectDetectionModel()])
       .then(() => {
         if (!cancelled) setStep('ready');
       })
@@ -84,7 +88,10 @@ export default function EnvironmentScanCapture({ configId, onComplete }: Environ
 
     try {
       const frame = captureVideoFrame(videoRef.current);
-      const personsDetected = await detectFaceCount(frame);
+      const [personsDetected, phoneDetected] = await Promise.all([
+        detectFaceCount(frame),
+        detectPhone(frame),
+      ]);
       // Real API (Chrome/Edge) for whether the OS reports more than one
       // logical screen — not guessed when unsupported.
       const isExtended = (window.screen as unknown as { isExtended?: boolean }).isExtended;
@@ -95,6 +102,7 @@ export default function EnvironmentScanCapture({ configId, onComplete }: Environ
         personsDetected,
         monitorsDetected: isExtended ? 2 : 1,
         faceVisible: personsDetected >= 1,
+        phoneDetected,
       });
       setScan(result);
       setStep('result');
