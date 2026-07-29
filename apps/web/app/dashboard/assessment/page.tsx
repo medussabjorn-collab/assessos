@@ -11,6 +11,7 @@ import EnvironmentScanCapture from '@/components/EnvironmentScanCapture';
 import ProctoringPanel from '@/components/ProctoringPanel';
 import { useSessionBinding } from '@/lib/use-session-binding';
 import { useCheatDetection } from '@/lib/use-cheat-detection';
+import { useBehavioralBiometrics } from '@/lib/use-behavioral-biometrics';
 
 const VERIFICATION_REQUIRED_MESSAGE = 'Identity verification required before starting this assessment';
 const ROOM_SCAN_REQUIRED_MESSAGE = 'Room scan required before starting this assessment';
@@ -76,6 +77,14 @@ function AssessmentPageContent() {
   // Tab-switch/blur/copy-paste/fullscreen-exit detection — no visual output,
   // reports straight to the same risk engine ProctoringPanel feeds.
   useCheatDetection({
+    sessionId: startData?.sessionId ?? '',
+    enabled: phase === 'ready' && !!startData?.sessionId && !!startData?.aiProctoring,
+  });
+
+  // Keystroke-dynamics + mouse-movement drift detection — catches a
+  // mid-session handoff to a different typist, complementing identity_drift
+  // (face descriptor drift, via useSessionBinding above).
+  useBehavioralBiometrics({
     sessionId: startData?.sessionId ?? '',
     enabled: phase === 'ready' && !!startData?.sessionId && !!startData?.aiProctoring,
   });
