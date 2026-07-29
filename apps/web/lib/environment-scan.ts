@@ -18,6 +18,12 @@ export interface SubmitScanInput {
   whiteboardDetected?: boolean;
   lightingOk?: boolean;
   faceVisible?: boolean;
+  // The backend's SubmitScanInput (environment.service.ts) has accepted
+  // these since the room-scan feature shipped — this frontend mirror was
+  // missing them, so nothing ever populated vmDetected/remoteAccessDetected
+  // even though EnvironmentService.evaluate() already handles both.
+  vmDetected?: boolean;
+  remoteAccessDetected?: boolean;
   metadata?: Record<string, unknown>;
 }
 

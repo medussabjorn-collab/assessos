@@ -5,6 +5,7 @@ import { ScanEye, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { submitEnvironmentScan, EnvironmentScan } from '../lib/environment-scan';
 import { loadFaceModels, detectFaceCount, captureVideoFrame } from '../lib/face-verification';
 import { loadObjectDetectionModel, detectPhone } from '../lib/object-detection';
+import { detectVirtualMachine, detectVirtualCamera } from '../lib/device-integrity';
 
 type Step = 'loading' | 'ready' | 'scanning' | 'result';
 
@@ -23,12 +24,20 @@ interface EnvironmentScanCaptureProps {
  *    (Chrome/Edge), otherwise left at the default of 1 rather than guessing.
  *  - phoneDetected: real coco-ssd object detection ('cell phone' class,
  *    score >= 0.6) via detectPhone — see lib/object-detection.ts.
- * notesDetected / whiteboardDetected / vmDetected / remoteAccessDetected /
- * screenShareDetected / vpn-or-proxy-or-tor are still left undetected
- * (omitted from the submission) — no object-detection class distinguishes a
- * notebook from a whiteboard, and there is no network-probe or VM/remote-
- * desktop fingerprint vendored in this codebase; reporting false negatives
- * with unearned confidence would be worse than reporting nothing.
+ *  - vmDetected: real WebGL renderer-string check (SwiftShader, llvmpipe,
+ *    VMware SVGA 3D, etc.) via detectVirtualMachine — best-effort: a VM with
+ *    GPU passthrough, or a spoofed renderer string, evades this.
+ *  - remoteAccessDetected: real media-device label check for known virtual-
+ *    camera/webcam-injection software (OBS Virtual Camera, ManyCam, Snap
+ *    Camera, etc.) via detectVirtualCamera — the actually-relevant signal
+ *    for this app's threat model (a fabricated feed defeating face
+ *    verification), best-effort in the same way: a renamed virtual device
+ *    evades label matching.
+ * notesDetected / whiteboardDetected / screenShareDetected / vpn-or-proxy-
+ * or-tor are still left undetected (omitted from the submission) — no
+ * object-detection class distinguishes a notebook from a whiteboard, and
+ * there is no network-probe vendored in this codebase; reporting false
+ * negatives with unearned confidence would be worse than reporting nothing.
  * EnvironmentService.evaluate() on the backend still runs its full policy
  * check against whatever real fields this does send.
  */
@@ -88,9 +97,10 @@ export default function EnvironmentScanCapture({ configId, onComplete }: Environ
 
     try {
       const frame = captureVideoFrame(videoRef.current);
-      const [personsDetected, phoneDetected] = await Promise.all([
+      const [personsDetected, phoneDetected, remoteAccessDetected] = await Promise.all([
         detectFaceCount(frame),
         detectPhone(frame),
+        detectVirtualCamera(),
       ]);
       // Real API (Chrome/Edge) for whether the OS reports more than one
       // logical screen — not guessed when unsupported.
@@ -103,6 +113,8 @@ export default function EnvironmentScanCapture({ configId, onComplete }: Environ
         monitorsDetected: isExtended ? 2 : 1,
         faceVisible: personsDetected >= 1,
         phoneDetected,
+        vmDetected: detectVirtualMachine(),
+        remoteAccessDetected,
       });
       setScan(result);
       setStep('result');
