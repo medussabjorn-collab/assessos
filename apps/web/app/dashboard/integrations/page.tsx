@@ -1,12 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CheckCircle2, AlertCircle, Clock, RefreshCw, Zap, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Clock, RefreshCw, Zap, X, Trash2, Copy } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { PERMISSIONS } from '@/lib/permissions';
 
 type IntegrationStatus = 'connected' | 'disconnected' | 'pending' | 'error';
+
+interface WebhookSubscription {
+  id: string;
+  url: string;
+  eventTypes: string[];
+  active: boolean;
+  createdAt: string;
+}
 
 interface Integration {
   id: string;
@@ -56,23 +64,84 @@ const EVENT_DESCRIPTIONS: Record<string, string> = {
 export default function IntegrationsPage() {
   const { hasPermission } = useAuth();
   const isAdmin = hasPermission(PERMISSIONS.INTEGRATIONS_MANAGE);
+  const canManageWebhooks = hasPermission(PERMISSIONS.WEBHOOKS_MANAGE);
 
   const [integrations, setIntegrations] = useState<Integration[] | null>(null);
+  const [loadError, setLoadError] = useState('');
   const [eventTypes, setEventTypes] = useState<string[]>([]);
   const [filter, setFilter] = useState('all');
   const [selected, setSelected] = useState<Integration | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState('');
 
+  const [webhooks, setWebhooks] = useState<WebhookSubscription[]>([]);
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookEventTypes, setWebhookEventTypes] = useState<string[]>([]);
+  const [webhookBusy, setWebhookBusy] = useState(false);
+  const [webhookError, setWebhookError] = useState('');
+  const [newSecret, setNewSecret] = useState<string | null>(null);
+  const [pendingDeactivate, setPendingDeactivate] = useState<WebhookSubscription | null>(null);
+
   const load = async () => {
-    const res = await api.get('/api/integrations');
-    setIntegrations(res.data.data);
+    try {
+      const res = await api.get('/api/integrations');
+      setIntegrations(res.data.data);
+    } catch {
+      // Without this, a failed fetch (no session yet, insufficient
+      // permission, network error) left the page stuck on "Loading…"
+      // forever — the request never retries and integrations stays null.
+      setLoadError('Failed to load integrations');
+      setIntegrations([]);
+    }
+  };
+
+  const loadWebhooks = async () => {
+    if (!canManageWebhooks) return;
+    const res = await api.get('/api/webhooks');
+    setWebhooks(res.data.data ?? []);
   };
 
   useEffect(() => {
     load();
     api.get('/api/webhooks/event-types').then((res) => setEventTypes(res.data.data ?? []));
+    loadWebhooks();
   }, []);
+
+  const toggleWebhookEventType = (eventType: string) => {
+    setWebhookEventTypes((prev) =>
+      prev.includes(eventType) ? prev.filter((e) => e !== eventType) : [...prev, eventType],
+    );
+  };
+
+  const registerWebhook = async () => {
+    setWebhookBusy(true);
+    setWebhookError('');
+    try {
+      const res = await api.post('/api/webhooks', { url: webhookUrl, eventTypes: webhookEventTypes });
+      setNewSecret(res.data.data.secret);
+      setWebhookUrl('');
+      setWebhookEventTypes([]);
+      await loadWebhooks();
+    } catch (err: any) {
+      setWebhookError(err?.response?.data?.message ?? 'Failed to register webhook');
+    } finally {
+      setWebhookBusy(false);
+    }
+  };
+
+  const deactivateWebhook = async (subscription: WebhookSubscription) => {
+    setWebhookBusy(true);
+    setWebhookError('');
+    try {
+      await api.delete(`/api/webhooks/${subscription.id}`);
+      setPendingDeactivate(null);
+      await loadWebhooks();
+    } catch (err: any) {
+      setWebhookError(err?.response?.data?.message ?? 'Failed to deactivate webhook');
+    } finally {
+      setWebhookBusy(false);
+    }
+  };
 
   const toggle = async (integration: Integration) => {
     setBusy(true);
@@ -100,6 +169,10 @@ export default function IntegrationsPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      {loadError && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">{loadError}</div>
+      )}
+
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-ink">Integration Hub</h1>
@@ -177,7 +250,150 @@ export default function IntegrationsPage() {
             </div>
           ))}
         </div>
+
+        {!canManageWebhooks && (
+          <p className="text-xs text-subtle mt-4">Only org admins can manage webhook subscriptions.</p>
+        )}
+
+        {canManageWebhooks && (
+          <div className="mt-6 pt-6 border-t border-hairline space-y-4">
+            <p className="text-sm font-semibold text-ink">Subscriptions</p>
+
+            {newSecret && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                <p className="text-xs font-medium text-amber-700 mb-1">
+                  Signing secret — shown once, save it now:
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs font-mono text-ink bg-white px-2 py-1 rounded flex-1 overflow-x-auto">
+                    {newSecret}
+                  </code>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(newSecret)}
+                    className="p-1.5 text-subtle hover:text-ink transition"
+                    title="Copy secret"
+                  >
+                    <Copy size={14} />
+                  </button>
+                  <button
+                    onClick={() => setNewSecret(null)}
+                    className="p-1.5 text-subtle hover:text-ink transition"
+                    title="Dismiss"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {webhookError && <p className="text-xs text-red-500">{webhookError}</p>}
+
+            <div className="p-4 bg-canvas rounded-xl space-y-3">
+              <input
+                type="url"
+                value={webhookUrl}
+                onChange={(e) => setWebhookUrl(e.target.value)}
+                placeholder="https://your-endpoint.example.com/webhook"
+                className="w-full px-3 py-2 text-sm border border-hairline rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-brand-300"
+              />
+              <div className="flex flex-wrap gap-2">
+                {eventTypes.map((event) => (
+                  <label
+                    key={event}
+                    className={`flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-lg border cursor-pointer transition ${
+                      webhookEventTypes.includes(event)
+                        ? 'bg-brand-50 border-brand-300 text-brand-700'
+                        : 'bg-surface border-hairline text-subtle'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={webhookEventTypes.includes(event)}
+                      onChange={() => toggleWebhookEventType(event)}
+                    />
+                    {event}
+                  </label>
+                ))}
+              </div>
+              <button
+                onClick={registerWebhook}
+                disabled={webhookBusy || !webhookUrl || webhookEventTypes.length === 0}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-50 transition"
+              >
+                {webhookBusy ? 'Registering…' : 'Register webhook'}
+              </button>
+            </div>
+
+            {webhooks.length > 0 && (
+              <div className="space-y-2">
+                {webhooks.map((sub) => (
+                  <div
+                    key={sub.id}
+                    className="flex items-center justify-between gap-3 p-3 bg-canvas rounded-xl"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-mono text-ink truncate">{sub.url}</p>
+                      <p className="text-[11px] text-subtle mt-0.5">{sub.eventTypes.join(', ')}</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={`text-[11px] px-2 py-0.5 rounded-full ${
+                          sub.active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                        }`}
+                      >
+                        {sub.active ? 'active' : 'inactive'}
+                      </span>
+                      {sub.active && (
+                        <button
+                          onClick={() => setPendingDeactivate(sub)}
+                          className="p-1.5 text-subtle hover:text-red-500 transition"
+                          title="Deactivate"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {pendingDeactivate && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4"
+          onClick={() => setPendingDeactivate(null)}
+        >
+          <div
+            className="bg-surface rounded-2xl border border-hairline shadow-frost-lg max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="font-semibold text-ink mb-2">Deactivate this webhook?</p>
+            <p className="text-sm text-subtle mb-4 break-all">{pendingDeactivate.url}</p>
+            <p className="text-xs text-subtle mb-4">
+              It will stop receiving events immediately. This can&apos;t be undone from here — you&apos;d need to register a new one.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setPendingDeactivate(null)}
+                className="px-4 py-2 rounded-lg text-sm text-subtle hover:bg-canvas transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deactivateWebhook(pendingDeactivate)}
+                disabled={webhookBusy}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 transition"
+              >
+                {webhookBusy ? 'Deactivating…' : 'Deactivate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4" onClick={() => setSelected(null)}>

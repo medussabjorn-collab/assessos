@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import OrganizationSettings from '@/components/OrganizationSettings';
 import BillingSettings from '@/components/BillingSettings';
+import SsoSettings from '@/components/SsoSettings';
 import { api } from '@/lib/api';
-import { Settings, Palette, CreditCard, ShieldCheck, Download } from 'lucide-react';
+import { Settings, Palette, CreditCard, ShieldCheck, Download, KeyRound } from 'lucide-react';
 
-type SettingsTab = 'organization' | 'branding' | 'billing' | 'privacy';
+type SettingsTab = 'organization' | 'branding' | 'billing' | 'privacy' | 'sso';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('organization');
@@ -16,6 +17,7 @@ export default function SettingsPage() {
   const tabs: Array<{ id: SettingsTab; label: string; icon: any }> = [
     { id: 'organization', label: 'Organization', icon: Settings },
     { id: 'branding', label: 'White-Label', icon: Palette },
+    { id: 'sso', label: 'Single Sign-On', icon: KeyRound },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'privacy', label: 'Privacy', icon: ShieldCheck },
   ];
@@ -85,6 +87,8 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'branding' && <OrganizationSettings />}
+
+          {activeTab === 'sso' && <SsoSettings />}
 
           {activeTab === 'billing' && <BillingSettings />}
 

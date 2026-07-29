@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Scope } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Inject } from '@nestjs/common';
 import { randomBytes } from 'crypto';
@@ -24,11 +24,11 @@ export class WebhookSubscriptionService {
 
   async register(url: string, eventTypes: WebhookEventType[]) {
     if (!url || !/^https?:\/\//.test(url)) {
-      throw new Error('A valid http(s) URL is required');
+      throw new BadRequestException('A valid http(s) URL is required');
     }
     const invalid = eventTypes.filter((e) => !WEBHOOK_EVENT_TYPES.includes(e));
     if (invalid.length > 0) {
-      throw new Error(`Unknown event type(s): ${invalid.join(', ')}`);
+      throw new BadRequestException(`Unknown event type(s): ${invalid.join(', ')}`);
     }
 
     // Returned once, in full, on creation — same convention as an API key.
