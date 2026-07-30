@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ShieldAlert, AlertTriangle, CheckCircle2, Loader } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, CheckCircle2, Loader, Download } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
+import { downloadBlob } from '@/lib/download-file';
 import PageHeader from '@/components/PageHeader';
 
 interface GroupBreakdown {
@@ -106,6 +107,19 @@ export default function CompliancePage() {
   const [error, setError] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolutionNote, setResolutionNote] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const res = await api.get('/api/compliance/bias-audit/export', { responseType: 'blob' });
+      downloadBlob(res.data, 'bias-audit.csv', 'text/csv');
+    } catch {
+      // Non-fatal — the report already loaded, only the export failed.
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (!isAdmin) {
@@ -170,6 +184,18 @@ export default function CompliancePage() {
         title="Compliance"
         subtitle="Adverse-impact analysis and pending decision-review requests."
         icon={ShieldAlert}
+        action={
+          report && (
+            <button
+              onClick={exportCsv}
+              disabled={exporting}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 transition text-sm"
+            >
+              <Download className="w-4 h-4" />
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+          )
+        }
       />
 
       {report && (

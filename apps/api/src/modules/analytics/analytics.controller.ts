@@ -6,15 +6,18 @@ import {
   Param,
   Post,
   Query,
+  Res,
   UseGuards,
   Request,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { TalentOutcomeType } from '@prisma/client';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermission } from '../auth/permissions.decorator';
 import { PERMISSIONS } from '../auth/permissions.constants';
 import { PrismaService } from '../../database/prisma.service';
+import { toCsv } from '../../common/csv.util';
 import { AnalyticsService } from './analytics.service';
 import { RetentionRiskService } from './retention-risk.service';
 import { PromotionReadinessService } from './promotion-readiness.service';
@@ -42,6 +45,38 @@ export class AnalyticsController {
       success: true,
       data: dashboard,
     };
+  }
+
+  // Same authorization as GET /dashboard — this is that same data, serialized.
+  @Get('dashboard/export')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.ANALYTICS_ORG_DASHBOARD_VIEW)
+  async exportOrgDashboard(@Request() req: any, @Res() res: Response) {
+    const { uid } = req.user;
+    const dashboard = await this.analyticsService.getOrgDashboard(uid);
+    const rows = dashboard.leadershipData.map((d: any) => ({
+      userName: d.userName,
+      email: d.email,
+      department: d.department,
+      leadershipIndex: d.leadershipIndex,
+      tier: d.tier,
+      successorReadiness: d.successorReadiness,
+      strengths: (d.strengths ?? []).join('; '),
+      developmentAreas: (d.developmentAreas ?? []).join('; '),
+    }));
+    const csv = toCsv(rows, [
+      { key: 'userName', header: 'Name' },
+      { key: 'email', header: 'Email' },
+      { key: 'department', header: 'Department' },
+      { key: 'leadershipIndex', header: 'Leadership Index' },
+      { key: 'tier', header: 'Tier' },
+      { key: 'successorReadiness', header: 'Successor Readiness' },
+      { key: 'strengths', header: 'Strengths' },
+      { key: 'developmentAreas', header: 'Development Areas' },
+    ]);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="org-dashboard.csv"');
+    res.send(csv);
   }
 
   @Get('reports/:reportId')

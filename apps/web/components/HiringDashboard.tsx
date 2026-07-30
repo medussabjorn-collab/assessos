@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { api } from '@/lib/api';
-import { Users, Briefcase, TrendingUp, Clock, Loader } from 'lucide-react';
+import { downloadBlob } from '@/lib/download-file';
+import { Users, Briefcase, TrendingUp, Clock, Loader, Download } from 'lucide-react';
 import Link from 'next/link';
 
 interface DashboardMetrics {
@@ -39,6 +40,19 @@ export default function HiringDashboard() {
   const [topCandidates, setTopCandidates] = useState<CandidateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const res = await api.get('/api/hiring/candidates/export', { responseType: 'blob' });
+      downloadBlob(res.data, 'candidates.csv', 'text/csv');
+    } catch {
+      // Non-fatal — dashboard already loaded, only the export failed.
+    } finally {
+      setExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -83,9 +97,19 @@ export default function HiringDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-ink">Hiring Dashboard</h1>
-        <p className="text-subtle">Recruit, evaluate, and hire top talent</p>
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-ink">Hiring Dashboard</h1>
+          <p className="text-subtle">Recruit, evaluate, and hire top talent</p>
+        </div>
+        <button
+          onClick={exportCsv}
+          disabled={exporting}
+          className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 transition text-sm"
+        >
+          <Download className="w-4 h-4" />
+          {exporting ? 'Exporting…' : 'Export CSV'}
+        </button>
       </div>
 
       {/* KPI Cards */}

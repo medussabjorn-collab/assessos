@@ -4,10 +4,13 @@ import {
   Post,
   Body,
   Param,
+  Res,
   UseGuards,
   Request,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
+import { toCsv } from '../../common/csv.util';
 import { HiringService } from './hiring.service';
 import { CandidateService } from './candidate.service';
 import { JobMatchService } from './job-match.service';
@@ -28,6 +31,41 @@ export class HiringController {
   matchJobs(@Body() body: { skills: string[] }) {
     const matches = this.jobMatchService.matchSkillsToRoles(body.skills ?? []);
     return { success: true, data: matches };
+  }
+
+  // Same authorization as GET /candidates (FirebaseAuthGuard only) — no new
+  // gate beyond what that route already has.
+  @Get('candidates/export')
+  @UseGuards(FirebaseAuthGuard)
+  async exportCandidates(@Res() res: Response) {
+    const candidates = await this.candidateService.getCandidatesForTenant();
+    const csv = toCsv(
+      candidates.map((c) => ({
+        firstName: c.firstName,
+        lastName: c.lastName,
+        email: c.email,
+        roleTitle: c.roleTitle,
+        stage: c.stage,
+        country: c.country,
+        source: c.source,
+        createdAt: c.createdAt.toISOString(),
+        updatedAt: c.updatedAt.toISOString(),
+      })),
+      [
+        { key: 'firstName', header: 'First Name' },
+        { key: 'lastName', header: 'Last Name' },
+        { key: 'email', header: 'Email' },
+        { key: 'roleTitle', header: 'Role' },
+        { key: 'stage', header: 'Stage' },
+        { key: 'country', header: 'Country' },
+        { key: 'source', header: 'Source' },
+        { key: 'createdAt', header: 'Applied At' },
+        { key: 'updatedAt', header: 'Last Updated' },
+      ],
+    );
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="candidates.csv"');
+    res.send(csv);
   }
 
   @Get('candidates')

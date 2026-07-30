@@ -5,13 +5,16 @@ import {
   Body,
   Param,
   Query,
+  Res,
   UseGuards,
   Request,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FirebaseAuthGuard } from '../auth/auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { RequirePermission } from '../auth/permissions.decorator';
 import { PERMISSIONS } from '../auth/permissions.constants';
+import { toCsv } from '../../common/csv.util';
 import { BiasAuditService } from './bias-audit.service';
 import { SelfIdService, SubmitSelfIdInput } from './self-id.service';
 import { ExplanationService } from './explanation.service';
@@ -57,6 +60,40 @@ export class ComplianceController {
     }
 
     return { success: true, data: report };
+  }
+
+  // Same authorization + same underlying computation as GET /bias-audit —
+  // this only serializes the already-suppressed data, never re-derives
+  // anything from raw candidate rows, so the export can't leak what the
+  // small-cell suppression above already redacted.
+  @Get('bias-audit/export')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.COMPLIANCE_BIAS_AUDIT_VIEW)
+  async exportBiasAudit(@Query('jobRoleId') jobRoleId: string | undefined, @Res() res: Response) {
+    const report = await this.biasAuditService.computeAdverseImpact(jobRoleId);
+    const rows = (Object.entries(report.dimensions) as [string, any[]][]).flatMap(([dimension, groups]) =>
+      groups.map((g) => ({
+        dimension,
+        category: g.category,
+        total: g.total,
+        selected: g.suppressed ? '' : g.selected,
+        selectionRate: g.suppressed ? '' : g.selectionRate,
+        impactRatio: g.suppressed ? '' : g.impactRatio,
+        suppressed: g.suppressed ? 'true' : 'false',
+      })),
+    );
+    const csv = toCsv(rows, [
+      { key: 'dimension', header: 'Dimension' },
+      { key: 'category', header: 'Category' },
+      { key: 'total', header: 'Total' },
+      { key: 'selected', header: 'Selected' },
+      { key: 'selectionRate', header: 'Selection Rate' },
+      { key: 'impactRatio', header: 'Impact Ratio' },
+      { key: 'suppressed', header: 'Suppressed' },
+    ]);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="bias-audit.csv"');
+    res.send(csv);
   }
 
   @Post('candidates/:candidateId/self-id')
