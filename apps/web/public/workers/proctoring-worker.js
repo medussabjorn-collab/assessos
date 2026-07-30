@@ -19,6 +19,40 @@ importScripts('/vendor/face-api.js');
 importScripts('/vendor/tf.min.js');
 importScripts('/vendor/coco-ssd.min.js');
 
+// face-api.js auto-detects its runtime environment at load time via
+// `isBrowser()`, which checks `typeof window !== 'undefined'` — that's
+// never true in ANY Worker (real browser or otherwise; Workers only have
+// `self`), so face-api's internal env singleton never initializes here,
+// and every call touching Canvas/Image throws "getEnv - environment is not
+// defined". This was a real, silent bug affecting every real user: the
+// face-detection loop never produced NO_FACE/MULTIPLE_FACES/FACE_AWAY
+// events because INIT always failed before ever reaching READY.
+//
+// Fix: explicitly supply a Worker-compatible environment. Image/Video use
+// distinct empty placeholder classes rather than a shared stand-in like
+// `Object` — using the same class for both (or `Object`, which everything
+// is `instanceof`) makes face-api's internal `instanceof` checks
+// misclassify the OffscreenCanvas frame as an Image/Video, sending it down
+// a dead-end path that either throws on undefined naturalWidth/naturalHeight
+// or hangs forever awaiting a 'load' event a canvas never fires.
+class NoImage {}
+class NoVideo {}
+faceapi.env.setEnv({
+  Canvas: OffscreenCanvas,
+  CanvasRenderingContext2D: typeof OffscreenCanvasRenderingContext2D !== 'undefined' ? OffscreenCanvasRenderingContext2D : NoImage,
+  Image: NoImage,
+  ImageData,
+  Video: NoVideo,
+  createCanvasElement: () => new OffscreenCanvas(1, 1),
+  createImageElement: () => {
+    throw new Error('createImageElement not supported in worker');
+  },
+  fetch: self.fetch.bind(self),
+  readFile: () => {
+    throw new Error('readFile not supported in worker');
+  },
+});
+
 let modelsLoaded = false;
 let objectModel = null;
 let canvas = null;
