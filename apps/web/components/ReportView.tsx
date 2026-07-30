@@ -66,6 +66,8 @@ export default function ReportView({ reportId }: ReportViewProps) {
   const [reviewReason, setReviewReason] = useState('');
   const [reviewRequested, setReviewRequested] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [pdfDownloading, setPdfDownloading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const [feedbackEntries, setFeedbackEntries] = useState<RaterFeedbackEntry[]>([]);
   const [feedbackLoaded, setFeedbackLoaded] = useState(false);
@@ -101,8 +103,22 @@ export default function ReportView({ reportId }: ReportViewProps) {
   }, [reportId, user, tenantId]);
 
   const handleDownloadPDF = async () => {
-    // TODO: Implement PDF download via AI sidecar
-    alert('PDF download coming in Phase 3');
+    setPdfDownloading(true);
+    setPdfError(null);
+    try {
+      const res = await api.get(`/api/reports/${reportId}/pdf`, { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report-${reportId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setPdfError('Could not download the PDF. Try again.');
+    } finally {
+      setPdfDownloading(false);
+    }
   };
 
   const loadExplanation = async () => {
@@ -198,12 +214,14 @@ export default function ReportView({ reportId }: ReportViewProps) {
             </h1>
             <button
               onClick={handleDownloadPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
+              disabled={pdfDownloading}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 transition"
             >
               <Download className="w-4 h-4" />
-              Download PDF
+              {pdfDownloading ? 'Preparing PDF…' : 'Download PDF'}
             </button>
           </div>
+          {pdfError && <p className="text-sm text-red-500 mb-2">{pdfError}</p>}
 
           {/* Status Badge */}
           <div className="inline-block">
