@@ -25,11 +25,15 @@ export class IntegrationsService {
     const byName = new Map(rows.map((r) => [r.name, r]));
     return INTEGRATION_CATALOG.map((entry) => {
       const row = byName.get(entry.id);
+      const config = row?.config as Record<string, unknown> | undefined;
       return {
         ...entry,
         status: (row?.status as IntegrationStatus) ?? 'disconnected',
         lastSyncAt: row?.lastSyncAt ?? null,
         connectedAt: row?.createdAt ?? null,
+        // Only ever surface display-safe fields from config here — never
+        // the raw accessToken/secret a provider's OAuth exchange returned.
+        workspaceName: typeof config?.teamName === 'string' ? config.teamName : null,
       };
     });
   }

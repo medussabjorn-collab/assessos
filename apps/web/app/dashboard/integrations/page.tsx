@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, AlertCircle, Clock, RefreshCw, Zap, X, Trash2, Copy } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
@@ -25,7 +26,13 @@ interface Integration {
   status: IntegrationStatus;
   lastSyncAt: string | null;
   connectedAt: string | null;
+  workspaceName: string | null;
 }
+
+// Vendors with a real OAuth connect flow instead of the generic
+// status-flag toggle (see integrations.service.ts's own doc comment: the
+// catalog otherwise records intent only, no real provider API calls).
+const OAUTH_INTEGRATIONS = new Set(['slack']);
 
 // Ported from leadership-assessment's IntegrationsPage, rebuilt against the
 // real backend (modules/integrations, Phase 2) — leadership's version was a
@@ -62,9 +69,20 @@ const EVENT_DESCRIPTIONS: Record<string, string> = {
 };
 
 export default function IntegrationsPage() {
+  return (
+    <Suspense fallback={<div className="p-2 text-subtle">Loading…</div>}>
+      <IntegrationsPageContent />
+    </Suspense>
+  );
+}
+
+function IntegrationsPageContent() {
   const { hasPermission } = useAuth();
   const isAdmin = hasPermission(PERMISSIONS.INTEGRATIONS_MANAGE);
   const canManageWebhooks = hasPermission(PERMISSIONS.WEBHOOKS_MANAGE);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [oauthBanner, setOauthBanner] = useState<{ kind: 'connected' | 'error'; message: string } | null>(null);
 
   const [integrations, setIntegrations] = useState<Integration[] | null>(null);
   const [loadError, setLoadError] = useState('');
@@ -107,6 +125,23 @@ export default function IntegrationsPage() {
     loadWebhooks();
   }, []);
 
+  // Slack's OAuth callback (slack-oauth.controller.ts) redirects the
+  // browser back here with ?slack=connected&team=... or ?slack=error&
+  // message=... — surface it once, then strip the query string so a page
+  // refresh doesn't re-show the same banner.
+  useEffect(() => {
+    const slack = searchParams.get('slack');
+    if (!slack) return;
+    if (slack === 'connected') {
+      const team = searchParams.get('team');
+      setOauthBanner({ kind: 'connected', message: team ? `Connected to ${team}` : 'Connected' });
+      load();
+    } else if (slack === 'error') {
+      setOauthBanner({ kind: 'error', message: searchParams.get('message') ?? 'Connection failed' });
+    }
+    router.replace('/dashboard/integrations');
+  }, []);
+
   const toggleWebhookEventType = (eventType: string) => {
     setWebhookEventTypes((prev) =>
       prev.includes(eventType) ? prev.filter((e) => e !== eventType) : [...prev, eventType],
@@ -144,6 +179,23 @@ export default function IntegrationsPage() {
   };
 
   const toggle = async (integration: Integration) => {
+    // Slack has a real OAuth flow (slack-oauth.controller.ts) — connecting
+    // means a full-page redirect to Slack's own consent screen, not a
+    // same-page status-flag flip. Disconnecting Slack still just clears the
+    // stored token via the generic endpoint below.
+    if (integration.status !== 'connected' && OAUTH_INTEGRATIONS.has(integration.id)) {
+      setBusy(true);
+      setActionError('');
+      try {
+        const res = await api.get(`/api/integrations/${integration.id}/authorize`);
+        window.location.href = res.data.data.url;
+      } catch (err: any) {
+        setActionError(err?.response?.data?.message ?? 'Failed to start Slack connection');
+        setBusy(false);
+      }
+      return;
+    }
+
     setBusy(true);
     setActionError('');
     try {
@@ -171,6 +223,21 @@ export default function IntegrationsPage() {
     <div className="max-w-7xl mx-auto space-y-8">
       {loadError && (
         <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">{loadError}</div>
+      )}
+
+      {oauthBanner && (
+        <div
+          className={`p-3 rounded-xl text-sm flex items-center justify-between gap-3 ${
+            oauthBanner.kind === 'connected'
+              ? 'bg-emerald-50 border border-emerald-200 text-emerald-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
+          }`}
+        >
+          {oauthBanner.message}
+          <button onClick={() => setOauthBanner(null)} className="shrink-0">
+            <X size={14} />
+          </button>
+        </div>
       )}
 
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -227,6 +294,9 @@ export default function IntegrationsPage() {
               {integration.status}
             </span>
             <p className="text-xs text-subtle leading-relaxed line-clamp-2">{integration.description}</p>
+            {integration.workspaceName && (
+              <p className="text-[11px] font-medium text-brand-600 mt-1">{integration.workspaceName}</p>
+            )}
             {integration.lastSyncAt && (
               <p className="text-[10px] text-subtle flex items-center gap-1 mt-2">
                 <RefreshCw size={9} /> Synced {new Date(integration.lastSyncAt).toLocaleString()}
@@ -410,6 +480,9 @@ export default function IntegrationsPage() {
               </button>
             </div>
             <p className="text-sm text-subtle mb-4">{selected.description}</p>
+            {selected.workspaceName && (
+              <p className="text-sm font-medium text-brand-600 mb-4">Connected workspace: {selected.workspaceName}</p>
+            )}
             <p className="text-sm font-semibold text-ink mb-2">Features</p>
             <ul className="space-y-1.5 mb-4">
               {selected.features.map((f) => (

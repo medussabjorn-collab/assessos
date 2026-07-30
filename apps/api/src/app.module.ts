@@ -98,6 +98,9 @@ export class AppModule implements NestModule {
         'api/auth/tenant',
         'api/auth/sso/discover',
         'api/billing/webhooks/stripe',
+        // Slack redirects the browser here directly — no auth header, no
+        // x-tenant-id. The signed `state` param carries the tenant instead.
+        'api/integrations/slack/callback',
         // The invitee has no tenant context (or account) yet at this point —
         // the invitation's token carries the tenant, not the request header.
         'api/invitations/lookup',
