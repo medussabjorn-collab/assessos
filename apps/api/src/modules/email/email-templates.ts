@@ -97,3 +97,32 @@ export function reportReadyTemplate(name: string, pillar: string, reportUrl: str
     'Your report is ready — AssessOS',
   );
 }
+
+export interface WeeklyDigestStats {
+  reportsGenerated: number;
+  pendingReviews: number;
+  newCandidates: number;
+}
+
+export function weeklyDigestTemplate(name: string, stats: WeeklyDigestStats): string {
+  const stat = (value: number, label: string) => `
+    <div style="display:inline-block;text-align:center;padding:0 20px">
+      <p style="margin:0;font-size:28px;font-weight:700;color:#19aa59">${value}</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#64748b">${label}</p>
+    </div>
+  `;
+  return baseLayout(
+    `
+    <h2>Your weekly summary</h2>
+    <p>Hi ${name}, here's what happened across your organization this past week.</p>
+    <div style="text-align:center;margin:24px 0">
+      ${stat(stats.reportsGenerated, 'Reports generated')}
+      ${stat(stats.pendingReviews, 'Pending reviews')}
+      ${stat(stats.newCandidates, 'New candidates')}
+    </div>
+    <div class="divider"></div>
+    <p style="font-size:13px;color:#94a3b8">Log in to your dashboard for the full breakdown.</p>
+  `,
+    'Your weekly AssessOS summary',
+  );
+}

@@ -1,6 +1,7 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ScheduleModule } from '@nestjs/schedule';
 import { HealthController } from './health.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantModule } from './modules/tenant/tenant.module';
@@ -34,6 +35,9 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
   controllers: [HealthController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Registered once, globally — DigestService's @Cron lives in
+    // AnalyticsModule and needs this available app-wide, not per-module.
+    ScheduleModule.forRoot(),
     // Mongo powers the question item bank (merged from leadership-assessment).
     // retryAttempts/retryDelay give up to ~2min of backoff for cold-starting
     // Mongo containers on redeploy — a real failure we hit where the api

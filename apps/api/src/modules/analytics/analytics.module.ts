@@ -7,9 +7,12 @@ import { RetentionRiskService } from './retention-risk.service';
 import { PromotionReadinessService } from './promotion-readiness.service';
 import { PerformanceForecastService } from './performance-forecast.service';
 import { TalentOutcomeService } from './talent-outcome.service';
+import { DigestService } from './digest.service';
 import { PrismaService } from '../../database/prisma.service';
+import { EmailModule } from '../email/email.module';
 
 @Module({
+  imports: [EmailModule],
   controllers: [AnalyticsController],
   providers: [
     AnalyticsService,
@@ -19,6 +22,7 @@ import { PrismaService } from '../../database/prisma.service';
     PromotionReadinessService,
     PerformanceForecastService,
     TalentOutcomeService,
+    DigestService,
     PrismaService,
   ],
   exports: [

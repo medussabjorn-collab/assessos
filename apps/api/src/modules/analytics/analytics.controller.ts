@@ -23,6 +23,7 @@ import { RetentionRiskService } from './retention-risk.service';
 import { PromotionReadinessService } from './promotion-readiness.service';
 import { PerformanceForecastService } from './performance-forecast.service';
 import { RecordOutcomeInput, TalentOutcomeService } from './talent-outcome.service';
+import { DigestService } from './digest.service';
 
 @Controller('api/analytics')
 export class AnalyticsController {
@@ -32,6 +33,7 @@ export class AnalyticsController {
     private promotionReadiness: PromotionReadinessService,
     private performanceForecast: PerformanceForecastService,
     private talentOutcome: TalentOutcomeService,
+    private digestService: DigestService,
     private prisma: PrismaService,
   ) {}
 
@@ -159,6 +161,19 @@ export class AnalyticsController {
   @RequirePermission(PERMISSIONS.ANALYTICS_RETENTION_RISK_VIEW)
   async listTalentOutcomesForUser(@Param('userId') userId: string) {
     const result = await this.talentOutcome.listForUser(userId);
+    return { success: true, data: result };
+  }
+
+  // Manual trigger for the weekly digest — same admin gate as the
+  // talent-outcomes write endpoints above. Runs the exact same code path
+  // the Monday cron uses (digestService.sendWeeklyDigests), giving a real
+  // way to send and verify a digest without waiting for the actual
+  // schedule to fire.
+  @Post('digest/trigger')
+  @UseGuards(FirebaseAuthGuard, PermissionsGuard)
+  @RequirePermission(PERMISSIONS.USERS_MANAGE)
+  async triggerWeeklyDigest() {
+    const result = await this.digestService.sendWeeklyDigests();
     return { success: true, data: result };
   }
 
