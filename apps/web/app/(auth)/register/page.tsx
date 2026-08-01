@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
@@ -12,6 +13,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { refreshTenant } = useAuth();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +49,11 @@ export default function RegisterPage() {
         return;
       }
 
+      // The backend User row now exists, but AuthContext's
+      // onAuthStateChanged listener already fired (before this row existed)
+      // and won't fire again for the same session — refetch tenant/role/
+      // permissions explicitly so they're populated before onboarding.
+      await refreshTenant();
       router.push('/onboarding');
     } catch (err: any) {
       setError(err.message);
