@@ -18,6 +18,13 @@ export const api: AxiosInstance = axios.create({ baseURL });
 
 // Attach Firebase ID token + tenant header on every request.
 api.interceptors.request.use(async (config) => {
+  // On a cold/full-page load, auth.currentUser is still null until Firebase
+  // finishes rehydrating the persisted session — requests fired before that
+  // (e.g. right after an OAuth redirect) would otherwise go out with no
+  // Authorization header and 401. authStateReady() resolves once that
+  // initial determination completes, and resolves immediately on every
+  // call after — cheap to await unconditionally.
+  await auth.authStateReady();
   const user = auth.currentUser;
 
   if (user) {
