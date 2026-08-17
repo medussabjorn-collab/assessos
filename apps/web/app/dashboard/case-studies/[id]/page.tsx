@@ -56,8 +56,14 @@ export default function CaseStudyDetailPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get(`/api/case-studies/${caseStudyId}`);
-        setCaseStudy(res.data.data);
+        const [caseStudyRes, submissionRes] = await Promise.all([
+          api.get(`/api/case-studies/${caseStudyId}`),
+          api.get(`/api/case-studies/${caseStudyId}/my-submission`),
+        ]);
+        setCaseStudy(caseStudyRes.data.data);
+        if (submissionRes.data.data) {
+          setSubmission(submissionRes.data.data);
+        }
       } catch {
         setError('Failed to load case study');
       } finally {
