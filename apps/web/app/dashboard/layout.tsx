@@ -13,6 +13,7 @@ import {
   BarChart3,
   Users,
   BookOpen,
+  FileText,
   Video,
   Code,
   Trophy,
@@ -57,6 +58,7 @@ const NAV: NavGroup[] = [
       { labelKey: 'nav.hiring', href: '/dashboard/hiring', icon: Users },
       { labelKey: 'nav.pipeline', href: '/dashboard/hiring/pipeline', icon: Users },
       { labelKey: 'nav.practice', href: '/dashboard/practice', icon: BookOpen },
+      { labelKey: 'nav.caseStudies', href: '/dashboard/case-studies', icon: FileText },
     ],
   },
   {
