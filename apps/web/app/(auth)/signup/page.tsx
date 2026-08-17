@@ -6,7 +6,7 @@ import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { api } from '@/lib/api';
 import { Check } from 'lucide-react';
 
-type Plan = 'free' | 'pro' | 'enterprise';
+type Plan = 'basic' | 'pro' | 'premium' | 'enterprise';
 
 interface PlanOption {
   id: Plan;
@@ -19,13 +19,13 @@ interface PlanOption {
 
 const plans: PlanOption[] = [
   {
-    id: 'free',
-    name: 'Free',
+    id: 'basic',
+    name: 'Basic',
     description: 'Perfect for startups',
-    price: '$0',
+    price: '$129.49',
     features: [
-      '5 team members',
-      '100 assessments/month',
+      '2 team members',
+      '150 assessment credits/yr',
       'Basic reports',
       'Community support',
     ],
@@ -33,12 +33,12 @@ const plans: PlanOption[] = [
   },
   {
     id: 'pro',
-    name: 'Professional',
+    name: 'Pro',
     description: 'For growing teams',
-    price: '$299',
+    price: '$249.49',
     features: [
-      '50 team members',
-      'Unlimited assessments',
+      '4 team members',
+      '400 assessment credits/yr',
       'Advanced analytics',
       'White-label option',
       'Priority email support',
@@ -47,13 +47,28 @@ const plans: PlanOption[] = [
     color: 'border-blue-500',
   },
   {
+    id: 'premium',
+    name: 'Premium',
+    description: 'For scaling organizations',
+    price: '$369.49',
+    features: [
+      '7 team members',
+      '900 assessment credits/yr',
+      'Advanced analytics',
+      'Full white-label',
+      'Priority support',
+      'Custom branding',
+    ],
+    color: 'border-teal-500',
+  },
+  {
     id: 'enterprise',
     name: 'Enterprise',
     description: 'For large organizations',
     price: 'Custom',
     features: [
       'Unlimited team members',
-      'Unlimited assessments',
+      'Unlimited assessment credits',
       'Full white-label',
       'SSO/SAML integration',
       'Dedicated account manager',
@@ -149,7 +164,7 @@ export default function SignupPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {plans.map((plan) => (
                 <button
                   key={plan.id}

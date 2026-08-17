@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { Loader, CheckCircle2 } from 'lucide-react';
 
 interface Subscription {
-  plan: 'free' | 'pro' | 'enterprise';
+  plan: 'basic' | 'pro' | 'premium' | 'enterprise' | 'canceled';
   seats: number;
   assessmentCredits: number;
   renewsAt: string | null;
@@ -21,9 +21,10 @@ interface Usage {
   storageLimitGb: number;
 }
 
-const PLANS: Array<{ id: 'free' | 'pro' | 'enterprise'; name: string; price: string; blurb: string }> = [
-  { id: 'free', name: 'Free', price: '$0', blurb: '5 seats · 100 assessment credits' },
-  { id: 'pro', name: 'Pro', price: '$299/mo', blurb: '50 seats · 999 assessment credits' },
+const PLANS: Array<{ id: 'basic' | 'pro' | 'premium' | 'enterprise'; name: string; price: string; blurb: string }> = [
+  { id: 'basic', name: 'Basic', price: '$129.49/mo', blurb: '2 seats · 150 assessment credits/yr' },
+  { id: 'pro', name: 'Pro', price: '$249.49/mo', blurb: '4 seats · 400 assessment credits/yr' },
+  { id: 'premium', name: 'Premium', price: '$369.49/mo', blurb: '7 seats · 900 assessment credits/yr' },
   { id: 'enterprise', name: 'Enterprise', price: 'Custom', blurb: '999 seats · unlimited credits' },
 ];
 
@@ -107,7 +108,7 @@ export default function BillingSettings() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3 mb-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         {PLANS.map((p) => {
           const isCurrent = subscription?.plan === p.id;
           return (
