@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Video, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { Video, ShieldCheck, PenLine } from 'lucide-react';
 import { api } from '@/lib/api';
 import PageHeader from '@/components/PageHeader';
 
@@ -24,7 +25,20 @@ export default function InterviewRoomPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Interviews" title="Interview Room" icon={Video} />
+      <PageHeader
+        eyebrow="Interviews"
+        title="Interview Room"
+        icon={Video}
+        action={
+          <Link
+            href={`/dashboard/interviews/${id}/whiteboard`}
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-700 transition"
+          >
+            <PenLine size={16} />
+            Whiteboard
+          </Link>
+        }
+      />
 
       <div className="max-w-3xl">
         <div className="aspect-video rounded-xl bg-canvas border border-hairline flex items-center justify-center mb-4">
