@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ClipboardList, Plus, History, Loader, ShieldOff, X } from 'lucide-react';
+import Link from 'next/link';
+import { ClipboardList, Plus, History, Loader, ShieldOff, X, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
@@ -208,12 +209,20 @@ export default function AssessmentsPage() {
         subtitle="Author assessment definitions. Every save publishes a new version — past versions stay frozen for already-graded reports."
         icon={ClipboardList}
         action={
-          <button
-            onClick={startCreate}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 text-white px-3 py-1.5 text-sm hover:bg-brand-700 transition"
-          >
-            <Plus size={15} /> New assessment
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/assessments/scenarios"
+              className="inline-flex items-center gap-2 rounded-lg border border-hairline px-3 py-1.5 text-sm text-slate-700 hover:bg-canvas transition"
+            >
+              <Sparkles size={15} /> Review scenarios
+            </Link>
+            <button
+              onClick={startCreate}
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-600 text-white px-3 py-1.5 text-sm hover:bg-brand-700 transition"
+            >
+              <Plus size={15} /> New assessment
+            </button>
+          </div>
         }
       />
 

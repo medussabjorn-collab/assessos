@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Briefcase, Loader, Building2, ArrowRight } from 'lucide-react';
+import { Briefcase, Loader, Building2, ArrowRight, Sparkles } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
 import PageHeader from '@/components/PageHeader';
 
@@ -21,6 +23,8 @@ const ROLE_LEVEL_LABEL: Record<string, string> = {
 };
 
 export default function CaseStudiesPage() {
+  const { hasPermission } = useAuth();
+  const canReview = hasPermission(PERMISSIONS.ASSESSMENT_SCENARIOS_MANAGE);
   const [caseStudies, setCaseStudies] = useState<CaseStudySummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +49,16 @@ export default function CaseStudiesPage() {
         title="Case Studies"
         subtitle="Executive scenarios graded against a weighted rubric. Read the scenario, write your response, get scored feedback."
         icon={Briefcase}
+        action={
+          canReview ? (
+            <Link
+              href="/dashboard/case-studies/review"
+              className="inline-flex items-center gap-2 rounded-lg border border-hairline px-3 py-1.5 text-sm text-slate-700 hover:bg-canvas transition"
+            >
+              <Sparkles size={15} /> Review pending
+            </Link>
+          ) : undefined
+        }
       />
 
       {loading ? (
