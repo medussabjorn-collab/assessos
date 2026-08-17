@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Loader, Star, Plus, X, ShieldAlert } from 'lucide-react';
 
@@ -463,7 +464,12 @@ export default function HiringPipelinePage() {
                       key={candidate.id}
                       className={`bg-canvas border-l-4 ${stage.color} border border-hairline rounded-lg p-3`}
                     >
-                      <div className="font-medium">{candidate.name}</div>
+                      <Link
+                        href={`/dashboard/hiring/candidates/${candidate.id}`}
+                        className="font-medium hover:text-brand-600 hover:underline"
+                      >
+                        {candidate.name}
+                      </Link>
                       <div className="text-xs text-subtle mb-2">{candidate.role}</div>
                       <div className="flex gap-3 text-xs mb-3">
                         <span className="flex items-center gap-1">
