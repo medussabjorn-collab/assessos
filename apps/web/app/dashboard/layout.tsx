@@ -17,6 +17,7 @@ import {
   Code,
   Trophy,
   PieChart,
+  Briefcase,
   Settings,
   ChevronDown,
   LogOut,
@@ -70,6 +71,7 @@ const NAV: NavGroup[] = [
     title: 'Insights',
     items: [
       { labelKey: 'nav.analytics', href: '/dashboard/analytics', icon: PieChart },
+      { labelKey: 'nav.boardroom', href: '/dashboard/boardroom', icon: Briefcase },
       { labelKey: 'nav.integrations', href: '/dashboard/integrations', icon: Plug },
       { labelKey: 'nav.compliance', href: '/dashboard/compliance', icon: ShieldAlert },
       { labelKey: 'nav.identityReview', href: '/dashboard/proctoring/identity-review', icon: UserCheck },
