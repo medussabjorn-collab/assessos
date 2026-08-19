@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { APP_LOGIN_URL } from "@/lib/config";
 
 export default function StudentLogin() {
   const [show, setShow] = useState(false);
@@ -8,9 +9,13 @@ export default function StudentLogin() {
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Candidate auth is wired to the Prelim assessment backend when the
-    // dynamic app is enabled. Static build has no auth endpoint yet.
-    setNote("Authentication connects to your Prelim assessment once the portal is live. Check your invite email for a direct assessment link in the meantime.");
+    // Never transmit the password from this static page. Authentication
+    // happens on the real Prelim app; here we simply hand the candidate off.
+    if (APP_LOGIN_URL) {
+      window.location.href = APP_LOGIN_URL;
+      return;
+    }
+    setNote("Sign-in completes on the secure Prelim assessment app. Check your invite email for a direct link, or contact support if you can't find it.");
   }
 
   return (
