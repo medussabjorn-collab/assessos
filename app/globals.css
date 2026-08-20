@@ -511,6 +511,55 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:700;text-wrap:ba
 .cta-banner .btn-ghost{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.35);backdrop-filter:blur(6px)}
 @media(hover:hover){.cta-banner .btn-ghost:hover{background:rgba(255,255,255,.16);border-color:#fff;color:#fff}}
 
+/* ================= ROI CALCULATOR ================= */
+.roi{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(1.5rem,4vw,3rem);align-items:start;max-width:980px}
+.roi-inputs{display:flex;flex-direction:column;gap:1.5rem;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1.8rem}
+.roi-field{display:flex;flex-direction:column;gap:.6rem}
+.roi-label{display:flex;justify-content:space-between;align-items:baseline;font-size:.9rem;color:var(--ink-2)}
+.roi-label span:first-child{font-weight:500}
+.roi-val{font-family:var(--font-code);color:var(--ink);font-weight:600}
+.roi-field input[type="range"]{width:100%;accent-color:var(--accent);height:6px;cursor:pointer}
+.roi-output{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:1.8rem;position:sticky;top:90px}
+.roi-out-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.9rem 0;border-bottom:1px solid var(--line);font-size:.92rem;color:var(--ink-2)}
+.roi-out-row:last-child{border-bottom:0}
+.roi-out-main{font-size:1.02rem;color:var(--ink);font-weight:600}
+.roi-out-main .tnum{font-family:var(--font-code)}
+.roi-highlight{color:var(--accent);font-size:1.35rem;font-weight:700}
+.roi-fine{grid-column:1/-1;font-size:.82rem;color:var(--ink-3);line-height:1.5;margin-top:.5rem;max-width:70ch}
+@media(max-width:820px){.roi{grid-template-columns:1fr}.roi-output{position:static}}
+
+/* ================= SAMPLE TESTS ================= */
+.sample-tabs{display:flex;gap:.5rem;margin-bottom:1.6rem;flex-wrap:wrap}
+.sample-tabs button{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.1rem;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);font-size:.9rem;font-weight:600;cursor:pointer;transition:.18s}
+.sample-tabs button svg{width:16px;height:16px}
+.sample-tabs button.st-active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.sample-intro{color:var(--ink-2);font-size:1.02rem;max-width:70ch;margin-bottom:1.8rem;line-height:1.55}
+.sample-questions{display:flex;flex-direction:column;gap:1rem;margin-bottom:1.8rem}
+.sq-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.4rem 1.5rem}
+.sq-format{font-family:var(--font-code);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.sq-prompt{font-size:1.02rem;color:var(--ink);line-height:1.55;margin:.6rem 0 .9rem;font-weight:500}
+.sq-measures{font-size:.86rem;color:var(--ink-3);line-height:1.5}
+.sq-measures span{font-weight:600;color:var(--ink-2)}
+
+/* ================= GUIDES ================= */
+.guide-steps{list-style:none;display:flex;flex-direction:column;max-width:72ch}
+.guide-steps li{display:grid;grid-template-columns:44px 1fr;gap:1.2rem;padding:1.6rem 0;border-bottom:1px solid var(--line)}
+.guide-steps li:last-child{border-bottom:0;padding-bottom:0}
+.gs-num{font-family:var(--font-code);font-size:.95rem;color:var(--accent);font-weight:600;padding-top:.15rem}
+.guide-steps h3{font-size:1.1rem;font-weight:700;letter-spacing:-.015em;margin-bottom:.5rem}
+.guide-steps p{color:var(--ink-2);font-size:.96rem;line-height:1.6;margin:0}
+@media(max-width:560px){.guide-steps li{grid-template-columns:32px 1fr;gap:.8rem}}
+
+/* ================= BLOG ================= */
+.post-list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.post-row{display:block;padding:1.6rem .3rem;border-bottom:1px solid var(--line);transition:padding-left .2s var(--ease-out)}
+@media(hover:hover){.post-row:hover{padding-left:.7rem}}
+.post-meta{display:flex;gap:.9rem;align-items:center;margin-bottom:.6rem;font-family:var(--font-code);font-size:.72rem;color:var(--ink-3);letter-spacing:.02em}
+.post-cat{color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.post-row h3{font-size:1.22rem;font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem}
+.post-row>p{color:var(--ink-2);font-size:.96rem;line-height:1.55;max-width:70ch}
+
 /* ================= CASE STUDIES ================= */
 .cs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem}
 .cs-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:1.6rem 1.5rem;display:flex;flex-direction:column;

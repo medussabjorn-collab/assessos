@@ -10,11 +10,11 @@ export const metadata: Metadata = {
 };
 
 const RESOURCES = [
-  { Icon: Sparkles, title: "Blog & Insights", desc: "Ideas on structured hiring, assessment design, and what the data shows.", href: null },
-  { Icon: Bars, title: "Guides", desc: "Practical playbooks for rolling out assessment across your hiring teams.", href: null },
+  { Icon: Sparkles, title: "Blog & Insights", desc: "Ideas on structured hiring, assessment design, and what the data shows.", href: "/resources/blog" },
+  { Icon: Bars, title: "Guides", desc: "Practical playbooks for rolling out assessment across your hiring teams.", href: "/resources/guides" },
   { Icon: Shield, title: "Case Studies", desc: "How enterprise teams use Prelim to hire leadership, technical, and non-IT roles.", href: "/resources/case-studies" },
-  { Icon: Terminal, title: "Sample Tests", desc: "Try example assessments to see the candidate experience firsthand.", href: null },
-  { Icon: Target, title: "ROI Calculator", desc: "Estimate the time and cost Prelim saves across your hiring pipeline.", href: null },
+  { Icon: Terminal, title: "Sample Tests", desc: "Try example assessments to see the candidate experience firsthand.", href: "/resources/sample-tests" },
+  { Icon: Target, title: "ROI Calculator", desc: "Estimate the time and cost Prelim saves across your hiring pipeline.", href: "/resources/roi-calculator" },
   { Icon: Code, title: "Documentation", desc: "API reference and integration guides for engineering teams.", href: null },
 ];
 
@@ -29,7 +29,7 @@ export default function ResourcesPage() {
       />
 
       <Band>
-        <SectionHead title="Browse resources." sub="Case studies are live. The rest of this library is growing — reach out if there's something specific you need." />
+        <SectionHead title="Browse resources." sub="API documentation is coming soon — reach out if you need it sooner." />
         <div className="cardgrid stagger">
           {RESOURCES.map(({ Icon, title, desc, href }) =>
             href ? (
