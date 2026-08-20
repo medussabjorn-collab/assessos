@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 60% 99%;
+    --foreground: 222 39% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 39% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 39% 6%;
+    --primary: 207 71% 41%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 223 41% 97%;
+    --secondary-foreground: 222 21% 32%;
+    --muted: 223 41% 97%;
+    --muted-foreground: 221 12% 48%;
+    --accent: 97 51% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 35% 92%;
+    --input: 221 32% 85%;
+    --ring: 207 71% 41%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 227 47% 4%;
+    --foreground: 223 64% 96%;
+    --card: 223 43% 8%;
+    --card-foreground: 223 64% 96%;
+    --popover: 223 43% 8%;
+    --popover-foreground: 223 64% 96%;
+    --primary: 208 70% 59%;
+    --primary-foreground: 227 47% 4%;
+    --secondary: 223 40% 12%;
+    --secondary-foreground: 222 31% 77%;
+    --muted: 223 40% 12%;
+    --muted-foreground: 224 19% 57%;
+    --accent: 92 50% 53%;
+    --accent-foreground: 227 47% 4%;
+    --destructive: 0 63% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 224 36% 18%;
+    --input: 222 34% 26%;
+    --ring: 208 70% 59%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Jakarta", ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-mono-tab {
+    font-variant-numeric: tabular-nums;
+  }
+}
