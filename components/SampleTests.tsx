@@ -27,6 +27,10 @@ export default function SampleTests() {
 
       <p className="sample-intro">{track.intro}</p>
 
+      <div className="ts-chips" style={{ marginBottom: "1.8rem" }}>
+        {track.roles.map((r) => <span className="ts-chip" key={r}>{r}</span>)}
+      </div>
+
       <div className="sample-questions">
         {track.questions.map((q) => (
           <div className="sq-card" key={q.prompt}>

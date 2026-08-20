@@ -43,6 +43,13 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
             </div>
           ))}
         </div>
+
+        <div className="ts-group rv" style={{ marginTop: "1.6rem" }}>
+          <span className="ts-cat">Roles this case study is about</span>
+          <div className="ts-chips">
+            {c.roles.map((r) => <span className="ts-chip" key={r}>{r}</span>)}
+          </div>
+        </div>
       </Band>
 
       <Band tint>

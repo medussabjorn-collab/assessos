@@ -12,6 +12,7 @@ export type CaseStudy = {
   approach: string[];
   results: { value: string; label: string }[];
   quote: { text: string; name: string; role: string };
+  roles: string[]; // job titles this case study is directly about
 };
 
 export const CASE_STUDIES: CaseStudy[] = [
@@ -39,6 +40,7 @@ export const CASE_STUDIES: CaseStudy[] = [
       { value: "0", label: "disputed decisions post-hire" },
     ],
     quote: { text: "We stopped arguing about gut calls. Prelim gives every panel the same scorecard — our shortlists got sharper and faster in one quarter.", name: "Dana Koenig", role: "VP Talent, Astraflow" },
+    roles: ["VP of Engineering", "Director of Engineering", "Engineering Manager"],
   },
   {
     slug: "meridian-technical",
@@ -64,6 +66,7 @@ export const CASE_STUDIES: CaseStudy[] = [
       { value: "100%", label: "of finalists completed the assessment same-week" },
     ],
     quote: { text: "Candidates actually said the assessment felt fair. That's not something we'd heard about our old take-home in three years.", name: "Priya Shah", role: "Head of Engineering, Meridian" },
+    roles: ["Platform Engineer", "Backend Engineer", "Staff Engineer"],
   },
   {
     slug: "helix-non-it",
@@ -89,6 +92,7 @@ export const CASE_STUDIES: CaseStudy[] = [
       { value: "0", label: "candidate data used outside Helix's own VPC" },
     ],
     quote: { text: "We finally had one bar for every site. It's not just faster hiring — it's hiring we can defend.", name: "Marcus Webb", role: "VP People, Helix" },
+    roles: ["Registered Nurse", "Medical Assistant", "Patient Care Coordinator"],
   },
 ];
 

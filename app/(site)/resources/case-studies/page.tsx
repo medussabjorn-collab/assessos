@@ -26,7 +26,7 @@ export default function CaseStudiesPage() {
             <Link className="cs-card" href={`/resources/case-studies/${c.slug}`} key={c.slug}>
               <div className="cs-top">
                 <span className="cs-logo">{c.logo}</span>
-                <span className="cs-track">{c.trackName}</span>
+                <span className="cs-track">{c.trackName} · {c.roles[0]}</span>
               </div>
               <h3>{c.headline}</h3>
               <p>{c.summary}</p>

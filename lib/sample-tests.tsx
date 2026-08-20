@@ -15,6 +15,7 @@ export type SampleTrack = {
   Icon: Icon;
   href: string;
   intro: string;
+  roles: string[];
   questions: SampleQuestion[];
 };
 
@@ -25,6 +26,7 @@ export const SAMPLE_TRACKS: SampleTrack[] = [
     Icon: Shield,
     href: "/solutions/leadership-hiring",
     intro: "Situational judgment and 360°-style exercises. There's rarely one \"correct\" answer — Prelim scores the reasoning behind the choice.",
+    roles: ["CEO", "COO", "VP of Engineering", "VP of Sales", "Director of Operations", "General Manager", "Head of Product", "Chief of Staff", "Regional Director"],
     questions: [
       {
         format: "Situational judgment",
@@ -49,6 +51,7 @@ export const SAMPLE_TRACKS: SampleTrack[] = [
     Icon: Code,
     href: "/solutions/technical-hiring",
     intro: "Live, proctored exercises in a real IDE against realistic code — not algorithm trivia.",
+    roles: ["Software Engineer", "Backend Engineer", "Frontend Engineer", "Full-Stack Engineer", "DevOps Engineer", "Data Engineer", "QA Engineer", "Site Reliability Engineer"],
     questions: [
       {
         format: "Live debugging",
@@ -73,6 +76,7 @@ export const SAMPLE_TRACKS: SampleTrack[] = [
     Icon: Users,
     href: "/solutions/non-it-hiring",
     intro: "Role-specific batteries. The example below is drawn from a financial-analyst assessment — non-IT modules exist for finance, sales, ops, healthcare, and legal.",
+    roles: ["Financial Analyst", "Sales Representative", "Marketing Manager", "Operations Analyst", "HR Business Partner", "Customer Success Manager", "Business Analyst", "Account Executive"],
     questions: [
       {
         format: "Analytical case",
