@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHero, Band, SectionHead, CardGrid, CTASection } from "@/components/page";
 import { PhotoBand } from "@/components/Photo";
 import { Scale, Target, ShieldCheck, Users } from "@/components/icons";
+import { OdometerStat } from "@/components/OdometerStat";
 
 export const metadata: Metadata = {
   title: "About",
@@ -36,10 +37,7 @@ export default function AboutPage() {
       <Band>
         <div className="about-stats rv">
           {STATS.map((s) => (
-            <div className="as" key={s.l}>
-              <div className="as-v tnum">{s.v}</div>
-              <div className="as-l">{s.l}</div>
-            </div>
+            <OdometerStat key={s.l} value={s.v} label={s.l} />
           ))}
         </div>
       </Band>
