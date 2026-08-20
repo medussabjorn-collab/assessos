@@ -1,3 +1,5 @@
+import { Timeline } from "antd";
+
 const EVENTS = [
   { text: "Ava Meridian scored 88.9 on Staff Engineer", time: "2m ago" },
   { text: "Jordan Blake advanced to Decide", time: "14m ago" },
@@ -7,14 +9,15 @@ const EVENTS = [
 
 export function ActivityFeed() {
   return (
-    <div className="dash-activity">
-      {EVENTS.map((e) => (
-        <div className="da-row" key={e.text}>
-          <span className="da-dot" />
-          <span className="da-text">{e.text}</span>
-          <span className="da-time">{e.time}</span>
-        </div>
-      ))}
-    </div>
+    <Timeline
+      items={EVENTS.map((e) => ({
+        children: (
+          <span className="da-row">
+            <span className="da-text">{e.text}</span>
+            <span className="da-time">{e.time}</span>
+          </span>
+        ),
+      }))}
+    />
   );
 }

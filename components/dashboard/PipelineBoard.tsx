@@ -1,9 +1,8 @@
-"use client";
+import { Card, Tag, Badge } from "antd";
+import { AntdShell } from "./AntdShell";
 
-import { useInView } from "./useInView";
-
-type Card = { name: string; role: string; score?: number; tag: "strong" | "wait" };
-type Column = { stage: string; cards: Card[] };
+type CardItem = { name: string; role: string; score?: number; tag: "strong" | "wait" };
+type Column = { stage: string; cards: CardItem[] };
 
 const COLUMNS: Column[] = [
   {
@@ -38,30 +37,30 @@ const COLUMNS: Column[] = [
 ];
 
 export function PipelineBoard() {
-  const { ref, inView } = useInView<HTMLDivElement>(0.15);
-
   return (
-    <div ref={ref} className={`dash-board${inView ? " in" : ""}`}>
-      {COLUMNS.map((col) => (
-        <div className="dash-col" key={col.stage}>
-          <div className="dc-head">
-            <span>{col.stage}</span>
-            <span className="dc-count">{col.cards.length}</span>
-          </div>
-          {col.cards.map((c, i) => (
-            <div className="dash-card" style={{ transitionDelay: `${i * 90}ms` }} key={c.name}>
-              <div className="dcn">{c.name}</div>
-              <div className="dcr">{c.role}</div>
-              <div className="dcs">
-                <span className="dcs-score">{c.score ? `${c.score}` : "—"}</span>
-                <span className={`dcs-tag ${c.tag}`}>
-                  {c.tag === "strong" ? "Strong Hire" : "In progress"}
-                </span>
-              </div>
+    <AntdShell>
+      <div className="dash-board">
+        {COLUMNS.map((col) => (
+          <div className="dash-col" key={col.stage}>
+            <div className="dc-head">
+              <span>{col.stage}</span>
+              <Badge count={col.cards.length} showZero color="var(--accent)" />
             </div>
-          ))}
-        </div>
-      ))}
-    </div>
+            {col.cards.map((c) => (
+              <Card key={c.name} size="small" className="dash-card">
+                <div className="dcn">{c.name}</div>
+                <div className="dcr">{c.role}</div>
+                <div className="dcs">
+                  <span className="dcs-score">{c.score ? `${c.score}` : "—"}</span>
+                  <Tag color={c.tag === "strong" ? "green" : "default"}>
+                    {c.tag === "strong" ? "Strong Hire" : "In progress"}
+                  </Tag>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ))}
+      </div>
+    </AntdShell>
   );
 }

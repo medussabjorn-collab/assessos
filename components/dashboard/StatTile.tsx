@@ -1,7 +1,6 @@
-// Renders the final value directly rather than animating a count-up: a
-// requestAnimationFrame loop only advances while the browser is actually
-// painting, so a throttled/backgrounded tab can freeze it mid-count,
-// permanently short of the real number. Correctness over polish.
+import { Card, Statistic } from "antd";
+import { ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
+
 export function StatTile({
   label,
   value,
@@ -16,13 +15,18 @@ export function StatTile({
   deltaDir?: "up" | "down";
 }) {
   return (
-    <div className="dash-tile">
-      <div className="dt-label">{label}</div>
-      <div className="dt-value tnum">
-        {value.toFixed(value % 1 !== 0 ? 1 : 0)}
-        {suffix}
-      </div>
-      {delta && <div className={`dt-delta ${deltaDir}`}>{deltaDir === "up" ? "↑" : "↓"} {delta}</div>}
-    </div>
+    <Card size="small" variant="borderless" className="dash-tile">
+      <Statistic
+        title={label}
+        value={value}
+        precision={value % 1 !== 0 ? 1 : 0}
+        suffix={suffix}
+      />
+      {delta && (
+        <div style={{ marginTop: 4, fontSize: 13, color: deltaDir === "up" ? "#5FA234" : "#C0392B" }}>
+          {deltaDir === "up" ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {delta}
+        </div>
+      )}
+    </Card>
   );
 }
