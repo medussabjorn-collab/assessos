@@ -42,11 +42,12 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Engineering depth, product sense, and on-call judgment for high-growth teams.",
     intro: "From staff engineers to VPs of Product, tech hiring lives or dies on real ability. Prelim measures how candidates actually build, lead, and go to market — not how well they interview.",
     tracks: [
-      leadership("Hire directors and VPs who can scale an eng or product org, not just run one."),
-      technical("Assess real engineering ability with a live coding IDE and system-design tasks."),
-      nonIt("Bring the same rigor to the sales, CS, and ops roles that make SaaS grow."),
+      { type: "Engineering Leadership", Icon: Shield, tagline: "Hire directors and VPs who can scale an eng or product org, not just run one.", href: "/solutions/leadership-hiring" },
+      { type: "Backend & Platform", Icon: Code, tagline: "Distributed systems, APIs, and infrastructure — assessed with a live coding IDE and system-design tasks.", href: "/solutions/technical-hiring" },
+      { type: "Frontend & Product Eng", Icon: Sparkles, tagline: "UI craft and product sense, assessed on real feature work, not algorithm trivia.", href: "/solutions/technical-hiring" },
+      { type: "Data, ML & Infra", Icon: Server, tagline: "Data pipelines, ML systems, and DevOps — assessed on realistic operational scenarios.", href: "/solutions/technical-hiring" },
     ],
-    focus: ["Live coding & system design", "Product and technical judgment", "Go-to-market and RevOps aptitude", "Leadership at scale"],
+    focus: ["Live coding & system design", "Product and technical judgment", "Data & infrastructure aptitude", "Leadership at scale"],
     scenario: {
       role: "Staff Backend Engineer, Series C SaaS",
       challenge: "Take-home tasks were gameable and burned two weeks per hire, while whiteboard rounds rewarded memorized patterns over real system-design ability.",
@@ -55,7 +56,7 @@ export const INDUSTRIES: Industry[] = [
     },
     overview: {
       title: "Engineering culture runs on trust in your process.",
-      body: "Tech and SaaS companies compete for the same small pool of strong engineers and product leaders, and a slow or inconsistent hiring process is the fastest way to lose them to a competitor. Prelim gives you a rigor bar that scales from your first ten engineers to your thousandth — live coding for technical depth, situational judgment for the leaders who'll scale your org, and the same discipline extended to the sales and CS roles that make the business grow.",
+      body: "Tech and SaaS companies compete for the same small pool of strong engineers and product leaders, and a slow or inconsistent hiring process is the fastest way to lose them to a competitor. Prelim gives you a rigor bar that scales from your first ten engineers to your thousandth — live coding for backend, frontend, and data/infra depth, and situational judgment for the leaders who'll scale your org.",
     },
     faq: [
       { q: "Does Prelim work for both IC and management tracks?", a: "Yes. Technical Hiring covers individual-contributor engineering roles; Leadership Hiring covers engineering and product management, scored on judgment and org-scaling ability rather than raw coding depth." },

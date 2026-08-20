@@ -42,9 +42,9 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
       <Band tint>
         <SectionHead
           title="Choose your hiring track."
-          sub={`The three hiring problems in ${ind.name.toLowerCase()} — one platform, one scoring model.`}
+          sub={`The hiring problems that matter in ${ind.name.toLowerCase()} — one platform, one scoring model.`}
         />
-        <div className="cardgrid stagger">
+        <div className={`cardgrid stagger${ind.tracks.length === 4 ? " cardgrid-4" : ""}`}>
           {ind.tracks.map((t) => (
             <Link className="card card-link" href={t.href} key={t.type}>
               <div className="ci"><t.Icon /></div>

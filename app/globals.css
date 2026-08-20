@@ -379,6 +379,7 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:700;text-wrap:ba
 .card-soon{opacity:.72}
 .card-soon-tag{display:inline-flex;align-self:flex-start;margin-top:1.1rem;font-family:var(--font-code);font-size:.7rem;
   letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--line-2);border-radius:99px;padding:.3rem .65rem}
+@media(min-width:901px){.cardgrid-4{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){.cardgrid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.cardgrid{grid-template-columns:1fr}}
 
