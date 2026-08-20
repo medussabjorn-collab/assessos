@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import { Wordmark } from "./icons";
 
 const COLS: { h: string; links: { label: string; href: string }[] }[] = [
@@ -56,12 +58,12 @@ const COLS: { h: string; links: { label: string; href: string }[] }[] = [
 
 export default function Footer() {
   return (
-    <footer className="footer">
+    <Box component="footer" className="footer">
       <div className="wrap">
         <div className="foot-grid">
           <div className="foot-brand">
             <Link className="brand" href="/"><Wordmark gid="prelimCheckFoot" /></Link>
-            <p>Calibrated hiring judgment for leadership, technical, and non-IT roles.</p>
+            <Typography component="p">Calibrated hiring judgment for leadership, technical, and non-IT roles.</Typography>
             <div className="foot-badges">
               <span className="fb">SOC 2 TYPE II</span>
               <span className="fb">GDPR</span>
@@ -70,7 +72,7 @@ export default function Footer() {
           </div>
           {COLS.map((col) => (
             <div className="foot-col" key={col.h}>
-              <h5>{col.h}</h5>
+              <Typography component="h5" variant="subtitle2">{col.h}</Typography>
               {col.links.map((l) => (
                 <Link href={l.href} key={l.label}>{l.label}</Link>
               ))}
@@ -86,6 +88,6 @@ export default function Footer() {
           </span>
         </div>
       </div>
-    </footer>
+    </Box>
   );
 }

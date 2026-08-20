@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
+import Drawer from "@mui/material/Drawer";
 import { Wordmark, Sun, Moon } from "./icons";
 import { INDUSTRIES } from "@/lib/industries";
 import { APP_LOGIN_URL } from "@/lib/config";
@@ -61,9 +66,32 @@ export default function Nav() {
     localStorage.setItem("prelim-palette", id);
   }
 
+  const swatches = (onClick?: () => void) => (
+    <div className="swatches" role="group" aria-label="Accent color">
+      {PALETTES.map((p) => (
+        <button
+          key={p.id}
+          className="sw"
+          style={{ background: p.color }}
+          aria-label={p.label}
+          aria-pressed={palette === p.id}
+          onClick={() => {
+            pickPalette(p.id);
+            onClick?.();
+          }}
+        />
+      ))}
+    </div>
+  );
+
   return (
-    <header className={`nav${scrolled ? " scrolled" : ""}`}>
-      <div className="wrap nav-in">
+    <AppBar
+      position="sticky"
+      color="transparent"
+      elevation={0}
+      className={`nav${scrolled ? " scrolled" : ""}`}
+    >
+      <Toolbar className="wrap nav-in" disableGutters>
         <Link className="brand" href="/" aria-label="Prelim home">
           <Wordmark />
         </Link>
@@ -96,69 +124,46 @@ export default function Nav() {
           )}
         </nav>
         <div className="nav-right">
-          <div className="swatches" role="group" aria-label="Accent color">
-            {PALETTES.map((p) => (
-              <button
-                key={p.id}
-                className="sw"
-                style={{ background: p.color }}
-                aria-label={p.label}
-                aria-pressed={palette === p.id}
-                onClick={() => pickPalette(p.id)}
-              />
-            ))}
-          </div>
+          {swatches()}
           <Link className="signin" href="/students">Student login</Link>
           <Link className="signin" href={SIGN_IN_HREF}>Sign in</Link>
-          <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle light or dark theme">
+          <IconButton className="icon-btn" onClick={toggleTheme} aria-label="Toggle light or dark theme" size="small">
             {dark ? <Moon /> : <Sun />}
-          </button>
-          <Link className="btn btn-primary demo-btn" href="/contact">Book a demo</Link>
-          <button
+          </IconButton>
+          <Button className="btn btn-primary demo-btn" component={Link} href="/contact" variant="contained">
+            Book a demo
+          </Button>
+          <IconButton
             className="icon-btn menu-btn"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
+            size="small"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
               {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M3 6h18M3 12h18M3 18h18" />}
             </svg>
-          </button>
+          </IconButton>
         </div>
-      </div>
+      </Toolbar>
 
-      <div
-        className={`mobile-menu${open ? " open" : ""}`}
-        style={{
-          visibility: open ? "visible" : "hidden",
-          opacity: open ? 1 : 0,
-          transform: open ? "translateY(0)" : "translateY(-8px)",
-          pointerEvents: open ? "auto" : "none",
-        }}
-      >
-        <nav aria-label="Mobile">
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} onClick={() => setOpen(false)}>{n.label}</Link>
-          ))}
-          <Link href="/students" onClick={() => setOpen(false)}>Student login</Link>
-          <Link href={SIGN_IN_HREF} onClick={() => setOpen(false)}>Sign in</Link>
-        </nav>
-        <div className="mm-foot">
-          <div className="swatches" role="group" aria-label="Accent color">
-            {PALETTES.map((p) => (
-              <button
-                key={p.id}
-                className="sw"
-                style={{ background: p.color }}
-                aria-label={p.label}
-                aria-pressed={palette === p.id}
-                onClick={() => pickPalette(p.id)}
-              />
+      <Drawer anchor="top" open={open} onClose={() => setOpen(false)} className="mobile-menu-drawer">
+        <div className="mobile-menu open">
+          <nav aria-label="Mobile">
+            {NAV.map((n) => (
+              <Link key={n.href} href={n.href} onClick={() => setOpen(false)}>{n.label}</Link>
             ))}
+            <Link href="/students" onClick={() => setOpen(false)}>Student login</Link>
+            <Link href={SIGN_IN_HREF} onClick={() => setOpen(false)}>Sign in</Link>
+          </nav>
+          <div className="mm-foot">
+            {swatches()}
+            <Button className="btn btn-primary" component={Link} href="/contact" variant="contained" onClick={() => setOpen(false)}>
+              Book a demo
+            </Button>
           </div>
-          <Link className="btn btn-primary" href="/contact" onClick={() => setOpen(false)}>Book a demo</Link>
         </div>
-      </div>
-    </header>
+      </Drawer>
+    </AppBar>
   );
 }
