@@ -1,6 +1,8 @@
 import type { ComponentType, SVGProps } from "react";
 import type { SolutionData } from "@/components/SolutionDetail";
 import { Code, Shield, Users, Sparkles, Terminal, ShieldCheck, Bars, Plug, Target, Scale, Lock, Server, Clock, Globe } from "@/components/icons";
+import { BarChart } from "@/components/dashboard/BarChart";
+import { FunnelChart } from "@/components/dashboard/FunnelChart";
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 export type ProductData = SolutionData & { slug: string; name: string; Icon: Icon; blurb: string };
@@ -194,6 +196,50 @@ export const PRODUCTS: ProductData[] = [
       { Icon: Target, title: "Benchmarks", desc: "Percentiles against comparable roles and cohorts." },
       { Icon: Globe, title: "Exports & API", desc: "Audit-ready reports and structured data out." },
     ],
+    extra: {
+      title: "See it the way your recruiting team does.",
+      sub: "Assessment volume by month, and where candidates actually drop out of the pipeline.",
+      node: (
+        <div className="analytics-grid">
+          <div className="dash-chrome">
+            <div className="dash-bar">
+              <div className="dots"><i /><i /><i /></div>
+              <span className="path">prelim / reports / volume</span>
+            </div>
+            <div className="dash-body">
+              <BarChart
+                data={[
+                  { label: "Mar", value: 82 },
+                  { label: "Apr", value: 94 },
+                  { label: "May", value: 88 },
+                  { label: "Jun", value: 121 },
+                  { label: "Jul", value: 134 },
+                  { label: "Aug", value: 149 },
+                ]}
+                unit="K"
+              />
+            </div>
+          </div>
+          <div className="dash-chrome">
+            <div className="dash-bar">
+              <div className="dots"><i /><i /><i /></div>
+              <span className="path">prelim / reports / funnel</span>
+            </div>
+            <div className="dash-body">
+              <FunnelChart
+                stages={[
+                  { label: "Applied", value: 4200, display: "4,200" },
+                  { label: "Assessed", value: 2850, display: "2,850" },
+                  { label: "Scored", value: 2850, display: "2,850" },
+                  { label: "Shortlisted", value: 640, display: "640" },
+                  { label: "Hired", value: 118, display: "118" },
+                ]}
+              />
+            </div>
+          </div>
+        </div>
+      ),
+    },
     faq: [
       { q: "Can we export the data?", a: "Yes — audit-ready reports and structured JSON via the API." },
       { q: "What benchmarks are available?", a: "Percentiles by role, cohort, and assessment type from a large baseline." },

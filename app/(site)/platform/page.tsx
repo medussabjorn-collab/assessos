@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHero, Band, SectionHead, CardGrid, Split, FAQ, CTASection } from "@/components/page";
 import { Sparkles, Bars, ShieldCheck, Users, Plug, Server } from "@/components/icons";
+import { PipelineBoard } from "@/components/dashboard/PipelineBoard";
 
 export const metadata: Metadata = {
   title: "Platform",
@@ -25,6 +26,9 @@ const CAPS = [
 ];
 
 export default function PlatformPage() {
+  let bandIndex = 0;
+  const nextTint = () => bandIndex++ % 2 === 1;
+
   return (
     <>
       <PageHero
@@ -34,7 +38,7 @@ export default function PlatformPage() {
         secondary={{ label: "See security", href: "/security" }}
       />
 
-      <Band>
+      <Band tint={nextTint()}>
         <SectionHead title="A closed loop, not a point tool." />
         <div className="flow stagger">
           {STEPS.map((s) => (
@@ -48,12 +52,20 @@ export default function PlatformPage() {
         </div>
       </Band>
 
-      <Band tint>
+      <Band tint={nextTint()}>
+        <SectionHead
+          title="Watch a requisition move through the loop."
+          sub="A live view of candidates moving from Build through Decide — the same board your recruiting team sees."
+        />
+        <PipelineBoard />
+      </Band>
+
+      <Band tint={nextTint()}>
         <SectionHead title="Everything the loop runs on." sub="Each capability feeds the same scoring model and reporting layer." />
         <CardGrid items={CAPS} />
       </Band>
 
-      <Band>
+      <Band tint={nextTint()}>
         <Split
           title="Explainable by design."
           body="A score you can't defend is worse than no score. Every Prelim verdict traces back to specific evidence — the response, the rubric, and the benchmark — so hiring managers, candidates, and auditors all see why."
@@ -73,7 +85,7 @@ export default function PlatformPage() {
         />
       </Band>
 
-      <Band tint>
+      <Band tint={nextTint()}>
         <SectionHead title="Platform questions." />
         <FAQ items={[
           { q: "How long does it take to launch an assessment?", a: "Most teams go from job description to live assessment the same day. The AI Test Builder does the first draft; you review and adjust before it goes out." },

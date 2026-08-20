@@ -1,4 +1,4 @@
-import type { ComponentType, SVGProps } from "react";
+import type { ComponentType, ReactNode, SVGProps } from "react";
 import { PageHero, Band, SectionHead, Split, CardGrid, FAQ, CTASection } from "@/components/page";
 import TechStack from "@/components/TechStack";
 
@@ -15,6 +15,7 @@ export type SolutionData = {
   caps: { Icon: Icon; title: string; desc: string }[];
   showTechStack?: boolean; // languages/frameworks/tools the assessment supports
   roles?: string[]; // representative job titles commonly assessed with this
+  extra?: { title: string; sub?: string; node: ReactNode }; // one-off custom visual section
   faq: { q: string; a: string }[];
   cta: { title: string; sub: string };
 };
@@ -61,6 +62,13 @@ export default function SolutionDetail({ data }: { data: SolutionData }) {
         <Band tint={nextTint()}>
           <SectionHead title="Supported languages & frameworks." sub="The live coding environment covers the stacks your engineers actually use." />
           <TechStack />
+        </Band>
+      )}
+
+      {data.extra && (
+        <Band tint={nextTint()}>
+          <SectionHead title={data.extra.title} sub={data.extra.sub} />
+          {data.extra.node}
         </Band>
       )}
 

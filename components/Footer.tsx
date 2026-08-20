@@ -27,9 +27,9 @@ const COLS: { h: string; links: { label: string; href: string }[] }[] = [
     h: "Platform",
     links: [
       { label: "How it works", href: "/platform" },
+      { label: "Product Tour", href: "/product-tour" },
       { label: "Security", href: "/security" },
       { label: "Pricing", href: "/pricing" },
-      { label: "Integrations", href: "/platform" },
     ],
   },
   {

@@ -20,6 +20,7 @@ const NAV = [
   { href: "/industries", label: "Industries" },
   { href: "/platform", label: "Platform" },
   { href: "/products", label: "Products" },
+  { href: "/product-tour", label: "Tour" },
   { href: "/security", label: "Security" },
   { href: "/pricing", label: "Pricing" },
 ];
