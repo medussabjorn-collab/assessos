@@ -9,6 +9,9 @@ const METERS = [
   { label: "Culture Fit", value: 79 },
 ];
 
+const RING_C = 2 * Math.PI * 52;
+const SCORE = 88.9;
+
 export default function Hero() {
   return (
     <section className="hero">
@@ -65,10 +68,16 @@ export default function Hero() {
                 <div className="gauge">
                   <svg viewBox="0 0 120 120" aria-hidden="true">
                     <circle className="g-track" cx="60" cy="60" r="52" />
-                    <circle className="g-prog" cx="60" cy="60" r="52" data-pct="88.9" />
+                    <circle
+                      className="g-prog"
+                      cx="60"
+                      cy="60"
+                      r="52"
+                      style={{ strokeDashoffset: RING_C * (1 - SCORE / 100) }}
+                    />
                   </svg>
                   <div className="g-center">
-                    <span className="big tnum" data-count="88.9">0.0</span>
+                    <span className="big tnum">{SCORE.toFixed(1)}</span>
                     <span className="g-sub">/ 100 · COMPOSITE</span>
                   </div>
                 </div>
@@ -82,7 +91,7 @@ export default function Hero() {
                 {METERS.map((m) => (
                   <div className="meter" key={m.label}>
                     <span className="mlbl">{m.label}</span>
-                    <div className="track"><div className="fill" data-w={m.value} /></div>
+                    <div className="track"><div className="fill" style={{ transform: `scaleX(${m.value / 100})` }} /></div>
                     <span className="val tnum">{m.value}</span>
                   </div>
                 ))}
