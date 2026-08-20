@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageHero, Band, SectionHead, CTASection, FAQ } from "@/components/page";
 import { ArrowUpRight, Check } from "@/components/icons";
 import { INDUSTRIES, industryBySlug } from "@/lib/industries";
+import { PRODUCTS } from "@/lib/products";
 
 export function generateStaticParams() {
   return INDUSTRIES.map((i) => ({ slug: i.slug }));
@@ -65,6 +66,25 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
       </Band>
 
       <Band tint>
+        <SectionHead
+          title="The full product catalog."
+          sub={`Every module below is available for ${ind.name.toLowerCase()} hiring, feeding the same scoring model as your chosen track.`}
+        />
+        <div className="prodlist stagger" style={{ borderTop: "none" }}>
+          {PRODUCTS.map((p) => (
+            <Link className="prow" href={`/products/${p.slug}`} key={p.slug}>
+              <span className="pic"><p.Icon /></span>
+              <div>
+                <div className="pt">{p.name}</div>
+                <div className="pd">{p.blurb}</div>
+              </div>
+              <span className="parr">→</span>
+            </Link>
+          ))}
+        </div>
+      </Band>
+
+      <Band>
         <div className="scenario rv">
           <div className="scenario-body">
             <span className="scenario-role">{ind.scenario.role}</span>
@@ -85,7 +105,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </div>
       </Band>
 
-      <Band>
+      <Band tint>
         <SectionHead title={`Questions ${ind.name.toLowerCase()} teams ask us.`} />
         <FAQ items={ind.faq} />
       </Band>
