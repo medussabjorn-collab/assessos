@@ -25,8 +25,9 @@ Copy `.env.local.example` to `.env.local` and set:
 
 | Variable | Purpose |
 |---|---|
-| `NEXT_PUBLIC_FORMSPREE_ID` | Formspree form id — makes the **contact form** (`/contact`) send. Create a form at [formspree.io](https://formspree.io) and paste the id after `/f/`. |
-| `NEXT_PUBLIC_APP_LOGIN_URL` | URL of the real Prelim assessment app. The **student login** (`/students`) hands off here on submit (auth never happens on this static site). |
+| `NEXT_PUBLIC_CONTACT_ENDPOINT` | AssessOS API endpoint that accepts new leads — makes the **contact form** (`/contact`) send. |
+| `NEXT_PUBLIC_REGISTRATION_ENDPOINT` | AssessOS API endpoint that accepts new student registrations — makes the **student registration** (`/students`) send. |
+| `NEXT_PUBLIC_APP_LOGIN_URL` | URL of the real Prelim assessment app. The **student login** (`/students`) hands off here on submit (auth never happens on this site). |
 
 Values are inlined at build time — re-run `npm run build` after changing them.
 

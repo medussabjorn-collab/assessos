@@ -7,12 +7,12 @@ WORKDIR /app
 # injects dashboard-set Variables as container runtime env by default; ARG
 # here opts these specific ones into Railway's build-arg passthrough
 # (Railway auto-forwards any service Variable whose name matches a declared
-# ARG). Without this, setting NEXT_PUBLIC_FORMSPREE_ID etc. in the dashboard
+# ARG). Without this, setting NEXT_PUBLIC_CONTACT_ENDPOINT etc. in the dashboard
 # silently has no effect on the deployed bundle.
-ARG NEXT_PUBLIC_FORMSPREE_ID
+ARG NEXT_PUBLIC_CONTACT_ENDPOINT
 ARG NEXT_PUBLIC_APP_LOGIN_URL
 ARG NEXT_PUBLIC_REGISTRATION_ENDPOINT
-ENV NEXT_PUBLIC_FORMSPREE_ID=$NEXT_PUBLIC_FORMSPREE_ID
+ENV NEXT_PUBLIC_CONTACT_ENDPOINT=$NEXT_PUBLIC_CONTACT_ENDPOINT
 ENV NEXT_PUBLIC_APP_LOGIN_URL=$NEXT_PUBLIC_APP_LOGIN_URL
 ENV NEXT_PUBLIC_REGISTRATION_ENDPOINT=$NEXT_PUBLIC_REGISTRATION_ENDPOINT
 

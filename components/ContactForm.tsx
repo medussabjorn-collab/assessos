@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FORMSPREE_ID } from "@/lib/config";
+import { CONTACT_ENDPOINT } from "@/lib/config";
 import { MuiShell } from "./mui/MuiShell";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
@@ -29,23 +29,29 @@ export default function ContactForm() {
     setError("");
 
     // No endpoint configured yet — accept gracefully so the UX is complete.
-    if (!FORMSPREE_ID) {
+    if (!CONTACT_ENDPOINT) {
       setStatus("done");
       return;
     }
 
+    const payload = Object.fromEntries(data.entries());
+    delete payload._gotcha;
+    // Formspree-only "email subject" convention — meaningless to the
+    // AssessOS API's DTO, which would reject an unrecognized field.
+    delete payload._subject;
+
     try {
-      const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      const res = await fetch(CONTACT_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(Object.fromEntries(data.entries())),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         setStatus("done");
         form.reset();
       } else {
         const body = await res.json().catch(() => null);
-        setError(body?.errors?.[0]?.message || "Something went wrong. Please try again.");
+        setError(body?.message?.[0] || body?.message || "Something went wrong. Please try again.");
         setStatus("error");
       }
     } catch {

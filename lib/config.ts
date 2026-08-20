@@ -1,8 +1,13 @@
 // Public runtime config, inlined at build time for the static export.
 // Set these in .env.local (see .env.local.example) before deploying.
 
-/** Formspree form id — the part after /f/ in your endpoint. Enables the contact form. */
-export const FORMSPREE_ID = process.env.NEXT_PUBLIC_FORMSPREE_ID || "";
+/**
+ * REST endpoint on the AssessOS API that accepts new contact/demo-request
+ * leads (must be HTTPS, must accept a JSON POST — see
+ * components/ContactForm.tsx for the exact payload shape). Enables the
+ * contact form.
+ */
+export const CONTACT_ENDPOINT = process.env.NEXT_PUBLIC_CONTACT_ENDPOINT || "";
 
 /** URL of the real Prelim assessment app where candidates actually authenticate. */
 export const APP_LOGIN_URL = process.env.NEXT_PUBLIC_APP_LOGIN_URL || "";

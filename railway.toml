@@ -5,7 +5,7 @@
 # into the client bundle; setting them only at runtime has no effect on
 # NEXT_PUBLIC_* values):
 #
-#   NEXT_PUBLIC_FORMSPREE_ID           enables the contact form
+#   NEXT_PUBLIC_CONTACT_ENDPOINT        enables the contact form (AssessOS API)
 #   NEXT_PUBLIC_APP_LOGIN_URL          real Prelim app login handoff
 #   NEXT_PUBLIC_REGISTRATION_ENDPOINT  student registration backend
 
