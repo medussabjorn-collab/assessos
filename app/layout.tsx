@@ -42,12 +42,14 @@ export const metadata: Metadata = {
     title: "Prelim — Hire on evidence, not instinct",
     description:
       "One defensible scoring model across leadership, technical, and non-IT hiring. Trusted by 1,117+ enterprise teams.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Prelim — Hire on evidence, not instinct." }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Prelim — Hire on evidence, not instinct",
     description:
       "Enterprise assessment platform for leadership, technical, and non-IT hiring.",
+    images: ["/og-image.png"],
   },
   robots: { index: true, follow: true },
 };
