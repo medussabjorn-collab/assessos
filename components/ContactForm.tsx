@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "./icons";
 import { FORMSPREE_ID } from "@/lib/config";
+import { MuiShell } from "./mui/MuiShell";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import Button from "@mui/material/Button";
+import Alert from "@mui/material/Alert";
+import Stack from "@mui/material/Stack";
 
 const TEAM_SIZES = ["1–50", "51–200", "201–1,000", "1,000–5,000", "5,000+"];
 
@@ -49,54 +54,85 @@ export default function ContactForm() {
     }
   }
 
-  if (status === "done") {
-    return (
-      <div className="form-done">
-        <span className="fd-icon"><Check /></span>
-        <h3>Request received.</h3>
-        <p>A Prelim specialist will reach out within one business day to schedule your demo.</p>
-      </div>
-    );
-  }
-
   const busy = status === "submitting";
 
   return (
-    <form className="cform" onSubmit={onSubmit}>
-      <input type="text" name="_gotcha" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ display: "none" }} />
-      <input type="hidden" name="_subject" value="New Prelim demo request" />
-      <div className="cf-row">
-        <label className="field">
-          <span>Full name</span>
-          <input name="name" type="text" autoComplete="name" required placeholder="Ava Meridian" disabled={busy} />
-        </label>
-        <label className="field">
-          <span>Work email</span>
-          <input name="email" type="email" autoComplete="email" required placeholder="ava@company.com" disabled={busy} />
-        </label>
-      </div>
-      <div className="cf-row">
-        <label className="field">
-          <span>Company</span>
-          <input name="company" type="text" autoComplete="organization" required placeholder="Company, Inc." disabled={busy} />
-        </label>
-        <label className="field">
-          <span>Team size</span>
-          <select name="teamSize" defaultValue="" disabled={busy}>
-            <option value="" disabled>Select…</option>
-            {TEAM_SIZES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </label>
-      </div>
-      <label className="field">
-        <span>What are you hiring for?</span>
-        <textarea name="message" rows={4} placeholder="Roles, volume, and what you'd like to see in the demo." disabled={busy} />
-      </label>
-      <button className="btn btn-primary cf-submit" type="submit" disabled={busy}>
-        {busy ? "Sending…" : "Book a demo"}
-      </button>
-      {status === "error" && <p className="cf-error" role="alert">{error}</p>}
-      <p className="cf-fine">By submitting, you agree to Prelim&apos;s Privacy Policy. We&apos;ll only use your details to arrange the demo.</p>
-    </form>
+    <MuiShell>
+      {status === "done" ? (
+        <Alert severity="success" variant="outlined">
+          <strong>Request received.</strong> A Prelim specialist will reach out within one
+          business day to schedule your demo.
+        </Alert>
+      ) : (
+        <form className="cform" onSubmit={onSubmit}>
+          <input type="text" name="_gotcha" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ display: "none" }} />
+          <input type="hidden" name="_subject" value="New Prelim demo request" />
+          <Stack spacing={2}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <TextField
+                name="name"
+                label="Full name"
+                autoComplete="name"
+                required
+                fullWidth
+                placeholder="Ava Meridian"
+                disabled={busy}
+              />
+              <TextField
+                name="email"
+                type="email"
+                label="Work email"
+                autoComplete="email"
+                required
+                fullWidth
+                placeholder="ava@company.com"
+                disabled={busy}
+              />
+            </Stack>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+              <TextField
+                name="company"
+                label="Company"
+                autoComplete="organization"
+                required
+                fullWidth
+                placeholder="Company, Inc."
+                disabled={busy}
+              />
+              <TextField
+                name="teamSize"
+                label="Team size"
+                select
+                fullWidth
+                defaultValue=""
+                disabled={busy}
+              >
+                <MenuItem value="" disabled>Select…</MenuItem>
+                {TEAM_SIZES.map((t) => (
+                  <MenuItem key={t} value={t}>{t}</MenuItem>
+                ))}
+              </TextField>
+            </Stack>
+            <TextField
+              name="message"
+              label="What are you hiring for?"
+              multiline
+              rows={4}
+              fullWidth
+              placeholder="Roles, volume, and what you'd like to see in the demo."
+              disabled={busy}
+            />
+            <Button type="submit" variant="contained" size="large" disabled={busy}>
+              {busy ? "Sending…" : "Book a demo"}
+            </Button>
+            {status === "error" && <Alert severity="error">{error}</Alert>}
+            <p className="cf-fine">
+              By submitting, you agree to Prelim&apos;s Privacy Policy. We&apos;ll only use
+              your details to arrange the demo.
+            </p>
+          </Stack>
+        </form>
+      )}
+    </MuiShell>
   );
 }
