@@ -15,7 +15,7 @@ const CONTROLS = [
   { Icon: Server, title: "Cloud · VPC · On-prem", desc: "Deploy inside your own perimeter, wherever your security team requires." },
   { Icon: Globe, title: "Data residency", desc: "Keep candidate data in the region your compliance obligations demand." },
   { Icon: Scale, title: "Access controls", desc: "SSO, SCIM, role-based access, and full audit logging out of the box." },
-  { Icon: Clock, title: "Reliability", desc: "210ms median latency and high-availability infrastructure for volume pipelines." },
+  { Icon: Clock, title: "Reliability", desc: "207ms median latency and high-availability infrastructure for volume pipelines." },
 ];
 
 export default function SecurityPage() {

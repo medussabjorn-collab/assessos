@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     siteName: "Prelim",
     title: "Prelim — Hire on evidence, not instinct",
     description:
-      "One defensible scoring model across leadership, technical, and non-IT hiring. Trusted by 1,200+ enterprise teams.",
+      "One defensible scoring model across leadership, technical, and non-IT hiring. Trusted by 1,117+ enterprise teams.",
   },
   twitter: {
     card: "summary_large_image",

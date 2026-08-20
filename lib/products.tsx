@@ -100,7 +100,7 @@ export const PRODUCTS: ProductData[] = [
       body: "AI Evaluation scores open-ended work against your rubric and catches inconsistency across a candidate's whole session — surfacing anomalies for a human to confirm rather than auto-rejecting.",
       points: ["Long-form response and case-work grading", "Inconsistency detection across the session", "Human-in-the-loop review of flags", "Evidence-linked scores you can defend"],
     },
-    stat: { value: "84.9%", label: "scoring accuracy vs. benchmark", note: "Measured against expert human panels across 60+ types." },
+    stat: { value: "88.9%", label: "scoring accuracy vs. benchmark", note: "Measured against expert human panels across 60+ types." },
     capsTitle: "What it does.",
     caps: [
       { Icon: Sparkles, title: "AI interviewer", desc: "Adaptive, conversational assessment at scale." },
@@ -127,7 +127,7 @@ export const PRODUCTS: ProductData[] = [
       body: "The Live Coding IDE gives candidates a familiar environment with real repos and test suites. Sessions are recorded and scored so you evaluate process, not just the final answer.",
       points: ["Full browser IDE with test runners", "Real repositories and realistic tasks", "Session replay for process insight", "Anti-cheat tuned for the AI era"],
     },
-    stat: { value: "210ms", label: "median latency", note: "Fast enough that candidates forget they're in a test." },
+    stat: { value: "207ms", label: "median latency", note: "Fast enough that candidates forget they're in a test." },
     capsTitle: "What's inside.",
     caps: [
       { Icon: Terminal, title: "Full editor", desc: "Syntax, test runners, and real tooling in the browser." },
@@ -181,7 +181,7 @@ export const PRODUCTS: ProductData[] = [
       body: "Every assessment feeds a reporting layer: individual scorecards, cohort benchmarks, and pipeline analytics. Export audit-ready reports and spot where your process leaks the best candidates.",
       points: ["Ranked skills matrices per candidate", "Cohort and role benchmarks", "Funnel and time-to-shortlist analytics", "Exportable, audit-ready reports"],
     },
-    stat: { value: "2.4M+", label: "assessments benchmarked", note: "Compare candidates against a deep, relevant baseline." },
+    stat: { value: "1.2M+", label: "assessments benchmarked", note: "Compare candidates against a deep, relevant baseline." },
     capsTitle: "What you get.",
     caps: [
       { Icon: Bars, title: "Pipeline analytics", desc: "Where candidates advance, stall, or drop." },

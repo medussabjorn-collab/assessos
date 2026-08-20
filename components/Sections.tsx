@@ -141,8 +141,8 @@ export function Products() {
             <p>Prelim&apos;s assessors read long-form responses, code, and case work the way a senior reviewer would — scoring reasoning, not keywords, and catching inconsistency across a candidate&apos;s whole session.</p>
             <div className="statline">
               <div><div className="sv tnum">50+</div><div className="sl">File types parsed</div></div>
-              <div><div className="sv tnum">210<span style={{ fontSize: ".9rem" }}>ms</span></div><div className="sl">Median latency</div></div>
-              <div><div className="sv tnum">84.9<span style={{ fontSize: ".9rem" }}>%</span></div><div className="sl">Scoring accuracy</div></div>
+              <div><div className="sv tnum">207<span style={{ fontSize: ".9rem" }}>ms</span></div><div className="sl">Median latency</div></div>
+              <div><div className="sv tnum">88.9<span style={{ fontSize: ".9rem" }}>%</span></div><div className="sl">Scoring accuracy</div></div>
             </div>
           </div>
         </div>
@@ -165,7 +165,7 @@ export function Security() {
             <div className="tcell"><span className="ti"><ShieldCheck /></span><b>SOC 2 Type II</b><span>Independently audited every year.</span></div>
             <div className="tcell"><span className="ti"><Lock /></span><b>GDPR + DPA</b><span>Candidate data never trains models.</span></div>
             <div className="tcell"><span className="ti"><Server /></span><b>Cloud · VPC · On-prem</b><span>Deploy inside your own perimeter.</span></div>
-            <div className="tcell"><span className="ti"><Clock /></span><b>210ms median</b><span>Built for high-volume pipelines.</span></div>
+            <div className="tcell"><span className="ti"><Clock /></span><b>207ms median</b><span>Built for high-volume pipelines.</span></div>
           </div>
         </div>
       </div>

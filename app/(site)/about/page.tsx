@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 };
 
 const STATS = [
-  { v: "2.4M+", l: "Assessments completed" },
-  { v: "1,200+", l: "Hiring teams" },
+  { v: "1.2M+", l: "Assessments completed" },
+  { v: "1,117+", l: "Hiring teams" },
   { v: "60+", l: "Assessment types" },
-  { v: "84.9%", l: "Scoring accuracy" },
+  { v: "88.9%", l: "Scoring accuracy" },
 ];
 
 const VALUES = [

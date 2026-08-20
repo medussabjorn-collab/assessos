@@ -65,7 +65,7 @@ export default function PlatformPage() {
           ]}
           media={
             <div className="sd-panel">
-              <span className="sd-v tnum">84.9%</span>
+              <span className="sd-v tnum">88.9%</span>
               <span className="sd-l">scoring accuracy vs. benchmark</span>
               <p className="sd-note">Measured against expert human panels across 60+ assessment types.</p>
             </div>

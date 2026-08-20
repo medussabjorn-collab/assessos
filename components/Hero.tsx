@@ -34,7 +34,7 @@ export default function Hero() {
           </div>
           <div className="hero-foot">
             <span>SOC 2 Type II</span><span className="sep" />
-            <span>1,200+ hiring teams</span><span className="sep" />
+            <span>1,117+ hiring teams</span><span className="sep" />
             <span>Seed to Fortune 500</span>
           </div>
         </div>
@@ -60,10 +60,10 @@ export default function Hero() {
                 <div className="gauge">
                   <svg viewBox="0 0 120 120" aria-hidden="true">
                     <circle className="g-track" cx="60" cy="60" r="52" />
-                    <circle className="g-prog" cx="60" cy="60" r="52" data-pct="84.9" />
+                    <circle className="g-prog" cx="60" cy="60" r="52" data-pct="88.9" />
                   </svg>
                   <div className="g-center">
-                    <span className="big tnum" data-count="84.9">0.0</span>
+                    <span className="big tnum" data-count="88.9">0.0</span>
                     <span className="g-sub">/ 100 · COMPOSITE</span>
                   </div>
                 </div>
@@ -83,7 +83,7 @@ export default function Hero() {
                 ))}
               </div>
               <div className="console-foot">
-                <span>210ms median</span>
+                <span>207ms median</span>
                 <span>inconsistency: none</span>
                 <span>proctor: clean</span>
               </div>

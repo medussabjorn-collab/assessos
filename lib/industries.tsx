@@ -144,7 +144,7 @@ export const INDUSTRIES: Industry[] = [
       role: "Seasonal store lead, 400-location retailer",
       challenge: "Peak-season hiring needed thousands of screens in six weeks, and manual phone screens couldn't keep pace without cutting corners on quality.",
       approach: "Low-latency operations and customer-judgment scoring let store managers see a ranked shortlist within minutes of each candidate finishing.",
-      metric: { value: "210ms", label: "median scoring latency at 4,000+ concurrent tests" },
+      metric: { value: "207ms", label: "median scoring latency at 4,000+ concurrent tests" },
     },
   },
   {
