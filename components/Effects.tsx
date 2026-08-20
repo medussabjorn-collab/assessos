@@ -44,24 +44,49 @@ export default function Effects() {
       return;
     }
 
+    const reveal = (el: HTMLElement) => {
+      if (el.classList.contains("in")) return;
+      el.classList.add("in");
+      if (el.querySelector("#meters")) {
+        setTimeout(fillMeters, 150);
+        const cc = el.querySelector<HTMLElement>("[data-count]");
+        if (cc) countUp(cc);
+      }
+    };
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((en) => {
           if (!en.isIntersecting) return;
           const el = en.target as HTMLElement;
-          el.classList.add("in");
-          if (el.querySelector("#meters")) {
-            setTimeout(fillMeters, 150);
-            const cc = el.querySelector<HTMLElement>("[data-count]");
-            if (cc) countUp(cc);
-          }
+          reveal(el);
           io.unobserve(el);
         });
       },
       { threshold: 0.15 }
     );
     reveals.forEach((e) => io.observe(e));
-    return () => io.disconnect();
+
+    // Safety net: if the observer never fires for an above-the-fold element
+    // (slow hydration, backgrounded tab, browser IO quirks), force it visible
+    // rather than leaving content permanently hidden behind opacity:0.
+    const fallback = window.setTimeout(() => {
+      reveals.forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight) {
+          // Skip the CSS transition here: on a throttled/backgrounded tab the
+          // transition can get stuck mid-flight (currentTime frozen at 0),
+          // leaving opacity permanently at 0 even after the "in" class lands.
+          el.style.transition = "none";
+          reveal(el);
+        }
+      });
+    }, 1200);
+
+    return () => {
+      io.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   return null;
