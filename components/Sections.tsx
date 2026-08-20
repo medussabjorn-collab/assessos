@@ -6,7 +6,7 @@ import {
 import { INDUSTRIES } from "@/lib/industries";
 import { ClientMark, IntegrationMark } from "./BrandMark";
 
-const CLIENTS = ["Northwind", "Carlyle", "Meridian", "VantPay", "Astraflow", "Helix", "3Capital"];
+const CLIENTS = ["Northwind", "Carlyle", "Meridian", "VantPay", "Astraflow", "Helix", "3Capital", "Berenike & Bion"];
 
 export function Clients() {
   return (
