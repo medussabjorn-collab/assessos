@@ -4,6 +4,7 @@ import {
   Bars, Plug, Lock, Server, Clock,
 } from "./icons";
 import { INDUSTRIES } from "@/lib/industries";
+import { ClientMark, IntegrationMark } from "./BrandMark";
 
 const CLIENTS = ["Northwind", "Carlyle", "Meridian", "VantPay", "Astraflow", "Helix", "3Capital"];
 
@@ -13,7 +14,7 @@ export function Clients() {
       <div className="wrap">
         <p>The assessment layer behind hiring teams at regulated enterprises</p>
         <div className="logos">
-          {CLIENTS.map((c) => <span className="lg" key={c}>{c}</span>)}
+          {CLIENTS.map((c, i) => <ClientMark name={c} index={i} key={c} />)}
         </div>
       </div>
     </div>
@@ -238,8 +239,7 @@ export function Integrations() {
         <div className="integ stagger">
           {INTEGRATIONS.map((i) => (
             <div className="integ-chip" key={i}>
-              <span className="integ-dot" />
-              {i}
+              <IntegrationMark name={i} />
             </div>
           ))}
         </div>
