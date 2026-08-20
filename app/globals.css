@@ -259,6 +259,7 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:700;text-wrap:ba
 .prow .pic svg{width:22px;height:22px}
 .prow .pt{font-weight:600;font-size:1.02rem}
 .prow .pd{font-size:.85rem;color:var(--ink-3)}
+.prow .pr-roles{font-size:.78rem;color:var(--accent);margin-top:.3rem;font-family:var(--font-code)}
 .prow .parr{color:var(--ink-3);font-family:var(--font-code);font-size:.8rem;opacity:0;transition:opacity .2s}
 .prow:hover .parr{opacity:1}
 .prodpanel{position:sticky;top:90px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:2rem;box-shadow:var(--sh-2)}

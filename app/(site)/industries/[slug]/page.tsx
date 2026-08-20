@@ -113,6 +113,12 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
               <div>
                 <div className="pt">{p.name}</div>
                 <div className="pd">{p.blurb}</div>
+                {p.roles && p.roles.length > 0 && (
+                  <div className="pr-roles">
+                    {p.roles.slice(0, 3).join(" · ")}
+                    {p.roles.length > 3 ? ` +${p.roles.length - 3} more` : ""}
+                  </div>
+                )}
               </div>
               <span className="parr">→</span>
             </Link>
