@@ -8,6 +8,7 @@ export type Track = {
   Icon: Icon;
   tagline: string;
   href: string;
+  roles: string[]; // representative job titles Prelim assesses for this track
 };
 
 export type Scenario = {
@@ -30,9 +31,9 @@ export type Industry = {
   faq: { q: string; a: string }[]; // industry-specific questions
 };
 
-const leadership = (tagline: string): Track => ({ type: "Leadership Hiring", Icon: Shield, tagline, href: "/solutions/leadership-hiring" });
-const technical = (tagline: string): Track => ({ type: "Technical Hiring", Icon: Code, tagline, href: "/solutions/technical-hiring" });
-const nonIt = (tagline: string): Track => ({ type: "Non-IT Hiring", Icon: Users, tagline, href: "/solutions/non-it-hiring" });
+const leadership = (tagline: string, roles: string[]): Track => ({ type: "Leadership Hiring", Icon: Shield, tagline, href: "/solutions/leadership-hiring", roles });
+const technical = (tagline: string, roles: string[]): Track => ({ type: "Technical Hiring", Icon: Code, tagline, href: "/solutions/technical-hiring", roles });
+const nonIt = (tagline: string, roles: string[]): Track => ({ type: "Non-IT Hiring", Icon: Users, tagline, href: "/solutions/non-it-hiring", roles });
 
 export const INDUSTRIES: Industry[] = [
   {
@@ -42,10 +43,10 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Engineering depth, product sense, and on-call judgment for high-growth teams.",
     intro: "From staff engineers to VPs of Product, tech hiring lives or dies on real ability. Prelim measures how candidates actually build, lead, and go to market — not how well they interview.",
     tracks: [
-      { type: "Engineering Leadership", Icon: Shield, tagline: "Hire directors and VPs who can scale an eng or product org, not just run one.", href: "/solutions/leadership-hiring" },
-      { type: "Backend & Platform", Icon: Code, tagline: "Distributed systems, APIs, and infrastructure — assessed with a live coding IDE and system-design tasks.", href: "/solutions/technical-hiring" },
-      { type: "Frontend & Product Eng", Icon: Sparkles, tagline: "UI craft and product sense, assessed on real feature work, not algorithm trivia.", href: "/solutions/technical-hiring" },
-      { type: "Data, ML & Infra", Icon: Server, tagline: "Data pipelines, ML systems, and DevOps — assessed on realistic operational scenarios.", href: "/solutions/technical-hiring" },
+      { type: "Engineering Leadership", Icon: Shield, tagline: "Hire directors and VPs who can scale an eng or product org, not just run one.", href: "/solutions/leadership-hiring", roles: ["VP of Engineering", "Director of Engineering", "Engineering Manager", "Head of Product", "CTO"] },
+      { type: "Backend & Platform", Icon: Code, tagline: "Distributed systems, APIs, and infrastructure — assessed with a live coding IDE and system-design tasks.", href: "/solutions/technical-hiring", roles: ["Backend Engineer", "Platform Engineer", "Staff Engineer", "Site Reliability Engineer"] },
+      { type: "Frontend & Product Eng", Icon: Sparkles, tagline: "UI craft and product sense, assessed on real feature work, not algorithm trivia.", href: "/solutions/technical-hiring", roles: ["Frontend Engineer", "Full-Stack Engineer", "Product Engineer", "UI Engineer"] },
+      { type: "Data, ML & Infra", Icon: Server, tagline: "Data pipelines, ML systems, and DevOps — assessed on realistic operational scenarios.", href: "/solutions/technical-hiring", roles: ["Data Engineer", "ML Engineer", "DevOps Engineer", "Cloud Infrastructure Engineer"] },
     ],
     focus: ["Live coding & system design", "Product and technical judgment", "Data & infrastructure aptitude", "Leadership at scale"],
     scenario: {
@@ -71,9 +72,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Excel modeling, analytical reasoning, regulatory knowledge, and integrity signals.",
     intro: "In finance, a bad hire is a compliance and P&L risk. Prelim brings defensible, audit-ready assessment to every seat — from analysts to executives — with the controls procurement demands.",
     tracks: [
-      leadership("Vet executives on judgment, integrity, and decisions made under regulatory pressure."),
-      technical("Screen quant and platform engineers on realistic, secure engineering tasks."),
-      nonIt("Test analysts on Excel modeling, analytical reasoning, and regulatory knowledge."),
+      leadership("Vet executives on judgment, integrity, and decisions made under regulatory pressure.", ["Chief Risk Officer", "VP of Finance", "Head of Compliance", "Branch Manager", "Managing Director"]),
+      technical("Screen quant and platform engineers on realistic, secure engineering tasks.", ["Quant Developer", "Trading Systems Engineer", "Data Engineer", "Platform Engineer"]),
+      nonIt("Test analysts on Excel modeling, analytical reasoning, and regulatory knowledge.", ["Financial Analyst", "Credit Analyst", "Underwriter", "Loan Officer", "Compliance Officer", "Auditor", "Treasury Analyst", "Wealth Manager"]),
     ],
     focus: ["Financial modeling & analysis", "Regulatory and compliance knowledge", "Integrity and risk judgment", "Audit-ready reporting"],
     scenario: {
@@ -99,9 +100,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Clinical knowledge, patient-communication scenarios, and compliance awareness.",
     intro: "Healthcare hiring balances clinical competence with communication and compliance. Prelim assesses all three fairly and accessibly, with deployment that keeps sensitive data inside your perimeter.",
     tracks: [
-      leadership("Assess clinical and operational leaders on decisions that carry real risk."),
-      technical("Evaluate health-tech engineers on secure, compliant, real-world builds."),
-      nonIt("Measure clinical knowledge and patient-communication skills at scale."),
+      leadership("Assess clinical and operational leaders on decisions that carry real risk.", ["Chief Nursing Officer", "Clinical Director", "Practice Manager", "VP of Clinical Operations"]),
+      technical("Evaluate health-tech engineers on secure, compliant, real-world builds.", ["Health IT Engineer", "Clinical Systems Analyst", "EHR Integration Engineer"]),
+      nonIt("Measure clinical knowledge and patient-communication skills at scale.", ["Registered Nurse", "Medical Assistant", "Patient Care Coordinator", "Clinical Documentation Specialist", "Physician", "Pharmacist"]),
     ],
     focus: ["Clinical knowledge", "Patient communication scenarios", "Compliance and safety awareness", "Data residency & privacy"],
     scenario: {
@@ -127,9 +128,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Legal research, contract drafting, and compliance reasoning under pressure.",
     intro: "Legal hiring rewards precision and judgment. Prelim measures research, drafting, and reasoning through realistic work samples — so you see how a candidate thinks, not just where they studied.",
     tracks: [
-      leadership("Assess partners and general counsel on judgment and governance."),
-      technical("Vet legal-tech engineers on practical, real-world engineering tasks."),
-      nonIt("Test legal research, contract drafting, and compliance reasoning."),
+      leadership("Assess partners and general counsel on judgment and governance.", ["General Counsel", "Managing Partner", "Practice Group Leader"]),
+      technical("Vet legal-tech engineers on practical, real-world engineering tasks.", ["Legal Tech Engineer", "eDiscovery Engineer", "Contract Automation Developer"]),
+      nonIt("Test legal research, contract drafting, and compliance reasoning.", ["Associate Attorney", "Paralegal", "Legal Researcher", "Contract Manager", "Compliance Counsel"]),
     ],
     focus: ["Legal research & analysis", "Contract drafting work samples", "Compliance reasoning", "Governance judgment"],
     scenario: {
@@ -155,9 +156,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Process reasoning, safety judgment, and operations aptitude for the plant floor.",
     intro: "Manufacturing hiring spans the plant floor to the C-suite. Prelim measures process reasoning, safety judgment, and technical skill so you place the right people where reliability matters most.",
     tracks: [
-      leadership("Hire plant and operations leaders on safety culture and process judgment."),
-      technical("Assess automation and controls engineers on real, applied problems."),
-      nonIt("Measure operations, quality, and supply-chain aptitude across roles."),
+      leadership("Hire plant and operations leaders on safety culture and process judgment.", ["Plant Manager", "VP of Operations", "Director of Manufacturing"]),
+      technical("Assess automation and controls engineers on real, applied problems.", ["Automation Engineer", "Controls Engineer", "Manufacturing Systems Engineer"]),
+      nonIt("Measure operations, quality, and supply-chain aptitude across roles.", ["Quality Manager", "Production Supervisor", "Supply Chain Analyst", "Process Engineer", "Safety Coordinator"]),
     ],
     focus: ["Process & operations reasoning", "Safety judgment", "Automation and controls skills", "Supply-chain aptitude"],
     scenario: {
@@ -183,9 +184,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Customer judgment and operations for high-volume, seasonal hiring.",
     intro: "Retail and e-commerce hire fast, at volume, and seasonally. Prelim's low-latency scoring lets you screen thousands fairly — from store associates to the engineers keeping storefronts fast.",
     tracks: [
-      leadership("Vet retail and e-commerce leaders on customer and operations judgment."),
-      technical("Screen platform and data engineers who keep storefronts fast and reliable."),
-      nonIt("Assess high-volume store, support, and merchandising roles at speed."),
+      leadership("Vet retail and e-commerce leaders on customer and operations judgment.", ["VP of Retail Operations", "Regional Store Director", "Head of E-commerce"]),
+      technical("Screen platform and data engineers who keep storefronts fast and reliable.", ["E-commerce Platform Engineer", "Data Engineer", "Site Reliability Engineer"]),
+      nonIt("Assess high-volume store, support, and merchandising roles at speed.", ["Store Manager", "Merchandiser", "Customer Service Representative", "Inventory Analyst", "Buyer"]),
     ],
     focus: ["Customer judgment", "High-volume, low-latency screening", "Operations & merchandising aptitude", "Storefront engineering skills"],
     scenario: {
@@ -211,9 +212,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Communication, problem-solving, and throughput at contact-center scale.",
     intro: "Contact-center hiring is a throughput game where quality still matters. Prelim screens for communication and problem-solving at scale, so you fill seats fast without lowering the bar.",
     tracks: [
-      leadership("Hire operations leaders who run high-throughput support teams well."),
-      technical("Assess tooling and automation engineers who scale support operations."),
-      nonIt("Screen communication and problem-solving at contact-center volume."),
+      leadership("Hire operations leaders who run high-throughput support teams well.", ["Operations Director", "Contact Center Manager", "VP of Customer Experience"]),
+      technical("Assess tooling and automation engineers who scale support operations.", ["Support Tooling Engineer", "Automation Engineer", "IVR/Telephony Engineer"]),
+      nonIt("Screen communication and problem-solving at contact-center volume.", ["Customer Support Representative", "Technical Support Agent", "Team Lead", "Quality Analyst"]),
     ],
     focus: ["Communication skills", "Problem-solving under pressure", "High-throughput screening", "Support tooling & automation"],
     scenario: {
@@ -239,9 +240,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Actuarial reasoning, underwriting judgment, and claims-handling skills.",
     intro: "Insurance runs on judgment under uncertainty. Prelim assesses actuarial reasoning, underwriting decisions, and claims handling — with the compliance and audit trail carriers require.",
     tracks: [
-      leadership("Vet executives on risk appetite, governance, and regulatory judgment."),
-      technical("Assess actuarial, data, and platform engineers on real, applied problems."),
-      nonIt("Test underwriting judgment, claims handling, and analytical reasoning."),
+      leadership("Vet executives on risk appetite, governance, and regulatory judgment.", ["Chief Underwriting Officer", "VP of Claims", "Regional Sales Director"]),
+      technical("Assess actuarial, data, and platform engineers on real, applied problems.", ["Actuarial Data Scientist", "Claims Systems Engineer", "Platform Engineer"]),
+      nonIt("Test underwriting judgment, claims handling, and analytical reasoning.", ["Underwriter", "Claims Adjuster", "Actuary", "Insurance Agent", "Risk Analyst"]),
     ],
     focus: ["Actuarial & analytical reasoning", "Underwriting judgment", "Claims-handling scenarios", "Regulatory compliance"],
     scenario: {
@@ -267,9 +268,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Field operations, safety judgment, and technical reliability skills.",
     intro: "Energy and utilities can't afford unreliable hires. Prelim measures safety judgment, operations aptitude, and engineering skill for roles where uptime and compliance are non-negotiable.",
     tracks: [
-      leadership("Hire operations and grid leaders on safety culture and reliability judgment."),
-      technical("Assess field, controls, and platform engineers on applied problems."),
-      nonIt("Measure operations, compliance, and field-service aptitude."),
+      leadership("Hire operations and grid leaders on safety culture and reliability judgment.", ["Director of Grid Operations", "VP of Engineering", "Plant Manager"]),
+      technical("Assess field, controls, and platform engineers on applied problems.", ["Controls Engineer", "SCADA Engineer", "Grid Software Engineer"]),
+      nonIt("Measure operations, compliance, and field-service aptitude.", ["Field Technician", "Operations Analyst", "Safety Officer", "Energy Trader"]),
     ],
     focus: ["Safety & reliability judgment", "Field operations aptitude", "Controls & engineering skills", "Regulatory compliance"],
     scenario: {
@@ -295,9 +296,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Network engineering, customer operations, and platform reliability.",
     intro: "Telecom hires span network engineers to high-volume support. Prelim screens for technical depth and customer aptitude at the scale carriers hire, without lowering the bar.",
     tracks: [
-      leadership("Vet leaders on network reliability, scale, and customer judgment."),
-      technical("Assess network and platform engineers on realistic, applied tasks."),
-      nonIt("Screen sales, care, and field roles at high volume and speed."),
+      leadership("Vet leaders on network reliability, scale, and customer judgment.", ["VP of Network Operations", "Director of Customer Care", "Regional Manager"]),
+      technical("Assess network and platform engineers on realistic, applied tasks.", ["Network Engineer", "RF Engineer", "Platform Engineer"]),
+      nonIt("Screen sales, care, and field roles at high volume and speed.", ["Customer Care Representative", "Field Technician", "Sales Executive", "Account Manager"]),
     ],
     focus: ["Network & platform engineering", "Reliability at scale", "High-volume support aptitude", "Customer judgment"],
     scenario: {
@@ -323,9 +324,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Creative judgment, product craft, and audience-scale engineering.",
     intro: "Media hires balance creative craft with technical scale. Prelim assesses product judgment, engineering ability, and the operational roles that keep content flowing to audiences.",
     tracks: [
-      leadership("Assess leaders on creative judgment, product vision, and scale."),
-      technical("Evaluate streaming, data, and platform engineers on real problems."),
-      nonIt("Measure production, marketing, and operations aptitude."),
+      leadership("Assess leaders on creative judgment, product vision, and scale.", ["VP of Content", "Head of Product", "Executive Producer"]),
+      technical("Evaluate streaming, data, and platform engineers on real problems.", ["Streaming Platform Engineer", "Data Engineer", "Broadcast Systems Engineer"]),
+      nonIt("Measure production, marketing, and operations aptitude.", ["Producer", "Content Marketing Manager", "Talent Coordinator", "Distribution Manager"]),
     ],
     focus: ["Product & creative judgment", "Streaming and platform engineering", "Audience-scale operations", "Marketing aptitude"],
     scenario: {
@@ -351,9 +352,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Instructional skill, communication, and academic-operations judgment.",
     intro: "Education hiring rewards communication and judgment as much as knowledge. Prelim assesses instructional skill, subject knowledge, and the operations roles that keep institutions running.",
     tracks: [
-      leadership("Vet academic and administrative leaders on judgment and governance."),
-      technical("Assess ed-tech engineers on secure, accessible, real-world builds."),
-      nonIt("Measure instructional skill, communication, and subject knowledge."),
+      leadership("Vet academic and administrative leaders on judgment and governance.", ["Principal", "Academic Dean", "Director of Curriculum"]),
+      technical("Assess ed-tech engineers on secure, accessible, real-world builds.", ["Ed-Tech Engineer", "LMS Administrator", "Data Analyst"]),
+      nonIt("Measure instructional skill, communication, and subject knowledge.", ["Teacher", "Instructional Coordinator", "Admissions Counselor", "Student Services Advisor"]),
     ],
     focus: ["Instructional & communication skill", "Subject-matter knowledge", "Accessibility & fairness", "Academic operations"],
     scenario: {
@@ -379,9 +380,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Policy judgment, compliance, and fair, defensible assessment at scale.",
     intro: "Public-sector hiring must be fair, defensible, and compliant. Prelim brings audit-ready, accessible assessment to government roles — with deployment options that meet strict data requirements.",
     tracks: [
-      leadership("Assess public leaders on policy judgment and governance."),
-      technical("Vet civic-tech engineers on secure, accessible, compliant builds."),
-      nonIt("Measure policy analysis, administration, and service aptitude."),
+      leadership("Assess public leaders on policy judgment and governance.", ["Agency Director", "Deputy Commissioner", "Program Manager"]),
+      technical("Vet civic-tech engineers on secure, accessible, compliant builds.", ["Civic-Tech Engineer", "GIS Analyst", "IT Systems Administrator"]),
+      nonIt("Measure policy analysis, administration, and service aptitude.", ["Policy Analyst", "Program Coordinator", "Case Worker", "Compliance Officer"]),
     ],
     focus: ["Fair, defensible scoring", "Policy & analytical reasoning", "Accessibility compliance", "On-prem / VPC deployment"],
     scenario: {
@@ -407,9 +408,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Project judgment, safety, and operations aptitude across the build cycle.",
     intro: "From project managers to field crews, construction and real estate hire for judgment and reliability. Prelim measures operations aptitude, safety judgment, and technical skill across the build cycle.",
     tracks: [
-      leadership("Hire project and portfolio leaders on judgment and delivery."),
-      technical("Assess proptech and systems engineers on applied problems."),
-      nonIt("Measure project management, safety, and operations aptitude."),
+      leadership("Hire project and portfolio leaders on judgment and delivery.", ["VP of Construction", "Project Executive", "Development Director"]),
+      technical("Assess proptech and systems engineers on applied problems.", ["BIM Engineer", "PropTech Developer", "Estimating Systems Analyst"]),
+      nonIt("Measure project management, safety, and operations aptitude.", ["Project Manager", "Site Superintendent", "Estimator", "Property Manager", "Leasing Agent"]),
     ],
     focus: ["Project & operations judgment", "Safety awareness", "Estimating & analytical skills", "Field reliability"],
     scenario: {
@@ -435,9 +436,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Operations reasoning, safety, and high-volume workforce screening.",
     intro: "Logistics hires at volume where reliability is everything. Prelim's low-latency scoring screens operations, safety, and technical roles fast — without sacrificing quality.",
     tracks: [
-      leadership("Vet operations leaders on network judgment and reliability."),
-      technical("Assess routing, data, and platform engineers on real problems."),
-      nonIt("Screen high-volume operations and driver roles at speed."),
+      leadership("Vet operations leaders on network judgment and reliability.", ["VP of Logistics", "Fleet Operations Director", "Supply Chain VP"]),
+      technical("Assess routing, data, and platform engineers on real problems.", ["Routing Systems Engineer", "Data Engineer", "Telematics Engineer"]),
+      nonIt("Screen high-volume operations and driver roles at speed.", ["Dispatcher", "Driver", "Warehouse Supervisor", "Logistics Coordinator"]),
     ],
     focus: ["Operations & routing reasoning", "Safety judgment", "High-volume screening", "Supply-chain aptitude"],
     scenario: {
@@ -463,9 +464,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Service judgment, communication, and high-volume seasonal screening.",
     intro: "Hospitality lives and dies on service. Prelim screens for communication and judgment at the volume and seasonality this industry hires — so you fill seats fast with the right people.",
     tracks: [
-      leadership("Hire property and operations leaders on service and P&L judgment."),
-      technical("Assess booking and platform engineers who keep systems reliable."),
-      nonIt("Measure service, communication, and operations aptitude at scale."),
+      leadership("Hire property and operations leaders on service and P&L judgment.", ["General Manager", "VP of Guest Experience", "Regional Director of Operations"]),
+      technical("Assess booking and platform engineers who keep systems reliable.", ["Booking Platform Engineer", "Reservations Systems Engineer", "Data Engineer"]),
+      nonIt("Measure service, communication, and operations aptitude at scale.", ["Front Desk Agent", "Concierge", "Event Coordinator", "Guest Services Manager"]),
     ],
     focus: ["Service & communication judgment", "High-volume, seasonal screening", "Operations aptitude", "Fair candidate experience"],
     scenario: {
@@ -491,9 +492,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Scientific reasoning, regulatory rigor, and quality judgment.",
     intro: "Life sciences hiring demands scientific rigor and regulatory discipline. Prelim assesses reasoning, domain knowledge, and quality judgment — with the compliance and audit trail the industry requires.",
     tracks: [
-      leadership("Assess R&D and commercial leaders on scientific and regulatory judgment."),
-      technical("Evaluate bioinformatics and platform engineers on real, secure tasks."),
-      nonIt("Measure scientific knowledge, quality, and regulatory reasoning."),
+      leadership("Assess R&D and commercial leaders on scientific and regulatory judgment.", ["VP of R&D", "Director of Regulatory Affairs", "Head of Clinical Operations"]),
+      technical("Evaluate bioinformatics and platform engineers on real, secure tasks.", ["Bioinformatics Engineer", "Lab Systems Engineer", "Data Scientist"]),
+      nonIt("Measure scientific knowledge, quality, and regulatory reasoning.", ["Research Associate", "Regulatory Affairs Specialist", "Clinical Research Coordinator", "Quality Assurance Specialist"]),
     ],
     focus: ["Scientific reasoning", "Regulatory & quality rigor", "Domain knowledge", "Audit-ready reporting"],
     scenario: {
@@ -519,9 +520,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Analytical rigor, client judgment, and communication under pressure.",
     intro: "Consulting and professional services sell judgment. Prelim measures analytical rigor, client communication, and problem-solving through realistic work samples — so you hire people clients trust.",
     tracks: [
-      leadership("Vet partners and principals on client judgment and delivery."),
-      technical("Assess data and platform engineers on applied, real-world problems."),
-      nonIt("Test analytical reasoning, client communication, and problem-solving."),
+      leadership("Vet partners and principals on client judgment and delivery.", ["Partner", "Managing Director", "Practice Lead"]),
+      technical("Assess data and platform engineers on applied, real-world problems.", ["Data Engineer", "Analytics Platform Engineer"]),
+      nonIt("Test analytical reasoning, client communication, and problem-solving.", ["Consultant", "Business Analyst", "Client Services Manager", "Research Analyst"]),
     ],
     focus: ["Analytical & case reasoning", "Client communication", "Problem-solving work samples", "Judgment under pressure"],
     scenario: {

@@ -25,6 +25,16 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
   if (!ind) notFound();
   const showTech = ind.slug === "technology-saas";
 
+  // Non-IT first, per request; other tracks follow in their existing order.
+  const roleGroups = [
+    ...ind.tracks.filter((t) => t.type === "Non-IT Hiring"),
+    ...ind.tracks.filter((t) => t.type !== "Non-IT Hiring"),
+  ];
+
+  // Auto-alternating band background — avoids hand-tracked tint props as sections are added/removed.
+  let bandIndex = 0;
+  const nextTint = () => bandIndex++ % 2 === 1;
+
   return (
     <>
       <PageHero
@@ -34,14 +44,14 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         secondary={{ label: "All industries", href: "/industries" }}
       />
 
-      <Band>
+      <Band tint={nextTint()}>
         <div className="ind-overview rv">
           <h2>{ind.overview.title}</h2>
           <p>{ind.overview.body}</p>
         </div>
       </Band>
 
-      <Band tint>
+      <Band tint={nextTint()}>
         <SectionHead
           title="Choose your hiring track."
           sub={`The hiring problems that matter in ${ind.name.toLowerCase()} — one platform, one scoring model.`}
@@ -58,14 +68,31 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </div>
       </Band>
 
+      <Band tint={nextTint()}>
+        <SectionHead
+          title="Roles we help you hire."
+          sub={`Representative job titles Prelim assesses for ${ind.name.toLowerCase()}, grouped by track.`}
+        />
+        <div className="techstack rv">
+          {roleGroups.map((t) => (
+            <div className="ts-group" key={t.type}>
+              <span className="ts-cat">{t.type}</span>
+              <div className="ts-chips">
+                {t.roles.map((r) => <span className="ts-chip" key={r}>{r}</span>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Band>
+
       {showTech && (
-        <Band>
+        <Band tint={nextTint()}>
           <SectionHead title="Supported languages & frameworks." sub="The live coding environment covers the stacks your engineers actually use." />
           <TechStack />
         </Band>
       )}
 
-      <Band tint={showTech}>
+      <Band tint={nextTint()}>
         <SectionHead title={`What Prelim assesses in ${ind.name}.`} />
         <ul className="checklist focus-cols rv">
           {ind.focus.map((f) => (
@@ -74,7 +101,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </ul>
       </Band>
 
-      <Band tint={!showTech}>
+      <Band tint={nextTint()}>
         <SectionHead
           title="The full product catalog."
           sub={`Every module below is available for ${ind.name.toLowerCase()} hiring, feeding the same scoring model as your chosen track.`}
@@ -93,7 +120,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </div>
       </Band>
 
-      <Band tint={showTech}>
+      <Band tint={nextTint()}>
         <div className="scenario rv">
           <div className="scenario-body">
             <span className="scenario-role">{ind.scenario.role}</span>
@@ -114,7 +141,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </div>
       </Band>
 
-      <Band tint={!showTech}>
+      <Band tint={nextTint()}>
         <SectionHead title={`Questions ${ind.name.toLowerCase()} teams ask us.`} />
         <FAQ items={ind.faq} />
       </Band>
