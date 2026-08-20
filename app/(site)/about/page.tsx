@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHero, Band, SectionHead, CardGrid, CTASection } from "@/components/page";
+import { PhotoBand } from "@/components/Photo";
 import { Scale, Target, ShieldCheck, Users } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default function AboutPage() {
         crumb="Company"
         title="Hiring judgment, made defensible."
         sub="Prelim is the assessment layer behind enterprise hiring. We help teams measure leadership, technical, and non-IT candidates on one structured model — so the best decision and the defensible decision are the same one."
-        secondary={{ label: "See careers", href: "/contact" }}
+        secondary={{ label: "See careers", href: "/careers" }}
       />
 
       <Band>
@@ -41,6 +42,10 @@ export default function AboutPage() {
             </div>
           ))}
         </div>
+      </Band>
+
+      <Band style={{ paddingTop: 0 }}>
+        <PhotoBand src="/images/team-collaboration.jpg" alt="Prelim team members collaborating around a laptop" />
       </Band>
 
       <Band tint>

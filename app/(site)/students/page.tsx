@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import StudentAccess from "@/components/StudentAccess";
+import { PhotoBand } from "@/components/Photo";
 import { Check, Clock, ShieldCheck } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -31,6 +32,9 @@ export default function StudentsPage() {
             ))}
           </ul>
           <p className="students-help">Trouble logging in? <a href="/contact/" className="login-link">Contact support</a> or check your invite email for a direct link.</p>
+          <div style={{ marginTop: "2rem" }}>
+            <PhotoBand src="/images/students-laptop.jpg" alt="Students taking an assessment together on a laptop" ratio="wide" />
+          </div>
         </div>
         <div className="rv contact-card">
           <StudentAccess />

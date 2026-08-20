@@ -41,9 +41,19 @@ export function PageHero({
   );
 }
 
-export function Band({ children, id, tint }: { children: ReactNode; id?: string; tint?: boolean }) {
+export function Band({
+  children,
+  id,
+  tint,
+  style,
+}: {
+  children: ReactNode;
+  id?: string;
+  tint?: boolean;
+  style?: React.CSSProperties;
+}) {
   return (
-    <section className={`blk${tint ? " band" : ""}`} id={id}>
+    <section className={`blk${tint ? " band" : ""}`} id={id} style={style}>
       <div className="wrap">{children}</div>
     </section>
   );

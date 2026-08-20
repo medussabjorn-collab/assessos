@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero, Band, SectionHead, CTASection } from "@/components/page";
+import { PhotoBand } from "@/components/Photo";
 import { ArrowUpRight } from "@/components/icons";
 import { PRODUCTS } from "@/lib/products";
 
@@ -32,6 +33,10 @@ export default function ProductsPage() {
             </Link>
           ))}
         </div>
+      </Band>
+
+      <Band style={{ paddingTop: 0 }}>
+        <PhotoBand src="/images/code-terminal.jpg" alt="Code and terminal output on a developer's screen" ratio="wide" />
       </Band>
 
       <CTASection title="Compose the assessment your role needs." sub="Tell us the role. We'll show you exactly which modules to turn on and what the scorecard looks like." />

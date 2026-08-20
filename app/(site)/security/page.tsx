@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHero, Band, SectionHead, CardGrid, FAQ, CTASection } from "@/components/page";
+import { PhotoBand } from "@/components/Photo";
 import { ShieldCheck, Lock, Server, Clock, Globe, Scale } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -31,6 +32,10 @@ export default function SecurityPage() {
       <Band>
         <SectionHead title="Controls that pass procurement." />
         <CardGrid items={CONTROLS} />
+      </Band>
+
+      <Band style={{ paddingTop: 0 }}>
+        <PhotoBand src="/images/enterprise-meeting.jpg" alt="Enterprise team reviewing reports in a boardroom" ratio="wide" />
       </Band>
 
       <Band tint>

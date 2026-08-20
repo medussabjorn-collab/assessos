@@ -252,12 +252,16 @@ export function CTA() {
   return (
     <section className="blk" id="cta" style={{ paddingTop: 0 }}>
       <div className="wrap">
-        <div className="cta rv">
-          <h2>See Prelim on your roles.</h2>
-          <p>Bring three real openings. We&apos;ll build the assessments live and show you the scorecards in 30 minutes.</p>
-          <div className="hero-cta">
-            <Link className="btn btn-primary" href="/contact">Book a demo <Arrow /></Link>
-            <Link className="btn btn-ghost" href="/pricing">See pricing</Link>
+        <div className="cta-banner rv">
+          <div className="cb-img"><img src="/images/hero-interview.jpg" alt="" loading="lazy" decoding="async" /></div>
+          <div className="cb-scrim" />
+          <div className="cb-content">
+            <h2>See Prelim on your roles.</h2>
+            <p>Bring three real openings. We&apos;ll build the assessments live and show you the scorecards in 30 minutes.</p>
+            <div className="hero-cta" style={{ justifyContent: "center", marginBottom: 0 }}>
+              <Link className="btn btn-primary" href="/contact">Book a demo <Arrow /></Link>
+              <Link className="btn btn-ghost" href="/pricing">See pricing</Link>
+            </div>
           </div>
         </div>
       </div>
