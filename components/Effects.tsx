@@ -67,25 +67,33 @@ export default function Effects() {
     );
     reveals.forEach((e) => io.observe(e));
 
-    // Safety net: if the observer never fires for an above-the-fold element
-    // (slow hydration, backgrounded tab, browser IO quirks), force it visible
-    // rather than leaving content permanently hidden behind opacity:0.
-    const fallback = window.setTimeout(() => {
+    // Safety net: if the observer stays silent or its transition gets stuck
+    // (throttled/backgrounded tab, browser IO quirks), force visibility
+    // instead of leaving content permanently hidden behind opacity:0. Polls
+    // rather than checking once, so content scrolled into view later still
+    // gets a chance — a single fixed-delay check would only catch whatever
+    // was already on-screen at that moment.
+    const poll = window.setInterval(() => {
+      let pending = false;
       reveals.forEach((el) => {
+        if (el.classList.contains("in")) return;
         const r = el.getBoundingClientRect();
-        if (r.top < window.innerHeight) {
+        if (r.bottom > 0 && r.top < window.innerHeight) {
           // Skip the CSS transition here: on a throttled/backgrounded tab the
           // transition can get stuck mid-flight (currentTime frozen at 0),
           // leaving opacity permanently at 0 even after the "in" class lands.
           el.style.transition = "none";
           reveal(el);
+        } else {
+          pending = true;
         }
       });
-    }, 1200);
+      if (!pending) window.clearInterval(poll);
+    }, 800);
 
     return () => {
       io.disconnect();
-      window.clearTimeout(fallback);
+      window.clearInterval(poll);
     };
   }, []);
 
