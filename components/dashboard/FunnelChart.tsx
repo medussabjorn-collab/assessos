@@ -16,7 +16,7 @@ export function FunnelChart({ stages }: { stages: FunnelStage[] }) {
           <div className="df-track">
             <div
               className="df-fill"
-              style={{ width: inView ? `${(s.value / max) * 100}%` : 0 }}
+              style={{ transform: `scaleX(${inView ? s.value / max : 0})` }}
             />
           </div>
           <span className="df-val">{s.display}</span>
