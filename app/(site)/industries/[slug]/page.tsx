@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { PageHero, Band, SectionHead, CTASection } from "@/components/page";
+import { PageHero, Band, SectionHead, CTASection, FAQ } from "@/components/page";
 import { ArrowUpRight, Check } from "@/components/icons";
 import { INDUSTRIES, industryBySlug } from "@/lib/industries";
 
@@ -32,6 +32,13 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
       />
 
       <Band>
+        <div className="ind-overview rv">
+          <h2>{ind.overview.title}</h2>
+          <p>{ind.overview.body}</p>
+        </div>
+      </Band>
+
+      <Band tint>
         <SectionHead
           title="Choose your hiring track."
           sub={`The three hiring problems in ${ind.name.toLowerCase()} — one platform, one scoring model.`}
@@ -48,7 +55,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </div>
       </Band>
 
-      <Band tint>
+      <Band>
         <SectionHead title={`What Prelim assesses in ${ind.name}.`} />
         <ul className="checklist focus-cols rv">
           {ind.focus.map((f) => (
@@ -57,7 +64,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </ul>
       </Band>
 
-      <Band>
+      <Band tint>
         <div className="scenario rv">
           <div className="scenario-body">
             <span className="scenario-role">{ind.scenario.role}</span>
@@ -76,6 +83,11 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
             <span className="sm-l">{ind.scenario.metric.label}</span>
           </div>
         </div>
+      </Band>
+
+      <Band>
+        <SectionHead title={`Questions ${ind.name.toLowerCase()} teams ask us.`} />
+        <FAQ items={ind.faq} />
       </Band>
 
       <CTASection

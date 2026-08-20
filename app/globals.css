@@ -588,6 +588,11 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:700;text-wrap:ba
 .cs-result .cs-rl{display:block;color:var(--ink-2);font-size:.85rem;margin-top:.4rem}
 @media(max-width:640px){.cs-results{grid-template-columns:1fr}}
 
+/* ================= INDUSTRY OVERVIEW ================= */
+.ind-overview{max-width:76ch}
+.ind-overview h2{font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1.1rem}
+.ind-overview p{color:var(--ink-2);font-size:1.08rem;line-height:1.6}
+
 /* ================= INDUSTRY SCENARIO ================= */
 .scenario{display:grid;grid-template-columns:1fr .5fr;gap:clamp(1.5rem,4vw,3rem);background:var(--surface);
   border:1px solid var(--line);border-radius:20px;padding:clamp(1.8rem,4vw,2.8rem);align-items:center}
