@@ -273,6 +273,35 @@ export const PRODUCTS: ProductData[] = [
       { q: "Can we build a custom flow?", a: "Absolutely. The API returns structured data you can drop into any workflow." },
     ],
     cta: { title: "Connect Prelim to your stack.", sub: "Tell us your ATS and we'll show you the integration and the API." },
+    extra: {
+      title: "One request, a full candidate report.",
+      sub: "Every completed assessment fires a webhook and is available as structured JSON — drop it straight into your ATS, data warehouse, or a custom dashboard.",
+      node: (
+        <div className="dash-chrome">
+          <div className="dash-bar">
+            <div className="dots"><i /><i /><i /></div>
+            <span className="path">GET /v1/candidates/cnd_8f21b3/report</span>
+          </div>
+          <div className="dash-body">
+            <pre className="code-json">{`{
+  "candidate_id": "cnd_8f21b3",
+  "requisition": "REQ-4471",
+  "track": "technical",
+  "composite_score": 88.9,
+  "percentile": 96,
+  "verdict": "strong_hire",
+  "sections": [
+    { "name": "system_design", "score": 91 },
+    { "name": "coding", "score": 88 },
+    { "name": "communication", "score": 82 }
+  ],
+  "proctor_flags": [],
+  "webhook_event": "assessment.completed"
+}`}</pre>
+          </div>
+        </div>
+      ),
+    },
   },
 ];
 
