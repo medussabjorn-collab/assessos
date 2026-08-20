@@ -697,6 +697,21 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:700;text-wrap:ba
   padding:.9rem 1.05rem;z-index:2}
 @media(max-width:640px){.float-card{display:none}}
 
+/* AI-recommendation bubble — "the product thinking", Superhuman/Stacker-
+   style. Value is a plain server-rendered text node like everything else
+   in this hero; the pip is a pure-CSS pulse (@keyframes, not a JS toggle). */
+.ai-bubble{max-width:200px}
+.ai-bubble .ab-head{display:flex;align-items:center;gap:.4rem;font-family:var(--font-code);font-size:.66rem;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:.35rem}
+.ai-bubble .ab-head svg{width:13px;height:13px}
+.ai-bubble .ab-pip{width:6px;height:6px;border-radius:50%;background:var(--accent-2);flex:none;
+  animation:ai-pulse 1.8s ease-in-out infinite}
+@keyframes ai-pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 color-mix(in srgb,var(--accent-2) 45%,transparent)}
+  50%{opacity:.7;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent-2) 0%,transparent)}}
+.ai-bubble .ab-verdict{font-weight:700;font-size:.9rem;color:var(--ink);margin-bottom:.2rem}
+.ai-bubble .ab-why{font-size:.74rem;color:var(--ink-3);line-height:1.4}
+@media(prefers-reduced-motion:reduce){.ai-bubble .ab-pip{animation:none}}
+
 /* ================= INDUSTRY OVERVIEW ================= */
 .ind-overview{max-width:76ch}
 .ind-overview h2{font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1.1rem}

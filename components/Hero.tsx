@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Arrow } from "./icons";
+import { Arrow, Sparkles } from "./icons";
 
 const METERS = [
   { label: "System Design", value: 91 },
@@ -47,6 +47,11 @@ export default function Hero() {
             <div className="dt-label" style={{ marginBottom: ".2rem" }}>Assessments this week</div>
             <div className="dt-value tnum" style={{ fontSize: "1.3rem" }}>4,812</div>
             <div className="dt-delta up" style={{ marginTop: ".2rem" }}>↑ 12% vs last week</div>
+          </div>
+          <div className="float-card ai-bubble" style={{ right: "-16px", top: "18px" }}>
+            <div className="ab-head"><span className="ab-pip" /><Sparkles /> AI recommendation</div>
+            <div className="ab-verdict">Strong Hire — 94% confidence</div>
+            <div className="ab-why">System design depth + leadership signal both above benchmark.</div>
           </div>
           <div className="console">
             <div className="console-bar">
