@@ -100,9 +100,9 @@ export const INDUSTRIES: Industry[] = [
     blurb: "Clinical knowledge, patient-communication scenarios, and compliance awareness.",
     intro: "Healthcare hiring balances clinical competence with communication and compliance. Prelim assesses all three fairly and accessibly, with deployment that keeps sensitive data inside your perimeter.",
     tracks: [
-      leadership("Assess clinical and operational leaders on decisions that carry real risk.", ["Chief Nursing Officer", "Clinical Director", "Practice Manager", "VP of Clinical Operations"]),
-      technical("Evaluate health-tech engineers on secure, compliant, real-world builds.", ["Health IT Engineer", "Clinical Systems Analyst", "EHR Integration Engineer"]),
-      nonIt("Measure clinical knowledge and patient-communication skills at scale.", ["Registered Nurse", "Medical Assistant", "Patient Care Coordinator", "Clinical Documentation Specialist", "Physician", "Pharmacist"]),
+      leadership("Assess clinical and operational leaders on decisions that carry real risk.", ["Chief Nursing Officer", "Chief Medical Officer", "Clinical Director", "Director of Nursing", "Practice Manager", "Hospital Administrator", "VP of Clinical Operations"]),
+      technical("Evaluate health-tech engineers on secure, compliant, real-world builds.", ["Health IT Engineer", "Clinical Systems Analyst", "EHR Integration Engineer", "Health Informatics Specialist", "HL7/FHIR Integration Engineer", "Telehealth Platform Engineer"]),
+      nonIt("Measure clinical knowledge and patient-communication skills at scale.", ["Registered Nurse", "Medical Assistant", "Patient Care Coordinator", "Clinical Documentation Specialist", "Physician", "Pharmacist", "Physical Therapist", "Medical Laboratory Technician", "Radiologic Technologist", "Case Manager"]),
     ],
     focus: ["Clinical knowledge", "Patient communication scenarios", "Compliance and safety awareness", "Data residency & privacy"],
     scenario: {
