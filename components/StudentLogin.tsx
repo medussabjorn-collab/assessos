@@ -2,6 +2,14 @@
 
 import { useState } from "react";
 import { APP_LOGIN_URL } from "@/lib/config";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Alert from "@mui/material/Alert";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import InputAdornment from "@mui/material/InputAdornment";
+import Stack from "@mui/material/Stack";
+import Link from "next/link";
 
 export default function StudentLogin() {
   const [show, setShow] = useState(false);
@@ -20,26 +28,41 @@ export default function StudentLogin() {
 
   return (
     <form className="cform login-form" onSubmit={onSubmit}>
-      <label className="field">
-        <span>Email</span>
-        <input name="email" type="email" autoComplete="email" required placeholder="you@school.edu" />
-      </label>
-      <label className="field">
-        <span>Password</span>
-        <span className="pw-wrap">
-          <input name="password" type={show ? "text" : "password"} autoComplete="current-password" required placeholder="Your password" />
-          <button type="button" className="pw-toggle" onClick={() => setShow((v) => !v)} aria-label={show ? "Hide password" : "Show password"}>
-            {show ? "Hide" : "Show"}
-          </button>
-        </span>
-      </label>
-      <div className="login-row">
-        <label className="remember"><input type="checkbox" name="remember" /> Remember me</label>
-        <a href="/contact/" className="login-link">Forgot password?</a>
-      </div>
-      <button className="btn btn-primary cf-submit" type="submit">Log in</button>
-      {note && <p className="login-note" role="status">{note}</p>}
-      <p className="cf-fine">Have an invite code instead? <a href="/contact/" className="login-link">Contact support</a>.</p>
+      <Stack spacing={2}>
+        <TextField name="email" type="email" label="Email" autoComplete="email" required fullWidth placeholder="you@school.edu" />
+        <TextField
+          name="password"
+          type={show ? "text" : "password"}
+          label="Password"
+          autoComplete="current-password"
+          required
+          fullWidth
+          placeholder="Your password"
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Button
+                    type="button"
+                    size="small"
+                    onClick={() => setShow((v) => !v)}
+                    aria-label={show ? "Hide password" : "Show password"}
+                  >
+                    {show ? "Hide" : "Show"}
+                  </Button>
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+        <div className="login-row">
+          <FormControlLabel control={<Checkbox name="remember" />} label="Remember me" />
+          <Link href="/contact/" className="login-link">Forgot password?</Link>
+        </div>
+        <Button type="submit" variant="contained" size="large">Log in</Button>
+        {note && <Alert severity="info">{note}</Alert>}
+        <p className="cf-fine">Have an invite code instead? <Link href="/contact/" className="login-link">Contact support</Link>.</p>
+      </Stack>
     </form>
   );
 }
