@@ -57,6 +57,27 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </ul>
       </Band>
 
+      <Band>
+        <div className="scenario rv">
+          <div className="scenario-body">
+            <span className="scenario-role">{ind.scenario.role}</span>
+            <h2>A real hiring scenario.</h2>
+            <div className="scenario-block">
+              <span className="sb-k">The challenge</span>
+              <p>{ind.scenario.challenge}</p>
+            </div>
+            <div className="scenario-block">
+              <span className="sb-k">Prelim's approach</span>
+              <p>{ind.scenario.approach}</p>
+            </div>
+          </div>
+          <div className="scenario-metric">
+            <span className="sm-v tnum">{ind.scenario.metric.value}</span>
+            <span className="sm-l">{ind.scenario.metric.label}</span>
+          </div>
+        </div>
+      </Band>
+
       <CTASection
         title={`Hiring in ${ind.name}?`}
         sub="Bring three real openings and we'll build the assessments live — tailored to your industry."

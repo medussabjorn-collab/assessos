@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { PageHero, Band, SectionHead, CardGrid, CTASection } from "@/components/page";
-import { Sparkles, Bars, Shield, Terminal, Target, Code } from "@/components/icons";
+import Link from "next/link";
+import { PageHero, Band, SectionHead } from "@/components/page";
+import { CTASection } from "@/components/page";
+import { Sparkles, Bars, Shield, Terminal, Target, Code, ArrowUpRight } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Resources",
@@ -8,12 +10,12 @@ export const metadata: Metadata = {
 };
 
 const RESOURCES = [
-  { Icon: Sparkles, title: "Blog & Insights", desc: "Ideas on structured hiring, assessment design, and what the data shows." },
-  { Icon: Bars, title: "Guides", desc: "Practical playbooks for rolling out assessment across your hiring teams." },
-  { Icon: Shield, title: "Case Studies", desc: "How enterprise teams use Prelim to hire leadership, technical, and non-IT roles." },
-  { Icon: Terminal, title: "Sample Tests", desc: "Try example assessments to see the candidate experience firsthand." },
-  { Icon: Target, title: "ROI Calculator", desc: "Estimate the time and cost Prelim saves across your hiring pipeline." },
-  { Icon: Code, title: "Documentation", desc: "API reference and integration guides for engineering teams." },
+  { Icon: Sparkles, title: "Blog & Insights", desc: "Ideas on structured hiring, assessment design, and what the data shows.", href: null },
+  { Icon: Bars, title: "Guides", desc: "Practical playbooks for rolling out assessment across your hiring teams.", href: null },
+  { Icon: Shield, title: "Case Studies", desc: "How enterprise teams use Prelim to hire leadership, technical, and non-IT roles.", href: "/resources/case-studies" },
+  { Icon: Terminal, title: "Sample Tests", desc: "Try example assessments to see the candidate experience firsthand.", href: null },
+  { Icon: Target, title: "ROI Calculator", desc: "Estimate the time and cost Prelim saves across your hiring pipeline.", href: null },
+  { Icon: Code, title: "Documentation", desc: "API reference and integration guides for engineering teams.", href: null },
 ];
 
 export default function ResourcesPage() {
@@ -27,8 +29,26 @@ export default function ResourcesPage() {
       />
 
       <Band>
-        <SectionHead title="Browse resources." sub="This library is growing — reach out if there's something specific you need." />
-        <CardGrid items={RESOURCES} />
+        <SectionHead title="Browse resources." sub="Case studies are live. The rest of this library is growing — reach out if there's something specific you need." />
+        <div className="cardgrid stagger">
+          {RESOURCES.map(({ Icon, title, desc, href }) =>
+            href ? (
+              <Link className="card card-link" href={href} key={title}>
+                <div className="ci"><Icon /></div>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+                <span className="card-go">Explore <ArrowUpRight /></span>
+              </Link>
+            ) : (
+              <div className="card card-soon" key={title}>
+                <div className="ci"><Icon /></div>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+                <span className="card-soon-tag">Coming soon</span>
+              </div>
+            )
+          )}
+        </div>
       </Band>
 
       <CTASection title="Looking for something specific?" sub="Tell us what you need and we'll point you to the right resource — or write it." />

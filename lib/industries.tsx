@@ -10,6 +10,13 @@ export type Track = {
   href: string;
 };
 
+export type Scenario = {
+  role: string; // the req being filled
+  challenge: string; // why it's hard to assess well
+  approach: string; // what Prelim does differently
+  metric: { value: string; label: string };
+};
+
 export type Industry = {
   slug: string;
   name: string;
@@ -18,6 +25,7 @@ export type Industry = {
   intro: string; // long, for the industry page hero
   tracks: Track[]; // the 3 hiring tracks, tailored
   focus: string[]; // what Prelim assesses in this industry
+  scenario: Scenario; // a concrete, realistic hiring scenario for this industry
 };
 
 const leadership = (tagline: string): Track => ({ type: "Leadership Hiring", Icon: Shield, tagline, href: "/solutions/leadership-hiring" });
@@ -37,6 +45,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Bring the same rigor to the sales, CS, and ops roles that make SaaS grow."),
     ],
     focus: ["Live coding & system design", "Product and technical judgment", "Go-to-market and RevOps aptitude", "Leadership at scale"],
+    scenario: {
+      role: "Staff Backend Engineer, Series C SaaS",
+      challenge: "Take-home tasks were gameable and burned two weeks per hire, while whiteboard rounds rewarded memorized patterns over real system-design ability.",
+      approach: "Prelim ran a live-repo assessment against a simplified slice of the candidate's actual future codebase, scoring architecture trade-offs and debugging under time pressure.",
+      metric: { value: "9 days", label: "to signed offer, down from 6 weeks" },
+    },
   },
   {
     slug: "financial-services",
@@ -50,6 +64,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Test analysts on Excel modeling, analytical reasoning, and regulatory knowledge."),
     ],
     focus: ["Financial modeling & analysis", "Regulatory and compliance knowledge", "Integrity and risk judgment", "Audit-ready reporting"],
+    scenario: {
+      role: "Senior Credit Analyst, regional bank",
+      challenge: "Case-study interviews couldn't consistently probe Excel modeling depth, and panels disagreed on what 'strong analytical reasoning' actually looked like.",
+      approach: "Prelim's finance battery scored a live modeling exercise plus a regulatory-knowledge module, producing one rubric every interviewer could point to.",
+      metric: { value: "31%", label: "fewer disputed panel decisions" },
+    },
   },
   {
     slug: "healthcare",
@@ -63,6 +83,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure clinical knowledge and patient-communication skills at scale."),
     ],
     focus: ["Clinical knowledge", "Patient communication scenarios", "Compliance and safety awareness", "Data residency & privacy"],
+    scenario: {
+      role: "Charge Nurse, multi-site clinic network",
+      challenge: "Reference checks alone couldn't predict how candidates handled tense patient-communication moments, and volume made structured panel interviews impractical.",
+      approach: "A scenario-based assessment scored triage judgment and patient communication, deployed inside the network's own VPC to satisfy its compliance team.",
+      metric: { value: "42%", label: "fewer 90-day clinical role exits" },
+    },
   },
   {
     slug: "legal",
@@ -76,6 +102,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Test legal research, contract drafting, and compliance reasoning."),
     ],
     focus: ["Legal research & analysis", "Contract drafting work samples", "Compliance reasoning", "Governance judgment"],
+    scenario: {
+      role: "Mid-level Associate, corporate practice group",
+      challenge: "Writing samples from prior firms said little about how a candidate reasons under time pressure on unfamiliar fact patterns.",
+      approach: "Prelim scored a live contract-drafting exercise and a compliance-reasoning scenario against the same rubric every partner on the panel had reviewed in advance.",
+      metric: { value: "2.3x", label: "more candidates cleared to final round" },
+    },
   },
   {
     slug: "manufacturing",
@@ -89,6 +121,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure operations, quality, and supply-chain aptitude across roles."),
     ],
     focus: ["Process & operations reasoning", "Safety judgment", "Automation and controls skills", "Supply-chain aptitude"],
+    scenario: {
+      role: "Shift Supervisor, automotive parts plant",
+      challenge: "Tenure and prior-plant references correlated poorly with actual safety judgment once someone was running a live floor.",
+      approach: "A process-reasoning and safety-scenario battery scored how candidates prioritized under a simulated line stoppage, independent of years of experience.",
+      metric: { value: "18%", label: "drop in first-year safety incidents" },
+    },
   },
   {
     slug: "retail-ecommerce",
@@ -102,6 +140,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Assess high-volume store, support, and merchandising roles at speed."),
     ],
     focus: ["Customer judgment", "High-volume, low-latency screening", "Operations & merchandising aptitude", "Storefront engineering skills"],
+    scenario: {
+      role: "Seasonal store lead, 400-location retailer",
+      challenge: "Peak-season hiring needed thousands of screens in six weeks, and manual phone screens couldn't keep pace without cutting corners on quality.",
+      approach: "Low-latency operations and customer-judgment scoring let store managers see a ranked shortlist within minutes of each candidate finishing.",
+      metric: { value: "210ms", label: "median scoring latency at 4,000+ concurrent tests" },
+    },
   },
   {
     slug: "bpo-support",
@@ -115,6 +159,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Screen communication and problem-solving at contact-center volume."),
     ],
     focus: ["Communication skills", "Problem-solving under pressure", "High-throughput screening", "Support tooling & automation"],
+    scenario: {
+      role: "Tier 2 Support Agent, 24/7 contact center",
+      challenge: "Turnover meant the team hired hundreds monthly, but resume-based screening let weak communicators through and hurt CSAT.",
+      approach: "A communication and problem-solving battery scored candidates on realistic escalation scenarios, at the throughput a 24/7 center needs.",
+      metric: { value: "8pt", label: "CSAT improvement within one quarter" },
+    },
   },
   {
     slug: "insurance",
@@ -128,6 +178,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Test underwriting judgment, claims handling, and analytical reasoning."),
     ],
     focus: ["Actuarial & analytical reasoning", "Underwriting judgment", "Claims-handling scenarios", "Regulatory compliance"],
+    scenario: {
+      role: "Underwriter II, commercial lines carrier",
+      challenge: "Underwriting judgment is hard to interview for — candidates could describe the right process without demonstrating it under realistic ambiguity.",
+      approach: "Prelim scored a live underwriting scenario with incomplete information, benchmarked against how experienced underwriters at the carrier actually decided.",
+      metric: { value: "27%", label: "reduction in early-tenure underwriting errors" },
+    },
   },
   {
     slug: "energy-utilities",
@@ -141,6 +197,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure operations, compliance, and field-service aptitude."),
     ],
     focus: ["Safety & reliability judgment", "Field operations aptitude", "Controls & engineering skills", "Regulatory compliance"],
+    scenario: {
+      role: "Grid Operations Engineer, regional utility",
+      challenge: "A single reliability misjudgment carries outsized cost, but certifications alone don't reveal how someone reasons through cascading-failure scenarios.",
+      approach: "A field-operations and controls-engineering assessment scored applied troubleshooting on realistic grid scenarios, not just credential checklists.",
+      metric: { value: "3x", label: "faster screening for critical field roles" },
+    },
   },
   {
     slug: "telecommunications",
@@ -154,6 +216,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Screen sales, care, and field roles at high volume and speed."),
     ],
     focus: ["Network & platform engineering", "Reliability at scale", "High-volume support aptitude", "Customer judgment"],
+    scenario: {
+      role: "Network Reliability Engineer, national carrier",
+      challenge: "On-call incidents demanded engineers who reason clearly under pressure, but interviews rewarded rehearsed answers over live troubleshooting.",
+      approach: "Prelim's technical track simulated a degraded-network incident and scored root-cause reasoning and communication during resolution.",
+      metric: { value: "22%", label: "faster mean-time-to-resolution among new hires" },
+    },
   },
   {
     slug: "media-entertainment",
@@ -167,6 +235,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure production, marketing, and operations aptitude."),
     ],
     focus: ["Product & creative judgment", "Streaming and platform engineering", "Audience-scale operations", "Marketing aptitude"],
+    scenario: {
+      role: "Senior Product Manager, streaming platform",
+      challenge: "Portfolio reviews showcased past work but said little about how a candidate would prioritize trade-offs on the team's actual roadmap.",
+      approach: "A situational-judgment exercise placed candidates inside a realistic prioritization scenario and scored the reasoning behind their trade-offs.",
+      metric: { value: "70%", label: "of finalists rated 'strong hire' by every panelist" },
+    },
   },
   {
     slug: "education",
@@ -180,6 +254,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure instructional skill, communication, and subject knowledge."),
     ],
     focus: ["Instructional & communication skill", "Subject-matter knowledge", "Accessibility & fairness", "Academic operations"],
+    scenario: {
+      role: "Department Chair, secondary school network",
+      challenge: "Demo lessons were inconsistent across interview panels, and there was no shared standard for what 'strong instructional judgment' meant.",
+      approach: "A structured instructional-scenario assessment scored communication and subject knowledge against one accessible, rubric-based standard.",
+      metric: { value: "100%", label: "of candidates screened with accommodations honored" },
+    },
   },
   {
     slug: "government-public-sector",
@@ -193,6 +273,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure policy analysis, administration, and service aptitude."),
     ],
     focus: ["Fair, defensible scoring", "Policy & analytical reasoning", "Accessibility compliance", "On-prem / VPC deployment"],
+    scenario: {
+      role: "Policy Analyst, state agency",
+      challenge: "Civil-service hiring must withstand appeal, but panel-based interviews left decisions difficult to defend on paper.",
+      approach: "Prelim scored policy-analysis reasoning against a published rubric and deployed on-prem to satisfy the agency's data-residency requirement.",
+      metric: { value: "0", label: "successful appeals on assessment grounds to date" },
+    },
   },
   {
     slug: "real-estate-construction",
@@ -206,6 +292,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure project management, safety, and operations aptitude."),
     ],
     focus: ["Project & operations judgment", "Safety awareness", "Estimating & analytical skills", "Field reliability"],
+    scenario: {
+      role: "Project Manager, commercial general contractor",
+      challenge: "Cost overruns often traced back to project managers who interviewed well but struggled with real-time trade-off judgment on-site.",
+      approach: "A project-judgment scenario scored how candidates re-sequenced work and managed risk when a simulated schedule slipped mid-project.",
+      metric: { value: "14%", label: "fewer schedule overruns on projects led by assessed hires" },
+    },
   },
   {
     slug: "transportation-logistics",
@@ -219,6 +311,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Screen high-volume operations and driver roles at speed."),
     ],
     focus: ["Operations & routing reasoning", "Safety judgment", "High-volume screening", "Supply-chain aptitude"],
+    scenario: {
+      role: "Dispatch Operations Lead, regional carrier",
+      challenge: "Peak-volume hiring needed hundreds of operations screens weekly, but manual review couldn't keep pace without sacrificing quality.",
+      approach: "Low-latency operations-reasoning and safety-judgment scoring let dispatch managers rank candidates the same day they applied.",
+      metric: { value: "4x", label: "throughput increase in candidate screening" },
+    },
   },
   {
     slug: "hospitality-travel",
@@ -232,6 +330,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure service, communication, and operations aptitude at scale."),
     ],
     focus: ["Service & communication judgment", "High-volume, seasonal screening", "Operations aptitude", "Fair candidate experience"],
+    scenario: {
+      role: "Front Desk Supervisor, resort property group",
+      challenge: "Seasonal ramp-up meant hiring hundreds of service roles in weeks, with guest-satisfaction scores riding on judgment interviews couldn't reliably surface.",
+      approach: "A service-judgment scenario battery scored realistic guest-recovery situations, screened at the volume and speed the season required.",
+      metric: { value: "19%", label: "improvement in guest-satisfaction scores" },
+    },
   },
   {
     slug: "pharma-life-sciences",
@@ -245,6 +349,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Measure scientific knowledge, quality, and regulatory reasoning."),
     ],
     focus: ["Scientific reasoning", "Regulatory & quality rigor", "Domain knowledge", "Audit-ready reporting"],
+    scenario: {
+      role: "Associate Director, Regulatory Affairs",
+      challenge: "Regulatory judgment is high-stakes and rarely tested directly — resumes showed prior filings but not how a candidate reasons through a novel submission.",
+      approach: "A scientific-reasoning and regulatory-rigor assessment scored candidates against realistic, audit-style scenarios with full evidence trails.",
+      metric: { value: "100%", label: "of scores traceable to specific evidence for audit" },
+    },
   },
   {
     slug: "professional-services",
@@ -258,6 +368,12 @@ export const INDUSTRIES: Industry[] = [
       nonIt("Test analytical reasoning, client communication, and problem-solving."),
     ],
     focus: ["Analytical & case reasoning", "Client communication", "Problem-solving work samples", "Judgment under pressure"],
+    scenario: {
+      role: "Senior Consultant, management consulting firm",
+      challenge: "Traditional case interviews measured performance under artificial pressure but varied wildly by interviewer, making offers hard to compare fairly.",
+      approach: "Prelim standardized the case exercise and scored analytical reasoning and client communication against one rubric across every interviewer.",
+      metric: { value: "41%", label: "reduction in offer-decision time" },
+    },
   },
 ];
 

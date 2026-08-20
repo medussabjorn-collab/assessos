@@ -45,10 +45,8 @@ const COLS: { h: string; links: { label: string; href: string }[] }[] = [
   {
     h: "Resources",
     links: [
-      { label: "Blog & Insights", href: "/resources" },
-      { label: "Guides", href: "/resources" },
-      { label: "Case Studies", href: "/resources" },
-      { label: "Sample Tests", href: "/resources" },
+      { label: "Case Studies", href: "/resources/case-studies" },
+      { label: "All resources", href: "/resources" },
       { label: "Student login", href: "/students" },
     ],
   },
