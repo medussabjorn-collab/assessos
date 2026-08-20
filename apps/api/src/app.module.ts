@@ -29,6 +29,7 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
 import { EmailModule } from './modules/email/email.module';
 import { ProctoringModule } from './modules/proctoring/proctoring.module';
 import { OfflineSyncModule } from './modules/offline-sync/offline-sync.module';
+import { MarketingModule } from './modules/marketing/marketing.module';
 import { TenantMiddleware } from './middleware/tenant.middleware';
 
 @Module({
@@ -90,6 +91,7 @@ import { TenantMiddleware } from './middleware/tenant.middleware';
     EmailModule,
     ProctoringModule,
     OfflineSyncModule,
+    MarketingModule,
   ],
 })
 export class AppModule implements NestModule {
@@ -102,6 +104,10 @@ export class AppModule implements NestModule {
         'api/auth/tenant',
         'api/auth/sso/discover',
         'api/billing/webhooks/stripe',
+        // prelim.io marketing site has no tenant/user context — anonymous
+        // public lead capture, same reasoning as the Stripe webhook above.
+        'api/marketing/contact',
+        'api/marketing/register',
         // Slack redirects the browser here directly — no auth header, no
         // x-tenant-id. The signed `state` param carries the tenant instead.
         'api/integrations/slack/callback',

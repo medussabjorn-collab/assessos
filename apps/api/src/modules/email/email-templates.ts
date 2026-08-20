@@ -126,3 +126,80 @@ export function weeklyDigestTemplate(name: string, stats: WeeklyDigestStats): st
     'Your weekly AssessOS summary',
   );
 }
+
+// --- prelim.io marketing site lead capture -------------------------------
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+const row = (label: string, value: string) => `
+  <p style="margin:0 0 12px"><strong>${label}:</strong> ${escapeHtml(value)}</p>
+`;
+
+export function marketingLeadNotificationTemplate(lead: {
+  name: string;
+  email: string;
+  company: string;
+  teamSize?: string | null;
+  message?: string | null;
+}): string {
+  return baseLayout(
+    `
+    <h2>New demo request — ${escapeHtml(lead.company)}</h2>
+    ${row('Name', lead.name)}
+    ${row('Work email', lead.email)}
+    ${row('Company', lead.company)}
+    ${lead.teamSize ? row('Team size', lead.teamSize) : ''}
+    ${lead.message ? `<div class="divider"></div>${row('What they’re hiring for', lead.message)}` : ''}
+    <div class="divider"></div>
+    <p style="font-size:13px;color:#94a3b8">Source: Prelim marketing site contact form.</p>
+  `,
+    `New demo request — ${lead.company}`,
+  );
+}
+
+export function studentRegistrationNotificationTemplate(reg: {
+  fullName: string;
+  email: string;
+  universityName: string;
+  collegeName?: string | null;
+  course: string;
+  industry: string;
+  studentId: string;
+}): string {
+  return baseLayout(
+    `
+    <h2>New student registration — ${escapeHtml(reg.universityName)}</h2>
+    ${row('Name', reg.fullName)}
+    ${row('Email', reg.email)}
+    ${row('Student ID', reg.studentId)}
+    ${row('University', reg.universityName)}
+    ${reg.collegeName ? row('College', reg.collegeName) : ''}
+    ${row('Course', reg.course)}
+    ${row('Industry track', reg.industry)}
+    <div class="divider"></div>
+    <p style="font-size:13px;color:#94a3b8">Source: Prelim marketing site student registration.</p>
+  `,
+    `New student registration — ${reg.universityName}`,
+  );
+}
+
+// Makes an existing StudentRegistration.tsx success-screen promise
+// ("Check your email for a confirmation and next steps") actually true.
+export function studentRegistrationConfirmationTemplate(name: string): string {
+  return baseLayout(
+    `
+    <h2>Registration received</h2>
+    <p>Hi ${escapeHtml(name)}, thanks for registering for your Prelim assessment. Your institution's
+    team will follow up by email with next steps and your assessment link.</p>
+    <div class="divider"></div>
+    <p style="font-size:13px;color:#94a3b8">If you weren't expecting this, you can safely ignore it.</p>
+  `,
+    'Registration received — Prelim',
+  );
+}

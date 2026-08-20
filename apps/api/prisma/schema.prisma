@@ -1271,3 +1271,61 @@ model TalentPredictionSnapshot {
   @@index([predictionType])
   @@map("talent_prediction_snapshots")
 }
+
+// Public marketing-site lead capture (prelim.io ContactForm) — deliberately
+// NOT tenant-scoped, since these are anonymous prospects with no tenant
+// context yet. No unique constraint on email: a duplicate submission is a
+// business/dedup question for a future admin view, not something that
+// should 409 a well-meaning resubmission.
+model MarketingLead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String
+  // Free text validated server-side against an @IsIn list rather than an
+  // enum, since the source of truth (TEAM_SIZES in assessos-web's
+  // ContactForm.tsx) lives in the frontend and an enum would need a
+  // migration every time that list changes.
+  teamSize  String?
+  message   String?
+  source    String   @default("prelim-marketing-site")
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("marketing_leads")
+}
+
+// Public marketing-site student registration (prelim.io StudentRegistration).
+// Same non-tenant-scoped, no-unique-email reasoning as MarketingLead above.
+model StudentRegistration {
+  id             String        @id @default(cuid())
+  fullName       String
+  email          String
+  dateOfBirth    DateTime
+  studentId      String
+  gender         StudentGender
+  universityName String
+  collegeName    String?
+  // Free text validated against assessos-web's lib/industries.tsx 18-entry
+  // list server-side, same reasoning as MarketingLead.teamSize above.
+  industry       String
+  course         String
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("student_registrations")
+}
+
+enum StudentGender {
+  female
+  male
+  prefer_not_to_say
+}
