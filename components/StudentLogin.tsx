@@ -35,11 +35,11 @@ export default function StudentLogin() {
       </label>
       <div className="login-row">
         <label className="remember"><input type="checkbox" name="remember" /> Remember me</label>
-        <a href="#" className="login-link">Forgot password?</a>
+        <a href="/contact/" className="login-link">Forgot password?</a>
       </div>
       <button className="btn btn-primary cf-submit" type="submit">Log in</button>
       {note && <p className="login-note" role="status">{note}</p>}
-      <p className="cf-fine">Have an invite code instead? <a href="#" className="login-link">Enter it here</a>.</p>
+      <p className="cf-fine">Have an invite code instead? <a href="/contact/" className="login-link">Contact support</a>.</p>
     </form>
   );
 }

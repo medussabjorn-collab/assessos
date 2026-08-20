@@ -5,12 +5,12 @@ const COLS: { h: string; links: { label: string; href: string }[] }[] = [
   {
     h: "Products",
     links: [
-      { label: "Technical Assessment", href: "/products" },
-      { label: "Leadership Assessment", href: "/products" },
-      { label: "Non-IT / Functional", href: "/products" },
-      { label: "AI Evaluation", href: "/products" },
-      { label: "Live Coding IDE", href: "/products" },
-      { label: "Analytics", href: "/products" },
+      { label: "Technical Assessment", href: "/products/technical-assessment" },
+      { label: "Leadership Assessment", href: "/products/leadership-assessment" },
+      { label: "Non-IT / Functional", href: "/products/non-it-functional" },
+      { label: "AI Evaluation", href: "/products/ai-evaluation" },
+      { label: "Live Coding IDE", href: "/products/live-coding-ide" },
+      { label: "All products", href: "/products" },
     ],
   },
   {
@@ -36,9 +36,20 @@ const COLS: { h: string; links: { label: string; href: string }[] }[] = [
     h: "Company",
     links: [
       { label: "About", href: "/about" },
+      { label: "Careers", href: "/careers" },
+      { label: "Partners", href: "/partners" },
+      { label: "Press", href: "/press" },
       { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    h: "Resources",
+    links: [
+      { label: "Blog & Insights", href: "/resources" },
+      { label: "Guides", href: "/resources" },
+      { label: "Case Studies", href: "/resources" },
+      { label: "Sample Tests", href: "/resources" },
       { label: "Student login", href: "/students" },
-      { label: "Book a demo", href: "/contact" },
     ],
   },
 ];
@@ -68,7 +79,11 @@ export default function Footer() {
         </div>
         <div className="foot-bot">
           <span className="mono">© {new Date().getFullYear()} Prelim, Inc.</span>
-          <span className="mono">Privacy · Terms · Security · DPA</span>
+          <span className="foot-legal mono">
+            <Link href="/legal/privacy">Privacy</Link> · <Link href="/legal/terms">Terms</Link> ·{" "}
+            <Link href="/security">Security</Link> · <Link href="/legal/dpa">DPA</Link> ·{" "}
+            <Link href="/legal/cookies">Cookies</Link>
+          </span>
         </div>
       </div>
     </footer>

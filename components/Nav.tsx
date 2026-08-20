@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Wordmark, Sun, Moon } from "./icons";
 import { INDUSTRIES } from "@/lib/industries";
+import { APP_LOGIN_URL } from "@/lib/config";
+
+const SIGN_IN_HREF = APP_LOGIN_URL || "/contact";
 
 const PALETTES = [
   { id: "corporate", label: "Prelim", color: "#2E86C9" },
@@ -105,7 +108,7 @@ export default function Nav() {
             ))}
           </div>
           <Link className="signin" href="/students">Student login</Link>
-          <a className="signin" href="#">Sign in</a>
+          <Link className="signin" href={SIGN_IN_HREF}>Sign in</Link>
           <button className="icon-btn" onClick={toggleTheme} aria-label="Toggle light or dark theme">
             {dark ? <Moon /> : <Sun />}
           </button>
@@ -137,7 +140,7 @@ export default function Nav() {
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)}>{n.label}</Link>
           ))}
           <Link href="/students" onClick={() => setOpen(false)}>Student login</Link>
-          <a href="#" onClick={() => setOpen(false)}>Sign in</a>
+          <Link href={SIGN_IN_HREF} onClick={() => setOpen(false)}>Sign in</Link>
         </nav>
         <div className="mm-foot">
           <div className="swatches" role="group" aria-label="Accent color">

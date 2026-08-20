@@ -1,0 +1,20 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import SolutionDetail from "@/components/SolutionDetail";
+import { PRODUCTS, productBySlug } from "@/lib/products";
+
+export function generateStaticParams() {
+  return PRODUCTS.map((p) => ({ slug: p.slug }));
+}
+
+export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
+  const p = productBySlug(params.slug);
+  if (!p) return { title: "Product" };
+  return { title: p.name, description: `${p.name}: ${p.blurb}` };
+}
+
+export default function ProductPage({ params }: { params: { slug: string } }) {
+  const p = productBySlug(params.slug);
+  if (!p) notFound();
+  return <SolutionDetail data={p} />;
+}

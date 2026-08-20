@@ -324,7 +324,7 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:700;text-wrap:ba
 
 /* ================= FOOTER ================= */
 .footer{border-top:1px solid var(--line);padding:4rem 0 2.4rem;margin-top:1.5rem}
-.foot-grid{display:grid;grid-template-columns:1.6fr repeat(4,1fr);gap:2.2rem}
+.foot-grid{display:grid;grid-template-columns:1.4fr repeat(5,1fr);gap:1.8rem}
 .foot-brand p{color:var(--ink-3);font-size:.9rem;margin:1rem 0;max-width:30ch;line-height:1.55}
 .foot-badges{display:flex;gap:.5rem;flex-wrap:wrap}
 .fb{font-family:var(--font-code);font-size:.68rem;color:var(--ink-3);border:1px solid var(--line);border-radius:6px;padding:.32rem .5rem}
@@ -334,8 +334,19 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:700;text-wrap:ba
 .foot-bot{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-top:3rem;padding-top:1.5rem;
   border-top:1px solid var(--line);color:var(--ink-3);font-size:.83rem}
 .foot-bot .mono{font-size:.78rem}
+.foot-legal a{color:var(--ink-3)}
+.foot-legal a:hover{color:var(--accent)}
+@media(max-width:1000px){.foot-grid{grid-template-columns:1fr 1fr 1fr}}
 @media(max-width:860px){.foot-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.foot-grid{grid-template-columns:1fr}}
+
+/* ================= LEGAL DOC ================= */
+.legal-doc{max-width:72ch}
+.legal-updated{font-family:var(--font-code);font-size:.8rem;color:var(--ink-3);margin-bottom:2rem}
+.legal-doc section{margin-bottom:2rem}
+.legal-doc h2{font-size:1.3rem;font-weight:700;margin-bottom:.8rem;letter-spacing:-.02em}
+.legal-doc p{color:var(--ink-2);line-height:1.65;margin-bottom:.9rem;font-size:.98rem}
+.legal-doc p:last-child{margin-bottom:0}
 
 /* ================= INNER PAGE KIT ================= */
 .page-hero{position:relative;overflow:hidden;padding:clamp(2.8rem,6vw,4.6rem) 0 clamp(1.5rem,3vw,2.5rem)}
