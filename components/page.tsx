@@ -1,5 +1,16 @@
 import type { ReactNode, ComponentType, SVGProps } from "react";
 import Link from "next/link";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
 import { Arrow, Check } from "./icons";
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -26,14 +37,16 @@ export function PageHero({
             <Link href="/">Prelim</Link> / {crumb}
           </div>
         )}
-        <h1>{title}</h1>
-        <p className="lead">{sub}</p>
+        <Typography component="h1" variant="inherit">{title}</Typography>
+        <Typography component="p" className="lead">{sub}</Typography>
         <div className="page-actions">
-          <Link className="btn btn-primary" href={primary.href}>
+          <Button className="btn btn-primary" component={Link} href={primary.href} variant="contained">
             {primary.label} <Arrow />
-          </Link>
+          </Button>
           {secondary && (
-            <Link className="btn btn-ghost" href={secondary.href}>{secondary.label}</Link>
+            <Button className="btn btn-ghost" component={Link} href={secondary.href} variant="outlined">
+              {secondary.label}
+            </Button>
           )}
         </div>
       </div>
@@ -62,8 +75,8 @@ export function Band({
 export function SectionHead({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="sec-head rv">
-      <h2>{title}</h2>
-      {sub && <p>{sub}</p>}
+      <Typography component="h2" variant="inherit">{title}</Typography>
+      {sub && <Typography component="p" variant="inherit">{sub}</Typography>}
     </div>
   );
 }
@@ -72,11 +85,13 @@ export function CardGrid({ items }: { items: { Icon: Icon; title: string; desc: 
   return (
     <div className="cardgrid stagger">
       {items.map(({ Icon, title, desc }) => (
-        <div className="card" key={title}>
-          <div className="ci"><Icon /></div>
-          <h3>{title}</h3>
-          <p>{desc}</p>
-        </div>
+        <Card key={title} className="card" variant="outlined">
+          <CardContent>
+            <div className="ci"><Icon /></div>
+            <Typography component="h3" variant="inherit">{title}</Typography>
+            <Typography component="p" variant="inherit">{desc}</Typography>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
@@ -98,14 +113,17 @@ export function Split({
   return (
     <div className={`split rv${reverse ? " reverse" : ""}`}>
       <div>
-        <h2>{title}</h2>
-        <p>{body}</p>
+        <Typography component="h2" variant="inherit">{title}</Typography>
+        <Typography component="p" variant="inherit">{body}</Typography>
         {points && (
-          <ul className="checklist">
+          <List className="checklist" disablePadding>
             {points.map((p) => (
-              <li key={p}><Check /> {p}</li>
+              <ListItem key={p} disableGutters disablePadding>
+                <ListItemIcon><Check /></ListItemIcon>
+                <ListItemText primary={p} />
+              </ListItem>
             ))}
-          </ul>
+          </List>
         )}
       </div>
       {media && <div className="split-media">{media}</div>}
@@ -117,10 +135,10 @@ export function FAQ({ items }: { items: { q: string; a: string }[] }) {
   return (
     <div className="faq rv">
       {items.map((it) => (
-        <details key={it.q}>
-          <summary>{it.q}</summary>
-          <p>{it.a}</p>
-        </details>
+        <Accordion key={it.q} disableGutters>
+          <AccordionSummary>{it.q}</AccordionSummary>
+          <AccordionDetails>{it.a}</AccordionDetails>
+        </Accordion>
       ))}
     </div>
   );
@@ -137,11 +155,15 @@ export function CTASection({
     <section className="blk" style={{ paddingTop: 0 }}>
       <div className="wrap">
         <div className="cta rv">
-          <h2>{title}</h2>
-          <p>{sub}</p>
+          <Typography component="h2" variant="inherit">{title}</Typography>
+          <Typography component="p" variant="inherit">{sub}</Typography>
           <div className="hero-cta">
-            <Link className="btn btn-primary" href="/contact">Book a demo <Arrow /></Link>
-            <Link className="btn btn-ghost" href="/pricing">See pricing</Link>
+            <Button className="btn btn-primary" component={Link} href="/contact" variant="contained">
+              Book a demo <Arrow />
+            </Button>
+            <Button className="btn btn-ghost" component={Link} href="/pricing" variant="outlined">
+              See pricing
+            </Button>
           </div>
         </div>
       </div>
