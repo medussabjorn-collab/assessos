@@ -1,0 +1,16 @@
+# Railway config for prelim.io — SSR Next.js on a single service.
+#
+# Required env vars (set in Railway dashboard as service Variables — the
+# Dockerfile's ARG/ENV pairs forward these into the build so they're inlined
+# into the client bundle; setting them only at runtime has no effect on
+# NEXT_PUBLIC_* values):
+#
+#   NEXT_PUBLIC_FORMSPREE_ID           enables the contact form
+#   NEXT_PUBLIC_APP_LOGIN_URL          real Prelim app login handoff
+#   NEXT_PUBLIC_REGISTRATION_ENDPOINT  student registration backend
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
