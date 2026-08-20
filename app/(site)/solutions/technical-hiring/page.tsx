@@ -33,6 +33,7 @@ const data: SolutionData = {
     { Icon: Bars, title: "Skills matrix", desc: "A ranked, explainable breakdown per competency." },
   ],
   showTechStack: true,
+  roles: ["Software Engineer", "Backend Engineer", "Frontend Engineer", "Full-Stack Engineer", "DevOps Engineer", "Data Engineer", "QA Engineer", "Site Reliability Engineer"],
   faq: [
     { q: "Can candidates use AI copilots during the test?", a: "You decide per assessment. Prelim can allow, restrict, or observe copilot use — and scores the quality of the candidate's judgment either way, since that's what the job requires." },
     { q: "Do you support our language and framework stack?", a: "Prelim ships environments for the major languages and frameworks, and supports custom repos so candidates work in something close to your real codebase." },

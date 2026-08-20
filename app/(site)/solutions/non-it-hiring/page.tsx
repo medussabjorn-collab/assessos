@@ -33,6 +33,7 @@ const data: SolutionData = {
     { Icon: Scale, title: "Legal", desc: "Research, contract drafting, and compliance reasoning." },
     { Icon: Globe, title: "Custom roles", desc: "Build a battery for any function from Prelim's library." },
   ],
+  roles: ["Financial Analyst", "Sales Representative", "Marketing Manager", "Operations Analyst", "HR Business Partner", "Customer Success Manager", "Business Analyst", "Account Executive"],
   faq: [
     { q: "How do you keep assessments fair across very different roles?", a: "Every battery is validated for its function, but all report into one structured scoring model — so a 'strong hire' verdict is comparable whether it's a controller or a nurse." },
     { q: "Can we localize assessments for different regions?", a: "Yes. Prelim supports multiple languages and region-specific content, with accessibility built in so candidates are assessed fairly." },

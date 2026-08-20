@@ -32,6 +32,7 @@ const data: SolutionData = {
     { Icon: Shield, title: "Risk & governance", desc: "Judgment under regulatory and reputational pressure." },
     { Icon: Bars, title: "Benchmarking", desc: "Percentile against leaders in comparable roles and stages." },
   ],
+  roles: ["CEO", "COO", "VP of Engineering", "VP of Sales", "Director of Operations", "General Manager", "Head of Product", "Chief of Staff", "Regional Director"],
   faq: [
     { q: "Can we use our own leadership competency model?", a: "Yes. Prelim maps every exercise and score to your existing competency framework, so results speak your organization's language rather than a generic one." },
     { q: "Is this a personality test?", a: "No. Psychometrics are one input, combined with work-sample and situational-judgment evidence. The composite is behavior-based and validated against real outcomes." },

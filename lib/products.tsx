@@ -27,6 +27,7 @@ export const PRODUCTS: ProductData[] = [
       { Icon: Server, title: "DevOps & tooling", desc: "Practical skills with CI, containers, and infrastructure." },
     ],
     showTechStack: true,
+    roles: ["Software Engineer", "Backend Engineer", "Frontend Engineer", "Full-Stack Engineer", "DevOps Engineer", "QA Engineer"],
     faq: [
       { q: "Do you support our stack?", a: "Prelim ships environments for the major languages and frameworks and supports custom repos close to your real codebase." },
       { q: "How is it graded?", a: "Specialized assessors score reasoning and correctness, producing an explainable skills matrix rather than a single opaque number." },
@@ -54,6 +55,7 @@ export const PRODUCTS: ProductData[] = [
       { Icon: Users, title: "People leadership", desc: "Coaching, delegation, and conflict signals from real scenarios." },
       { Icon: Scale, title: "Values & integrity", desc: "Alignment with the behaviors your culture rewards." },
     ],
+    roles: ["CEO", "COO", "VP of Engineering", "VP of Sales", "Director of Operations", "General Manager", "Head of Product"],
     faq: [
       { q: "Can we use our competency model?", a: "Yes. Every exercise and score maps to your existing leadership framework." },
       { q: "Is it just a personality test?", a: "No. It combines psychometrics with work-sample and situational-judgment evidence, validated against outcomes." },
@@ -81,6 +83,7 @@ export const PRODUCTS: ProductData[] = [
       { Icon: Sparkles, title: "Cognitive ability", desc: "Reasoning and aptitude that predict performance." },
       { Icon: Users, title: "Behavior & fit", desc: "Culture and teamwork signals mapped to your values." },
     ],
+    roles: ["Financial Analyst", "Sales Representative", "Marketing Manager", "Operations Analyst", "HR Business Partner", "Customer Success Manager"],
     faq: [
       { q: "How is it fair across roles?", a: "Each battery is validated for its function, but all report into one structured model, so verdicts are comparable." },
       { q: "Can we localize?", a: "Yes — multiple languages and region-specific content, with accessibility built in." },
@@ -136,6 +139,7 @@ export const PRODUCTS: ProductData[] = [
       { Icon: ShieldCheck, title: "Integrity signals", desc: "Proctoring and anomaly detection built in." },
     ],
     showTechStack: true,
+    roles: ["Backend Engineer", "Frontend Engineer", "Full-Stack Engineer", "Mobile Engineer", "ML Engineer", "Platform Engineer"],
     faq: [
       { q: "Which languages are supported?", a: "The major languages and frameworks, plus custom environments on request." },
       { q: "Can we bring our own repo?", a: "Yes — assess candidates against a realistic slice of your real codebase." },
