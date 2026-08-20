@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 import { PageHero, Band, SectionHead, Split, CardGrid, FAQ, CTASection } from "@/components/page";
+import TechStack from "@/components/TechStack";
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -12,6 +13,7 @@ export type SolutionData = {
   capsTitle: string;
   capsSub?: string;
   caps: { Icon: Icon; title: string; desc: string }[];
+  showTechStack?: boolean; // languages/frameworks/tools the assessment supports
   faq: { q: string; a: string }[];
   cta: { title: string; sub: string };
 };
@@ -41,7 +43,14 @@ export default function SolutionDetail({ data }: { data: SolutionData }) {
         <CardGrid items={data.caps} />
       </Band>
 
-      <Band>
+      {data.showTechStack && (
+        <Band>
+          <SectionHead title="Supported languages & frameworks." sub="The live coding environment covers the stacks your engineers actually use." />
+          <TechStack />
+        </Band>
+      )}
+
+      <Band tint={!!data.showTechStack}>
         <SectionHead title="Questions teams ask us." />
         <FAQ items={data.faq} />
       </Band>

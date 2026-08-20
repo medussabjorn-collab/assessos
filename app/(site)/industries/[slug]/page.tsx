@@ -5,6 +5,7 @@ import { PageHero, Band, SectionHead, CTASection, FAQ } from "@/components/page"
 import { ArrowUpRight, Check } from "@/components/icons";
 import { INDUSTRIES, industryBySlug } from "@/lib/industries";
 import { PRODUCTS } from "@/lib/products";
+import TechStack from "@/components/TechStack";
 
 export function generateStaticParams() {
   return INDUSTRIES.map((i) => ({ slug: i.slug }));
@@ -22,6 +23,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
 export default function IndustryPage({ params }: { params: { slug: string } }) {
   const ind = industryBySlug(params.slug);
   if (!ind) notFound();
+  const showTech = ind.slug === "technology-saas";
 
   return (
     <>
@@ -56,7 +58,14 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </div>
       </Band>
 
-      <Band>
+      {showTech && (
+        <Band>
+          <SectionHead title="Supported languages & frameworks." sub="The live coding environment covers the stacks your engineers actually use." />
+          <TechStack />
+        </Band>
+      )}
+
+      <Band tint={showTech}>
         <SectionHead title={`What Prelim assesses in ${ind.name}.`} />
         <ul className="checklist focus-cols rv">
           {ind.focus.map((f) => (
@@ -65,7 +74,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </ul>
       </Band>
 
-      <Band tint>
+      <Band tint={!showTech}>
         <SectionHead
           title="The full product catalog."
           sub={`Every module below is available for ${ind.name.toLowerCase()} hiring, feeding the same scoring model as your chosen track.`}
@@ -84,7 +93,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </div>
       </Band>
 
-      <Band>
+      <Band tint={showTech}>
         <div className="scenario rv">
           <div className="scenario-body">
             <span className="scenario-role">{ind.scenario.role}</span>
@@ -105,7 +114,7 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
         </div>
       </Band>
 
-      <Band tint>
+      <Band tint={!showTech}>
         <SectionHead title={`Questions ${ind.name.toLowerCase()} teams ask us.`} />
         <FAQ items={ind.faq} />
       </Band>

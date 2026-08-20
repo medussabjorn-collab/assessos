@@ -26,6 +26,7 @@ export const PRODUCTS: ProductData[] = [
       { Icon: Sparkles, title: "System design", desc: "Architecture and trade-off reasoning, scored consistently." },
       { Icon: Server, title: "DevOps & tooling", desc: "Practical skills with CI, containers, and infrastructure." },
     ],
+    showTechStack: true,
     faq: [
       { q: "Do you support our stack?", a: "Prelim ships environments for the major languages and frameworks and supports custom repos close to your real codebase." },
       { q: "How is it graded?", a: "Specialized assessors score reasoning and correctness, producing an explainable skills matrix rather than a single opaque number." },
@@ -134,6 +135,7 @@ export const PRODUCTS: ProductData[] = [
       { Icon: Code, title: "Real repositories", desc: "Work in something close to your actual codebase." },
       { Icon: ShieldCheck, title: "Integrity signals", desc: "Proctoring and anomaly detection built in." },
     ],
+    showTechStack: true,
     faq: [
       { q: "Which languages are supported?", a: "The major languages and frameworks, plus custom environments on request." },
       { q: "Can we bring our own repo?", a: "Yes — assess candidates against a realistic slice of your real codebase." },

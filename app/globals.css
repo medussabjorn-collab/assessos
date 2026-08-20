@@ -589,6 +589,15 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:700;text-wrap:ba
 .cs-result .cs-rl{display:block;color:var(--ink-2);font-size:.85rem;margin-top:.4rem}
 @media(max-width:640px){.cs-results{grid-template-columns:1fr}}
 
+/* ================= TECH STACK ================= */
+.techstack{display:flex;flex-direction:column;gap:1.6rem}
+.ts-group{display:flex;flex-direction:column;gap:.8rem}
+.ts-cat{font-family:var(--font-code);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.ts-chips{display:flex;flex-wrap:wrap;gap:.55rem}
+.ts-chip{font-size:.88rem;font-weight:500;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;padding:.5rem .85rem;transition:border-color .18s,color .18s}
+@media(hover:hover){.ts-chip:hover{border-color:var(--accent);color:var(--ink)}}
+
 /* ================= INDUSTRY OVERVIEW ================= */
 .ind-overview{max-width:76ch}
 .ind-overview h2{font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1.1rem}
