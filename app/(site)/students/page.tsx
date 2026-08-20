@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import StudentLogin from "@/components/StudentLogin";
+import StudentAccess from "@/components/StudentAccess";
 import { Check, Clock, ShieldCheck } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Student & Candidate Login",
   description:
-    "Log in to take your Prelim assessment. Fair, accessible, and proctored — with everything you need to know before you start.",
+    "Log in or register for your Prelim assessment. Fair, accessible, and proctored — with everything you need to know before you start.",
 };
 
 const NOTES = [
@@ -20,8 +20,8 @@ export default function StudentsPage() {
       <div className="wrap contact-grid">
         <div className="rv">
           <div className="crumb"><span>Prelim</span> / Student login</div>
-          <h1 className="contact-h1">Log in to your assessment.</h1>
-          <p className="contact-lead">Welcome. Sign in with the email your assessment was sent to, then follow the on-screen steps. Everything you need is right here.</p>
+          <h1 className="contact-h1">Log in or register.</h1>
+          <p className="contact-lead">Already invited? Sign in with the email your assessment was sent to. New here? Register below to get set up.</p>
           <ul className="promises">
             {NOTES.map(({ Icon, t, d }) => (
               <li key={t}>
@@ -33,7 +33,7 @@ export default function StudentsPage() {
           <p className="students-help">Trouble logging in? <a href="/contact/" className="login-link">Contact support</a> or check your invite email for a direct link.</p>
         </div>
         <div className="rv contact-card">
-          <StudentLogin />
+          <StudentAccess />
         </div>
       </div>
     </section>
