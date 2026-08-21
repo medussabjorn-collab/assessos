@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SolutionDetail, { SolutionData } from "@/components/SolutionDetail";
 import { Code, Terminal, ShieldCheck, Sparkles, Bars, Plug } from "@/components/icons";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Technical Assessment Software – Live Coding & AI Scoring",
@@ -43,5 +44,14 @@ const data: SolutionData = {
 };
 
 export default function Page() {
-  return <SolutionDetail data={data} />;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Solutions", href: "/solutions/" },
+        { name: "Technical Assessment", href: "/solutions/technical-hiring/" },
+      ]} />
+      <SolutionDetail data={data} />
+    </>
+  );
 }

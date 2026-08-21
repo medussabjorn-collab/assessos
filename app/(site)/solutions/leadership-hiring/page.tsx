@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SolutionDetail, { SolutionData } from "@/components/SolutionDetail";
 import { Users, Scale, Target, Sparkles, Shield, Bars } from "@/components/icons";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Leadership Assessment Platform – Executives, Managers & Directors",
@@ -42,5 +43,14 @@ const data: SolutionData = {
 };
 
 export default function Page() {
-  return <SolutionDetail data={data} />;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Solutions", href: "/solutions/" },
+        { name: "Leadership Assessment", href: "/solutions/leadership-hiring/" },
+      ]} />
+      <SolutionDetail data={data} />
+    </>
+  );
 }

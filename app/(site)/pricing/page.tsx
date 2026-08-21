@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero, Band, SectionHead, FAQ, CTASection } from "@/components/page";
 import { Check } from "@/components/icons";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Pricing – Free, Team & Enterprise Plans",
@@ -62,6 +63,10 @@ const TIERS = [
 export default function PricingPage() {
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Pricing", href: "/pricing/" },
+      ]} />
       <PageHero
         crumb="Pricing"
         title="Start free. Scale with your hiring."

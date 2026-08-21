@@ -4,6 +4,7 @@ import { PageHero, Band, SectionHead, CTASection } from "@/components/page";
 import { PhotoBand } from "@/components/Photo";
 import { ArrowUpRight } from "@/components/icons";
 import { PRODUCTS } from "@/lib/products";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Pre-Employment Assessment Tools – Prelim Product Suite",
@@ -14,6 +15,10 @@ export const metadata: Metadata = {
 export default function ProductsPage() {
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Products", href: "/products/" },
+      ]} />
       <PageHero
         crumb="Products"
         title="Every signal that matters, in one system."

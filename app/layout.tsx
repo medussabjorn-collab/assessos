@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { OrganizationSchema, WebSiteSchema } from "@/components/JsonLd";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -62,6 +63,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${jakarta.variable} ${mono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: noFlash }} />
+        <OrganizationSchema />
+        <WebSiteSchema />
       </head>
       <body>{children}</body>
     </html>

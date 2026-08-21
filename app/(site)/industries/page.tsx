@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageHero, Band, SectionHead, Split, CTASection } from "@/components/page";
 import { ArrowUpRight } from "@/components/icons";
 import { INDUSTRIES } from "@/lib/industries";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Industries",
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
 export default function IndustriesPage() {
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Industries", href: "/industries/" },
+      ]} />
       <PageHero
         crumb="Industries"
         title="Start with your industry. Then pick your hire."

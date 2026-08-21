@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHero, Band, SectionHead, CardGrid, Split, FAQ, CTASection } from "@/components/page";
 import { Sparkles, Bars, ShieldCheck, Users, Plug, Server } from "@/components/icons";
 import { PipelineBoard } from "@/components/dashboard/PipelineBoard";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "AI Talent Assessment Platform – How Prelim Works",
@@ -31,6 +32,10 @@ export default function PlatformPage() {
 
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Platform", href: "/platform/" },
+      ]} />
       <PageHero
         crumb="Platform"
         title="From open req to decision you can defend."

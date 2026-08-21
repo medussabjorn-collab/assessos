@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 import { Check, Clock, ShieldCheck } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -16,7 +17,12 @@ const PROMISES = [
 
 export default function ContactPage() {
   return (
-    <section className="blk contact-wrap">
+    <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Contact", href: "/contact/" },
+      ]} />
+      <section className="blk contact-wrap">
       <div className="wrap contact-grid">
         <div className="rv">
           <div className="crumb"><span>Prelim</span> / Book a demo</div>
@@ -36,5 +42,6 @@ export default function ContactPage() {
         </div>
       </div>
     </section>
+    </>
   );
 }

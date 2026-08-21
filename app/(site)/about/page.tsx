@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHero, Band, SectionHead, CardGrid, CTASection } from "@/components/page";
 import { PhotoBand } from "@/components/Photo";
 import { Scale, Target, ShieldCheck, Users } from "@/components/icons";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 import { OdometerStat } from "@/components/OdometerStat";
 
 export const metadata: Metadata = {
@@ -27,6 +28,10 @@ const VALUES = [
 export default function AboutPage() {
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "About", href: "/about/" },
+      ]} />
       <PageHero
         crumb="Company"
         title="Hiring judgment, made defensible."

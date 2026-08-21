@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero, Band, SectionHead, CTASection } from "@/components/page";
 import { Shield, Code, Users, ArrowUpRight } from "@/components/icons";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Solutions",
@@ -24,6 +25,10 @@ const MORE = [
 export default function SolutionsPage() {
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Solutions", href: "/solutions/" },
+      ]} />
       <PageHero
         crumb="Solutions"
         title="One assessment platform for every hire that matters."

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHero, Band, SectionHead, CardGrid, FAQ, CTASection } from "@/components/page";
 import { PhotoBand } from "@/components/Photo";
 import { ShieldCheck, Lock, Server, Clock, Globe, Scale } from "@/components/icons";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Security & Trust",
@@ -21,6 +22,10 @@ const CONTROLS = [
 export default function SecurityPage() {
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Security", href: "/security/" },
+      ]} />
       <PageHero
         crumb="Security"
         title="Built for the enterprise security floor."

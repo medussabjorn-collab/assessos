@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageHero, Band, SectionHead, CTASection, FAQ } from "@/components/page";
 import { ArrowUpRight, Check } from "@/components/icons";
 import { INDUSTRIES, industryBySlug } from "@/lib/industries";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 import { PRODUCTS } from "@/lib/products";
 import TechStack from "@/components/TechStack";
 
@@ -37,6 +38,11 @@ export default function IndustryPage({ params }: { params: { slug: string } }) {
 
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Industries", href: "/industries/" },
+        { name: ind.name, href: `/industries/${params.slug}/` },
+      ]} />
       <PageHero
         crumb={`Industries / ${ind.name}`}
         title={`${ind.name} hiring, measured.`}

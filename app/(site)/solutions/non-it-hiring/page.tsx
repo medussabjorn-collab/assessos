@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SolutionDetail, { SolutionData } from "@/components/SolutionDetail";
 import { Users, Scale, Target, Sparkles, Bars, Globe } from "@/components/icons";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Non-Technical Skills Assessment – Finance, Sales, Operations & More",
@@ -43,5 +44,14 @@ const data: SolutionData = {
 };
 
 export default function Page() {
-  return <SolutionDetail data={data} />;
+  return (
+    <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Solutions", href: "/solutions/" },
+        { name: "Non-IT Assessment", href: "/solutions/non-it-hiring/" },
+      ]} />
+      <SolutionDetail data={data} />
+    </>
+  );
 }

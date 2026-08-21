@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageHero, Band, SectionHead } from "@/components/page";
 import { CTASection } from "@/components/page";
 import { Sparkles, Bars, Shield, Terminal, Target, Code, ArrowUpRight } from "@/components/icons";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
   title: "Resources",
@@ -21,6 +22,10 @@ const RESOURCES = [
 export default function ResourcesPage() {
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Resources", href: "/resources/" },
+      ]} />
       <PageHero
         crumb="Resources"
         title="Everything you need to build defensible hiring."
