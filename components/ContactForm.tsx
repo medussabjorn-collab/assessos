@@ -39,6 +39,9 @@ export default function ContactForm() {
     // Formspree-only "email subject" convention — meaningless to the
     // AssessOS API's DTO, which would reject an unrecognized field.
     delete payload._subject;
+    // MUI Select sends "" when nothing is picked; the DTO's @IsOptional()
+    // only skips undefined/null, so "" fails @IsIn against TEAM_SIZES.
+    if (!payload.teamSize) delete payload.teamSize;
 
     try {
       const res = await fetch(CONTACT_ENDPOINT, {
