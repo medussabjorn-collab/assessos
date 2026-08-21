@@ -3,9 +3,9 @@ import SolutionDetail, { SolutionData } from "@/components/SolutionDetail";
 import { Users, Scale, Target, Sparkles, Shield, Bars } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Leadership Hiring",
+  title: "Leadership Assessment Platform – Executives, Managers & Directors",
   description:
-    "Assess executives and managers with 360° input, situational judgment, and psychometrics that predict how someone leads under pressure.",
+    "Leadership assessment platform using situational judgment, psychometrics, and 360° input to predict how executives and managers perform under real pressure.",
 };
 
 const data: SolutionData = {

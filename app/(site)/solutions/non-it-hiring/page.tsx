@@ -3,9 +3,9 @@ import SolutionDetail, { SolutionData } from "@/components/SolutionDetail";
 import { Users, Scale, Target, Sparkles, Bars, Globe } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Non-IT Hiring",
+  title: "Non-Technical Skills Assessment – Finance, Sales, Operations & More",
   description:
-    "Bring one rigor bar to every function — finance, sales, operations, healthcare, and legal — with role-specific assessment batteries.",
+    "Pre-employment assessment for non-technical roles: finance, sales, operations, healthcare, and legal. Role-specific batteries on one defensible scoring model.",
 };
 
 const data: SolutionData = {

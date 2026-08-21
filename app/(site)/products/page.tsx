@@ -6,9 +6,9 @@ import { ArrowUpRight } from "@/components/icons";
 import { PRODUCTS } from "@/lib/products";
 
 export const metadata: Metadata = {
-  title: "Products",
+  title: "Pre-Employment Assessment Tools – Prelim Product Suite",
   description:
-    "Composable assessment modules — technical, leadership, non-IT, AI evaluation, live coding, anti-cheating, analytics, and API — feeding one scoring model.",
+    "Pre-employment assessment tools: technical tests, leadership psychometrics, AI evaluation, live coding IDE, anti-cheat, analytics, and API — all feeding one scoring model.",
 };
 
 export default function ProductsPage() {

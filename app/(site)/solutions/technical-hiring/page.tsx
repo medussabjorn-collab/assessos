@@ -3,9 +3,9 @@ import SolutionDetail, { SolutionData } from "@/components/SolutionDetail";
 import { Code, Terminal, ShieldCheck, Sparkles, Bars, Plug } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Technical Hiring",
+  title: "Technical Assessment Software – Live Coding & AI Scoring",
   description:
-    "Prove real engineering ability with a live coding IDE, system-design tasks, and AI-assisted anti-cheat your engineers trust.",
+    "Technical assessment software with a live coding IDE, system-design challenges, and AI-scored responses. Shortlist engineers who can build, not just pass trivia.",
 };
 
 const data: SolutionData = {

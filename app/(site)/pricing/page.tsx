@@ -4,9 +4,9 @@ import { PageHero, Band, SectionHead, FAQ, CTASection } from "@/components/page"
 import { Check } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Pricing – Free, Team & Enterprise Plans",
   description:
-    "Start free, scale with your hiring. Prelim pricing for teams and enterprises — with SOC 2, SSO, and flexible deployment on enterprise plans.",
+    "Prelim pricing: free plan with 100 assessments/month, Team plan with unlimited assessments and live coding IDE, and Enterprise with SSO, SOC 2, and custom deployment.",
 };
 
 const TIERS = [

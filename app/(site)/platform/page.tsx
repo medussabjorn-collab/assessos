@@ -4,9 +4,9 @@ import { Sparkles, Bars, ShieldCheck, Users, Plug, Server } from "@/components/i
 import { PipelineBoard } from "@/components/dashboard/PipelineBoard";
 
 export const metadata: Metadata = {
-  title: "Platform",
+  title: "AI Talent Assessment Platform – How Prelim Works",
   description:
-    "How Prelim works: AI builds the assessment, runs it proctored and adaptive, auto-scores every response, and returns a ranked, explainable shortlist.",
+    "Prelim's AI hiring platform builds assessments from the job description, runs proctored adaptive tests, auto-scores every response, and returns a ranked, explainable shortlist.",
 };
 
 const STEPS = [
