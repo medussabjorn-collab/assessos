@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import { OrganizationSchema, WebSiteSchema } from "@/components/JsonLd";
 import "./globals.css";
 
@@ -14,6 +14,13 @@ const mono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-mono",
+  display: "swap",
+});
+
+const serif = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -60,7 +67,7 @@ const noFlash = `(function(){try{var t=localStorage.getItem('prelim-theme');if(t
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${mono.variable}`}>
+    <html lang="en" className={`${jakarta.variable} ${mono.variable} ${serif.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: noFlash }} />
         <OrganizationSchema />

@@ -22,6 +22,9 @@ export const Sun = (p: P) => (
 export const Moon = (p: P) => (
   <svg {...base} {...p}><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" /></svg>
 );
+export const Sliders = (p: P) => (
+  <svg {...base} {...p}><path d="M4 21V14M4 10V3M12 21V12M12 8V3M20 21V16M20 12V3" /><circle cx="4" cy="12" r="2" /><circle cx="12" cy="10" r="2" /><circle cx="20" cy="14" r="2" /></svg>
+);
 export const Code = (p: P) => (
   <svg {...base} {...p}><path d="M8 6l-5 6 5 6M16 6l5 6-5 6" /></svg>
 );

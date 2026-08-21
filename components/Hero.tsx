@@ -43,6 +43,9 @@ export default function Hero() {
         </div>
 
         <div className="rv card3d" style={{ transitionDelay: ".1s", position: "relative" }}>
+          <div className="hero-photo-accent">
+            <img src="/images/hero-interview.jpg" alt="" loading="lazy" decoding="async" />
+          </div>
           <div className="float-card" style={{ left: "-18px", bottom: "-16px" }}>
             <div className="dt-label" style={{ marginBottom: ".2rem" }}>Assessments this week</div>
             <div className="dt-value tnum" style={{ fontSize: "1.3rem" }}>4,812</div>
