@@ -5,6 +5,7 @@ import { LEGAL } from "@/lib/legal";
 import { CASE_STUDIES } from "@/lib/case-studies";
 import { POSTS } from "@/lib/blog";
 import { GUIDES } from "@/lib/guides";
+import { COMPARISONS } from "@/lib/compare";
 
 const SITE = "https://prelim.io";
 
@@ -32,6 +33,7 @@ const STATIC_ROUTES: { path: string; priority: number; freq: MetadataRoute.Sitem
   { path: "/resources/case-studies", priority: 0.7, freq: "weekly" },
   { path: "/resources/sample-tests", priority: 0.6, freq: "monthly" },
   { path: "/resources/roi-calculator", priority: 0.6, freq: "monthly" },
+  { path: "/compare", priority: 0.8, freq: "monthly" },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -61,6 +63,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
   for (const g of GUIDES) {
     entries.push({ url: `${SITE}/resources/guides/${g.slug}/`, lastModified: now, changeFrequency: "yearly", priority: 0.5 });
+  }
+  for (const c of COMPARISONS) {
+    entries.push({ url: `${SITE}/compare/${c.slug}/`, lastModified: now, changeFrequency: "monthly", priority: 0.8 });
   }
 
   return entries;
