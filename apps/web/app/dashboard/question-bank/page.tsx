@@ -110,7 +110,6 @@ export default function QuestionBankPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bank, page, dimensionFilter]);
 
   const switchBank = (b: BankType) => {
