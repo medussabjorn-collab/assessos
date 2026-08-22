@@ -67,6 +67,7 @@ const NAV: NavGroup[] = [
   {
     title: 'Assessments',
     items: [
+      { labelKey: 'nav.myAssessment', href: '/dashboard/my-assessment', icon: ClipboardList },
       { labelKey: 'nav.leadership', href: '/dashboard/assessment', icon: BarChart3 },
       { labelKey: 'nav.hiring', href: '/dashboard/hiring', icon: Users, roles: RECRUITER_HR },
       { labelKey: 'nav.pipeline', href: '/dashboard/hiring/pipeline', icon: Users, roles: RECRUITER_HR },
