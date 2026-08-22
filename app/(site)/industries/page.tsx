@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Industries",
   description:
     "Pick your industry: technology, financial services, healthcare, legal, manufacturing, retail, and BPO. Each routes to leadership, technical, and non-IT hiring on one model.",
+  alternates: { canonical: "/industries/" },
 };
 
 export default function IndustriesPage() {

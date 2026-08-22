@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "AI Talent Assessment Platform – How Prelim Works",
   description:
     "Prelim's AI hiring platform builds assessments from the job description, runs proctored adaptive tests, auto-scores every response, and returns a ranked, explainable shortlist.",
+  alternates: { canonical: "/platform/" },
 };
 
 const STEPS = [

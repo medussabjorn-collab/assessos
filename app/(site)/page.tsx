@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "AI-Powered Talent Assessment Platform | Prelim",
   description:
     "Prelim is the AI talent assessment platform for enterprise hiring teams — technical, leadership, and non-IT assessments on one defensible scoring model. Start free.",
+  alternates: { canonical: "/" },
 };
 
 export default function Home() {

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Technical Assessment Software – Live Coding & AI Scoring",
   description:
     "Technical assessment software with a live coding IDE, system-design challenges, and AI-scored responses. Shortlist engineers who can build, not just pass trivia.",
+  alternates: { canonical: "/solutions/technical-hiring/" },
 };
 
 const data: SolutionData = {

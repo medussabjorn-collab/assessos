@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "Prelim builds the assessment layer for defensible hiring — measuring leadership, technical, and non-IT candidates on evidence, not instinct.",
+  alternates: { canonical: "/about/" },
 };
 
 const STATS = [

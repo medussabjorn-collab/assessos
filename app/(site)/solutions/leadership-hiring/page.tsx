@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Leadership Assessment Platform – Executives, Managers & Directors",
   description:
     "Leadership assessment platform using situational judgment, psychometrics, and 360° input to predict how executives and managers perform under real pressure.",
+  alternates: { canonical: "/solutions/leadership-hiring/" },
 };
 
 const data: SolutionData = {

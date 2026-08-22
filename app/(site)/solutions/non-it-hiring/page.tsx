@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Non-Technical Skills Assessment – Finance, Sales, Operations & More",
   description:
     "Pre-employment assessment for non-technical roles: finance, sales, operations, healthcare, and legal. Role-specific batteries on one defensible scoring model.",
+  alternates: { canonical: "/solutions/non-it-hiring/" },
 };
 
 const data: SolutionData = {

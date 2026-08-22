@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Pricing – Free, Team & Enterprise Plans",
   description:
     "Prelim pricing: free plan with 100 assessments/month, Team plan with unlimited assessments and live coding IDE, and Enterprise with SSO, SOC 2, and custom deployment.",
+  alternates: { canonical: "/pricing/" },
 };
 
 const TIERS = [

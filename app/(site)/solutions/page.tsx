@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Solutions",
   description:
     "One defensible assessment model across leadership, technical, and non-IT hiring — plus volume, campus, and internal mobility.",
+  alternates: { canonical: "/solutions/" },
 };
 
 const PILLARS = [

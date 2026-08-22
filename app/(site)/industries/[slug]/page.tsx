@@ -18,6 +18,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   return {
     title: `${ind.name} Hiring`,
     description: `${ind.name} hiring, measured: leadership, technical, and non-IT tracks on one defensible model. ${ind.blurb}`,
+    alternates: { canonical: `/industries/${params.slug}/` },
   };
 }
 

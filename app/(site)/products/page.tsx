@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Pre-Employment Assessment Tools – Prelim Product Suite",
   description:
     "Pre-employment assessment tools: technical tests, leadership psychometrics, AI evaluation, live coding IDE, anti-cheat, analytics, and API — all feeding one scoring model.",
+  alternates: { canonical: "/products/" },
 };
 
 export default function ProductsPage() {

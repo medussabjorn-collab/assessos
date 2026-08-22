@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Security & Trust",
   description:
     "SOC 2 Type II, GDPR, flexible cloud / VPC / on-prem deployment, and candidate data that never trains models. Built for regulated enterprises.",
+  alternates: { canonical: "/security/" },
 };
 
 const CONTROLS = [

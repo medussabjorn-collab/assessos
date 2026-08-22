@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Book a demo",
   description:
     "See Prelim on your roles. Bring three real openings and we'll build the assessments live and walk through the scorecards in 30 minutes.",
+  alternates: { canonical: "/contact/" },
 };
 
 const PROMISES = [
