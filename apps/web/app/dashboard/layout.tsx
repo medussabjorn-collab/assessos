@@ -35,6 +35,7 @@ import {
   UserCheck,
   FolderOpen,
   Library,
+  Sparkles,
 } from 'lucide-react';
 
 interface NavItem {
@@ -85,6 +86,7 @@ const NAV: NavGroup[] = [
     title: 'Insights',
     items: [
       { labelKey: 'nav.analytics', href: '/dashboard/analytics', icon: PieChart, roles: HIRING_MANAGER },
+      { labelKey: 'nav.aiInsights', href: '/dashboard/ai-insights', icon: Sparkles, roles: HIRING_MANAGER },
       { labelKey: 'nav.reports', href: '/dashboard/reports', icon: FileText },
       { labelKey: 'nav.boardroom', href: '/dashboard/boardroom', icon: Briefcase, roles: ADMIN_ONLY },
       { labelKey: 'nav.integrations', href: '/dashboard/integrations', icon: Plug, roles: ADMIN_ONLY },
