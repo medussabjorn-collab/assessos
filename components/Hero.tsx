@@ -44,7 +44,7 @@ export default function Hero() {
 
         <div className="rv card3d" style={{ transitionDelay: ".1s", position: "relative" }}>
           <div className="hero-photo-accent">
-            <img src="/images/hero-interview.jpg" alt="" loading="lazy" decoding="async" />
+            <img src="/images/hero-interview.jpg" alt="Candidate completing a structured AI-powered assessment on Prelim" loading="lazy" decoding="async" />
           </div>
           <div className="float-card" style={{ left: "-18px", bottom: "-16px" }}>
             <div className="dt-label" style={{ marginBottom: ".2rem" }}>Assessments this week</div>
