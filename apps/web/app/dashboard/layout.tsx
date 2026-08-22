@@ -34,6 +34,7 @@ import {
   ClipboardList,
   UserCheck,
   FolderOpen,
+  Library,
 } from 'lucide-react';
 
 interface NavItem {
@@ -93,6 +94,7 @@ const NAV: NavGroup[] = [
       { labelKey: 'nav.admin', href: '/dashboard/admin', icon: Shield, roles: ADMIN_ONLY },
       { labelKey: 'nav.roles', href: '/dashboard/roles', icon: KeyRound, roles: ADMIN_ONLY },
       { labelKey: 'nav.assessments', href: '/dashboard/assessments', icon: ClipboardList, roles: RECRUITER_HR },
+      { labelKey: 'nav.questionBank', href: '/dashboard/question-bank', icon: Library, roles: RECRUITER_HR },
       { labelKey: 'nav.settings', href: '/dashboard/settings', icon: Settings },
     ],
   },

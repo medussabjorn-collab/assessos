@@ -20,6 +20,7 @@
     "admin": "Admin",
     "roles": "Roles",
     "assessments": "Assessments",
+    "questionBank": "Question Bank",
     "settings": "Settings",
     "signOut": "Sign out"
   },
