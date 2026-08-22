@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ClipboardList, Plus, History, Loader, ShieldOff, X, Sparkles } from 'lucide-react';
+import { ClipboardList, Plus, History, Loader, ShieldOff, X, Sparkles, Wand2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { PERMISSIONS } from '@/lib/permissions';
 import { api } from '@/lib/api';
@@ -216,11 +216,17 @@ export default function AssessmentsPage() {
             >
               <Sparkles size={15} /> Review scenarios
             </Link>
-            <button
-              onClick={startCreate}
+            <Link
+              href="/dashboard/assessments/new"
               className="inline-flex items-center gap-2 rounded-lg bg-brand-600 text-white px-3 py-1.5 text-sm hover:bg-brand-700 transition"
             >
-              <Plus size={15} /> New assessment
+              <Wand2 size={15} /> New assessment (guided)
+            </Link>
+            <button
+              onClick={startCreate}
+              className="inline-flex items-center gap-2 rounded-lg border border-hairline px-3 py-1.5 text-sm text-slate-700 hover:bg-canvas transition"
+            >
+              <Plus size={15} /> Quick edit
             </button>
           </div>
         }
