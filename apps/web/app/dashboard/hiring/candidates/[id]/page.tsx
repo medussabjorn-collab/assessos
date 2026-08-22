@@ -15,9 +15,45 @@ import {
   ShieldAlert,
   Users,
   History,
+  Target,
+  MessageCircle,
 } from 'lucide-react';
+import { Radar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip as ChartTooltip,
+  Legend as ChartLegend,
+} from 'chart.js';
 import { api } from '@/lib/api';
 import PageHeader from '@/components/PageHeader';
+
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, ChartTooltip, ChartLegend);
+
+interface FitReport {
+  fitScore: number;
+  technicalScore: number;
+  behavioralScore: number;
+  roleReadiness: string;
+  recommendation: 'Strong Fit' | 'Fit' | 'Conditional Fit' | 'Not Recommended';
+  confidence: 'High' | 'Medium' | 'Low';
+  confidenceReason: string;
+  strengths: string[];
+  developmentAreas: string[];
+  nextInterviewQuestions: string[];
+  dimensionScores: Record<string, number>;
+  dataCoveragePct: number;
+}
+
+const RECOMMENDATION_STYLE: Record<FitReport['recommendation'], string> = {
+  'Strong Fit': 'bg-green-100 text-green-700',
+  Fit: 'bg-green-100 text-green-700',
+  'Conditional Fit': 'bg-amber-100 text-amber-700',
+  'Not Recommended': 'bg-red-100 text-red-700',
+};
 
 interface Profile {
   id: string;
@@ -151,6 +187,7 @@ export default function Candidate360Page() {
   const params = useParams();
   const candidateId = String(params.id);
   const [data, setData] = useState<Candidate360 | null>(null);
+  const [fitReport, setFitReport] = useState<FitReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -163,6 +200,14 @@ export default function Candidate360Page() {
         setError('Failed to load candidate profile');
       } finally {
         setLoading(false);
+      }
+    })();
+    (async () => {
+      try {
+        const res = await api.get(`/api/hiring/candidates/${candidateId}/fit-report`);
+        setFitReport(res.data.data);
+      } catch {
+        // No fit report yet (no completed assessment) — section stays hidden, not an error.
       }
     })();
   }, [candidateId]);
@@ -254,6 +299,100 @@ export default function Candidate360Page() {
           </p>
         )}
       </div>
+
+      {fitReport && (
+        <SectionCard icon={Target} title="Hiring Fit">
+          <div className="flex flex-wrap items-center gap-3 mb-5">
+            <span className={`frost-pill font-medium ${RECOMMENDATION_STYLE[fitReport.recommendation]}`}>
+              {fitReport.recommendation}
+            </span>
+            <span className="text-xs text-subtle">
+              Confidence: <span className="font-medium text-ink">{fitReport.confidence}</span> — {fitReport.confidenceReason}
+            </span>
+          </div>
+
+          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-6">
+            <div>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-canvas border border-hairline rounded-lg p-3 text-center">
+                  <p className="text-xs text-subtle">Overall Fit</p>
+                  <p className="text-xl font-bold text-ink">{fitReport.fitScore}</p>
+                </div>
+                <div className="bg-canvas border border-hairline rounded-lg p-3 text-center">
+                  <p className="text-xs text-subtle">Technical</p>
+                  <p className="text-xl font-bold text-ink">{fitReport.technicalScore}</p>
+                </div>
+                <div className="bg-canvas border border-hairline rounded-lg p-3 text-center">
+                  <p className="text-xs text-subtle">Behavioral</p>
+                  <p className="text-xl font-bold text-ink">{fitReport.behavioralScore}</p>
+                </div>
+              </div>
+              <p className="text-xs text-subtle mb-4">
+                Role readiness: <span className="text-ink font-medium">{fitReport.roleReadiness}</span> · based on {fitReport.dataCoveragePct}% of expected role dimensions
+              </p>
+
+              {fitReport.strengths.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-xs font-semibold text-ink mb-1.5">Strengths</p>
+                  <ul className="text-sm text-subtle space-y-1">
+                    {fitReport.strengths.map((s, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="text-green-600 mt-0.5">+</span> {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {fitReport.developmentAreas.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-ink mb-1.5">Development Areas</p>
+                  <ul className="text-sm text-subtle space-y-1">
+                    {fitReport.developmentAreas.map((g, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="text-amber-600 mt-0.5">–</span> {g}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="max-w-xs mx-auto w-full">
+              <Radar
+                data={{
+                  labels: Object.keys(fitReport.dimensionScores),
+                  datasets: [
+                    {
+                      label: 'Score',
+                      data: Object.values(fitReport.dimensionScores),
+                      backgroundColor: 'rgba(25, 170, 89, 0.15)',
+                      borderColor: 'rgb(25, 170, 89)',
+                      pointBackgroundColor: 'rgb(25, 170, 89)',
+                    },
+                  ],
+                }}
+                options={{
+                  scales: { r: { min: 0, max: 100, ticks: { display: false }, pointLabels: { font: { size: 10 } } } },
+                  plugins: { legend: { display: false } },
+                }}
+              />
+            </div>
+          </div>
+
+          {fitReport.nextInterviewQuestions.length > 0 && (
+            <div className="mt-5 pt-4 border-t border-hairline">
+              <p className="text-xs font-semibold text-ink mb-1.5 flex items-center gap-1.5">
+                <MessageCircle size={14} className="text-brand-500" /> Interview questions to ask next
+              </p>
+              <ul className="text-sm text-subtle space-y-1">
+                {fitReport.nextInterviewQuestions.map((q, i) => (
+                  <li key={i}>{q}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </SectionCard>
+      )}
 
       {requisition && (
         <SectionCard icon={Briefcase} title="Requisition">
