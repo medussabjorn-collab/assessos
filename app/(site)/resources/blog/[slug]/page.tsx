@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { PageHero, Band, CTASection } from "@/components/page";
 import { POSTS, postBySlug } from "@/lib/blog";
 
@@ -38,6 +39,18 @@ export default function PostPage({ params }: { params: { slug: string } }) {
           ))}
         </div>
       </Band>
+      {p.related && p.related.length > 0 && (
+        <Band tint>
+          <div className="rv">
+            <h2 className="related-h">Explore Prelim</h2>
+            <div className="related-links">
+              {p.related.map((r) => (
+                <Link key={r.href} href={r.href} className="related-link">{r.label} →</Link>
+              ))}
+            </div>
+          </div>
+        </Band>
+      )}
       <CTASection />
     </>
   );

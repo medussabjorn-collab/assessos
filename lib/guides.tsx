@@ -5,6 +5,7 @@ export type Guide = {
   readMins: number;
   audience: string;
   steps: { title: string; body: string }[];
+  related?: { label: string; href: string }[];
 };
 
 export const GUIDES: Guide[] = [
@@ -22,6 +23,11 @@ export const GUIDES: Guide[] = [
       { title: "Roll out role by role, not company-wide", body: "Expand to your next two or three highest-volume roles once the pilot role is stable. A phased rollout gives you a working reference case for every new team you bring on board." },
       { title: "Review the data quarterly", body: "Look at time-to-shortlist, panel agreement rate, and 90-day retention for assessed hires versus your baseline. Structured assessment should show measurable movement within two quarters — if it doesn't, the rubric needs revisiting, not the whole program." },
     ],
+    related: [
+      { label: "Platform Overview", href: "/platform" },
+      { label: "Analytics & Reporting", href: "/products/analytics-reporting" },
+      { label: "Book a Demo", href: "/contact" },
+    ],
   },
   {
     slug: "writing-a-defensible-scorecard",
@@ -36,6 +42,11 @@ export const GUIDES: Guide[] = [
       { title: "Note what you didn't get to assess", body: "If a candidate wasn't asked about a competency due to time, say so explicitly rather than leaving it blank or guessing. An honest gap is defensible; a silent assumption isn't." },
       { title: "Keep the paper trail", body: "Store scorecards with the assessment evidence they reference, not just the final number. If a decision is ever challenged — by a candidate, a regulator, or your own leadership — the evidence needs to be one click away, not a memory." },
     ],
+    related: [
+      { label: "Analytics & Reporting", href: "/products/analytics-reporting" },
+      { label: "Security & Trust", href: "/security" },
+      { label: "Platform Overview", href: "/platform" },
+    ],
   },
   {
     slug: "calibrating-panels-across-interviewers",
@@ -48,6 +59,11 @@ export const GUIDES: Guide[] = [
       { title: "Define what each score point actually means", body: "A '4 out of 5' means something different to every interviewer unless you write down what separates a 3 from a 4 from a 5, with a concrete example for each. Vague scales are where calibration breaks down first." },
       { title: "Debrief disagreements, don't average them", body: "When two panelists land far apart on the same candidate, the fix isn't splitting the difference — it's a short conversation about what each of them actually observed. The gap itself is useful signal." },
       { title: "Rotate a lightweight audit", body: "Periodically have a third party — a lead, a peer team, or a structured tool — re-score a handful of already-decided candidates. Drift happens gradually; a quarterly spot-check catches it before it compounds." },
+    ],
+    related: [
+      { label: "Analytics & Reporting", href: "/products/analytics-reporting" },
+      { label: "Technical Assessment", href: "/products/technical-assessment" },
+      { label: "Platform Overview", href: "/platform" },
     ],
   },
 ];

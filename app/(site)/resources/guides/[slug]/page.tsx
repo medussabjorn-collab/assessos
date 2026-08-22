@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { PageHero, Band, CTASection } from "@/components/page";
 import { GUIDES, guideBySlug } from "@/lib/guides";
 
@@ -39,6 +40,18 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
           ))}
         </ol>
       </Band>
+      {g.related && g.related.length > 0 && (
+        <Band tint>
+          <div className="rv">
+            <h2 className="related-h">Explore Prelim</h2>
+            <div className="related-links">
+              {g.related.map((r) => (
+                <Link key={r.href} href={r.href} className="related-link">{r.label} →</Link>
+              ))}
+            </div>
+          </div>
+        </Band>
+      )}
       <CTASection />
     </>
   );

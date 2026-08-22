@@ -6,6 +6,7 @@ export type Post = {
   readMins: number;
   category: string;
   body: { h?: string; p: string }[];
+  related?: { label: string; href: string }[];
 };
 
 export const POSTS: Post[] = [
@@ -22,6 +23,11 @@ export const POSTS: Post[] = [
       { h: "Why seniority makes it worse, not better", p: "Executive and staff-level candidates are the most practiced interviewees in the building. They've done this a hundred times. Their answers are polished, their stories are rehearsed, and panel members mistake fluency for competence. A structured, scenario-based assessment strips away the rehearsal and looks at how someone actually reasons under a live constraint." },
       { h: "What 'structured' actually means", p: "It doesn't mean rigid or robotic. It means every candidate for a role sees the same core exercises, is scored against the same published rubric, and the panel's disagreement is visible and resolved against evidence — not vibes. That's the whole idea behind Prelim: keep the human judgment, remove the noise around it." },
     ],
+    related: [
+      { label: "Technical Assessment", href: "/products/technical-assessment" },
+      { label: "Leadership Assessment", href: "/products/leadership-assessment" },
+      { label: "Analytics & Reporting", href: "/products/analytics-reporting" },
+    ],
   },
   {
     slug: "take-homes-are-broken-heres-the-data",
@@ -37,6 +43,11 @@ export const POSTS: Post[] = [
       { h: "Problem three: authorship", p: "With AI coding assistants now mainstream, a take-home no longer reliably tells you who wrote the code, or how much help they had. That uncertainty erodes trust in the whole exercise for both the panel and the candidate." },
       { h: "What actually works", p: "A live, proctored session — 60 to 90 minutes, scored the moment it ends — solves all three. Candidates get a fast, respectful process. You get a graded result before your next panel call. And you can see how someone works, not just what they eventually submit." },
     ],
+    related: [
+      { label: "Live Coding IDE", href: "/products/live-coding-ide" },
+      { label: "Technical Assessment", href: "/products/technical-assessment" },
+      { label: "Anti-Cheating Controls", href: "/products/anti-cheating" },
+    ],
   },
   {
     slug: "one-rigor-bar-across-every-function",
@@ -51,6 +62,11 @@ export const POSTS: Post[] = [
       { h: "Why 'one bar' is harder than it sounds", p: "A finance analyst and a support rep don't need the same test. But they can be measured on the same underlying model — cognitive reasoning, role-specific knowledge, and behavioral fit — scored with the same rigor and the same transparency as your technical pipeline." },
       { h: "Where to start", p: "Pick the function with the highest volume or the highest turnover cost, and give it the same assessment discipline your engineering team already has. The gap closes faster than most leaders expect, and the turnover data usually moves within two quarters." },
     ],
+    related: [
+      { label: "Non-IT Functional Assessment", href: "/products/non-it-functional" },
+      { label: "Non-IT Hiring Solution", href: "/solutions/non-it-hiring" },
+      { label: "Solutions Overview", href: "/solutions" },
+    ],
   },
   {
     slug: "reading-a-composite-score-correctly",
@@ -64,6 +80,11 @@ export const POSTS: Post[] = [
       { h: "Look at the components before the total", p: "Two candidates can land on the same composite score for very different reasons — one strong across the board, one exceptional in one area and weak in another. If the role leans heavily on one competency, the breakdown matters more than the headline number." },
       { h: "Check the confidence, not just the score", p: "A score built on a thin evidence base — a short session, an unusual environment, ambiguous responses — should carry lower confidence even if the number itself looks strong. Prelim surfaces this explicitly rather than presenting every score with false certainty." },
       { h: "Use it to focus the conversation, not replace it", p: "The best use of a composite score is to tell your panel where to dig deeper in the next round — not to auto-reject or auto-advance without a human ever reading why. Evidence-based hiring means using the evidence, not outsourcing the decision to it." },
+    ],
+    related: [
+      { label: "Analytics & Reporting", href: "/products/analytics-reporting" },
+      { label: "Platform Overview", href: "/platform" },
+      { label: "Book a Demo", href: "/contact" },
     ],
   },
 ];
