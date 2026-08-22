@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PageHero, Band, CTASection } from "@/components/page";
 import { POSTS, postBySlug } from "@/lib/blog";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export function generateStaticParams() {
   return POSTS.map((p) => ({ slug: p.slug }));
@@ -11,7 +12,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const p = postBySlug(params.slug);
   if (!p) return { title: "Post" };
-  return { title: p.title, description: p.dek };
+  return { title: p.title, description: p.dek, alternates: { canonical: `/resources/blog/${params.slug}/` } };
 }
 
 export default function PostPage({ params }: { params: { slug: string } }) {
@@ -20,6 +21,12 @@ export default function PostPage({ params }: { params: { slug: string } }) {
 
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Resources", href: "/resources/" },
+        { name: "Blog", href: "/resources/blog/" },
+        { name: p.title, href: `/resources/blog/${params.slug}/` },
+      ]} />
       <PageHero
         crumb={`Resources / Blog / ${p.category}`}
         title={p.title}

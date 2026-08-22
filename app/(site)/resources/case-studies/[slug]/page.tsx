@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageHero, Band, SectionHead, CTASection } from "@/components/page";
 import { Arrow } from "@/components/icons";
 import { CASE_STUDIES, caseStudyBySlug } from "@/lib/case-studies";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export function generateStaticParams() {
   return CASE_STUDIES.map((c) => ({ slug: c.slug }));
@@ -12,7 +13,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const c = caseStudyBySlug(params.slug);
   if (!c) return { title: "Case Study" };
-  return { title: `${c.client} Case Study`, description: c.summary };
+  return { title: `${c.client} Case Study`, description: c.summary, alternates: { canonical: `/resources/case-studies/${params.slug}/` } };
 }
 
 export default function CaseStudyPage({ params }: { params: { slug: string } }) {
@@ -21,6 +22,12 @@ export default function CaseStudyPage({ params }: { params: { slug: string } }) 
 
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Resources", href: "/resources/" },
+        { name: "Case Studies", href: "/resources/case-studies/" },
+        { name: c.client, href: `/resources/case-studies/${params.slug}/` },
+      ]} />
       <PageHero
         crumb={`Resources / Case Studies / ${c.client}`}
         title={c.headline}

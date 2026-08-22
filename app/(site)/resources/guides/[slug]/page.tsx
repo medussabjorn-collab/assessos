@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PageHero, Band, CTASection } from "@/components/page";
 import { GUIDES, guideBySlug } from "@/lib/guides";
+import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }));
@@ -11,7 +12,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const g = guideBySlug(params.slug);
   if (!g) return { title: "Guide" };
-  return { title: g.title, description: g.dek };
+  return { title: g.title, description: g.dek, alternates: { canonical: `/resources/guides/${params.slug}/` } };
 }
 
 export default function GuidePage({ params }: { params: { slug: string } }) {
@@ -20,6 +21,12 @@ export default function GuidePage({ params }: { params: { slug: string } }) {
 
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: "Home", href: "/" },
+        { name: "Resources", href: "/resources/" },
+        { name: "Guides", href: "/resources/guides/" },
+        { name: g.title, href: `/resources/guides/${params.slug}/` },
+      ]} />
       <PageHero
         crumb={`Resources / Guides / ${g.audience}`}
         title={g.title}
