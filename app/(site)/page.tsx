@@ -3,9 +3,9 @@ import Hero from "@/components/Hero";
 import { Clients, Solutions, IndustriesHome, Platform, Products, Testimonial, Integrations, Security, CTA } from "@/components/Sections";
 
 export const metadata: Metadata = {
-  title: "AI-Powered Talent Assessment Platform | Prelim",
+  title: "One Assessment Platform for Every Hire | Prelim",
   description:
-    "Prelim is the AI talent assessment platform for enterprise hiring teams — technical, leadership, and non-IT assessments on one defensible scoring model. Start free.",
+    "Prelim unifies technical, leadership, and non-IT hiring on one scoring model. Stop running three different hiring processes. One platform, comparable verdicts, every job family.",
   alternates: { canonical: "/" },
 };
 

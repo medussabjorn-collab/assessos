@@ -5,9 +5,9 @@ import { PipelineBoard } from "@/components/dashboard/PipelineBoard";
 import { BreadcrumbSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
-  title: "AI Talent Assessment Platform – How Prelim Works",
+  title: "One Scoring Model for Every Hire – How Prelim Works",
   description:
-    "Prelim's AI hiring platform builds assessments from the job description, runs proctored adaptive tests, auto-scores every response, and returns a ranked, explainable shortlist.",
+    "Prelim applies one defensible scoring model across engineering, leadership, and non-IT hiring — AI builds the assessment, scores every response, and returns a ranked, explainable shortlist.",
   alternates: { canonical: "/platform/" },
 };
 
@@ -39,8 +39,8 @@ export default function PlatformPage() {
       ]} />
       <PageHero
         crumb="Platform"
-        title="From open req to decision you can defend."
-        sub="Prelim is a closed loop: it builds the assessment, runs it, scores it, and returns a ranked, explainable shortlist — one system instead of five disconnected tools."
+        title="One scoring model. Every job family. No guesswork."
+        sub="Prelim builds the assessment, runs it, scores it on one defensible model across engineering, leadership, and non-IT — and returns a ranked shortlist your team can stand behind and explain."
         secondary={{ label: "See security", href: "/security" }}
       />
 

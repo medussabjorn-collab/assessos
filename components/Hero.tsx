@@ -25,9 +25,10 @@ export default function Hero() {
             Hire on <em>evidence</em>,<br />not instinct.
           </h1>
           <p className="lead">
-            Prelim measures leadership, technical, and non-IT candidates on one
-            defensible model — and hands your team a ranked shortlist they can
-            stand behind.
+            Most enterprises run three different hiring processes — one for
+            engineering, one for executives, one for everything else. Prelim
+            unifies them: one assessment layer, one scoring model, comparable
+            verdicts across every job family.
           </p>
           <div className="hero-cta">
             <Link className="btn btn-primary" href="/contact">
@@ -37,7 +38,7 @@ export default function Hero() {
           </div>
           <div className="hero-foot">
             <span>SOC 2 Type II</span><span className="sep" />
-            <span>1,117+ hiring teams</span><span className="sep" />
+            <span>3 job families, 1 model</span><span className="sep" />
             <span>Seed to Fortune 500</span>
           </div>
         </div>

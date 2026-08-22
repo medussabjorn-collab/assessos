@@ -427,6 +427,17 @@ h1,h2,h3,h4{letter-spacing:-.032em;line-height:1.04;font-weight:600;text-wrap:ba
 .split.reverse .split-media{order:-1}
 .split h2{font-size:clamp(1.7rem,3vw,2.3rem);font-weight:600;letter-spacing:-.01em;margin-bottom:1rem;font-family:var(--font-display)}
 .split>div>p{color:var(--ink-2);font-size:1.05rem;margin-bottom:1.4rem;line-height:1.55}
+.compare-table{margin-top:2rem}
+.ct{width:100%;border-collapse:collapse;font-size:.92rem}
+.ct th{text-align:left;padding:.7rem 1rem;border-bottom:2px solid var(--line);color:var(--ink-3);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.ct td{padding:.85rem 1rem;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+.ct tr:last-child td{border-bottom:0}
+.ct th.ct-bad,.ct-bad-cell{color:var(--ink-3)}
+.ct th.ct-good{color:var(--accent)}
+.ct-good-cell{color:var(--ink-1)}
+.ct-x{color:#c0392b;font-weight:700;margin-right:.3rem}
+.ct-check{display:inline-flex;vertical-align:middle;margin-right:.3rem;color:var(--accent-2)}
+.ct-check svg{width:16px;height:16px}
 .checklist{display:flex;flex-direction:column;gap:.8rem;list-style:none}
 .checklist li{display:flex;gap:.7rem;align-items:flex-start;color:var(--ink-2);font-size:.96rem}
 .checklist li svg{width:20px;height:20px;color:var(--accent-2);flex:none;margin-top:.05rem}
