@@ -33,18 +33,28 @@ import {
   KeyRound,
   ClipboardList,
   UserCheck,
+  FolderOpen,
 } from 'lucide-react';
 
 interface NavItem {
   labelKey: string;
   href: string;
   icon: typeof LayoutDashboard;
+  // Omit for "visible to every role" (candidate/employee/viewer included).
+  // Present = allow-list of backend TENANT_SYSTEM_ROLES values that can see
+  // this item. org_admin is added to every restricted item below so admins
+  // never lose access to something a narrower persona role can reach.
+  roles?: string[];
 }
 
 interface NavGroup {
   title: string;
   items: NavItem[];
 }
+
+const ADMIN_ONLY = ['org_admin'];
+const RECRUITER_HR = ['org_admin', 'recruiter'];
+const HIRING_MANAGER = ['org_admin', 'manager'];
 
 const NAV: NavGroup[] = [
   {
@@ -55,8 +65,9 @@ const NAV: NavGroup[] = [
     title: 'Assessments',
     items: [
       { labelKey: 'nav.leadership', href: '/dashboard/assessment', icon: BarChart3 },
-      { labelKey: 'nav.hiring', href: '/dashboard/hiring', icon: Users },
-      { labelKey: 'nav.pipeline', href: '/dashboard/hiring/pipeline', icon: Users },
+      { labelKey: 'nav.hiring', href: '/dashboard/hiring', icon: Users, roles: RECRUITER_HR },
+      { labelKey: 'nav.pipeline', href: '/dashboard/hiring/pipeline', icon: Users, roles: RECRUITER_HR },
+      { labelKey: 'nav.candidates', href: '/dashboard/hiring/candidates', icon: FolderOpen, roles: RECRUITER_HR },
       { labelKey: 'nav.practice', href: '/dashboard/practice', icon: BookOpen },
       { labelKey: 'nav.caseStudies', href: '/dashboard/case-studies', icon: FileText },
     ],
@@ -72,15 +83,16 @@ const NAV: NavGroup[] = [
   {
     title: 'Insights',
     items: [
-      { labelKey: 'nav.analytics', href: '/dashboard/analytics', icon: PieChart },
-      { labelKey: 'nav.boardroom', href: '/dashboard/boardroom', icon: Briefcase },
-      { labelKey: 'nav.integrations', href: '/dashboard/integrations', icon: Plug },
-      { labelKey: 'nav.compliance', href: '/dashboard/compliance', icon: ShieldAlert },
-      { labelKey: 'nav.identityReview', href: '/dashboard/proctoring/identity-review', icon: UserCheck },
-      { labelKey: 'nav.incidents', href: '/dashboard/proctoring/incidents', icon: ShieldAlert },
-      { labelKey: 'nav.admin', href: '/dashboard/admin', icon: Shield },
-      { labelKey: 'nav.roles', href: '/dashboard/roles', icon: KeyRound },
-      { labelKey: 'nav.assessments', href: '/dashboard/assessments', icon: ClipboardList },
+      { labelKey: 'nav.analytics', href: '/dashboard/analytics', icon: PieChart, roles: HIRING_MANAGER },
+      { labelKey: 'nav.reports', href: '/dashboard/reports', icon: FileText },
+      { labelKey: 'nav.boardroom', href: '/dashboard/boardroom', icon: Briefcase, roles: ADMIN_ONLY },
+      { labelKey: 'nav.integrations', href: '/dashboard/integrations', icon: Plug, roles: ADMIN_ONLY },
+      { labelKey: 'nav.compliance', href: '/dashboard/compliance', icon: ShieldAlert, roles: ADMIN_ONLY },
+      { labelKey: 'nav.identityReview', href: '/dashboard/proctoring/identity-review', icon: UserCheck, roles: ADMIN_ONLY },
+      { labelKey: 'nav.incidents', href: '/dashboard/proctoring/incidents', icon: ShieldAlert, roles: ADMIN_ONLY },
+      { labelKey: 'nav.admin', href: '/dashboard/admin', icon: Shield, roles: ADMIN_ONLY },
+      { labelKey: 'nav.roles', href: '/dashboard/roles', icon: KeyRound, roles: ADMIN_ONLY },
+      { labelKey: 'nav.assessments', href: '/dashboard/assessments', icon: ClipboardList, roles: RECRUITER_HR },
       { labelKey: 'nav.settings', href: '/dashboard/settings', icon: Settings },
     ],
   },
@@ -92,7 +104,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, tenantId, logout } = useAuth();
+  const { user, tenantId, role, logout } = useAuth();
   const { t, i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -143,13 +155,18 @@ export default function DashboardLayout({
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-6">
-          {NAV.map((group) => (
+          {NAV.map((group) => {
+            const visibleItems = group.items.filter(
+              (item) => !item.roles || (role && item.roles.includes(role)),
+            );
+            if (visibleItems.length === 0) return null;
+            return (
             <div key={group.title}>
               <div className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-subtle/70">
                 {group.title}
               </div>
               <div className="space-y-1">
-                {group.items.map((item) => {
+                {visibleItems.map((item) => {
                   const active = isActive(item.href);
                   return (
                     <Link
@@ -169,7 +186,8 @@ export default function DashboardLayout({
                 })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </nav>
 
         {/* Plan badge */}
