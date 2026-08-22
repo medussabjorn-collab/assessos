@@ -12,6 +12,7 @@ interface Candidate {
   stage: string;
   technicalScore: number;
   cultureFitScore: number;
+  shortlisted: boolean;
 }
 
 interface Position {
@@ -21,6 +22,7 @@ interface Position {
 
 const STAGES = [
   { key: 'screening', label: 'Screening', color: 'border-blue-500' },
+  { key: 'shortlisted', label: 'Shortlisted', color: 'border-teal-500' },
   { key: 'technical', label: 'Technical', color: 'border-purple-500' },
   { key: 'culture_fit', label: 'Culture Fit', color: 'border-cyan-500' },
   { key: 'offer', label: 'Offer', color: 'border-green-500' },
@@ -99,6 +101,19 @@ export default function HiringPipelinePage() {
     fetchData();
   }, []);
 
+  const toggleShortlist = async (id: string, current: boolean) => {
+    setCandidates((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, shortlisted: !current } : c)),
+    );
+    try {
+      await api.post(`/api/hiring/candidates/${id}/shortlist`, { shortlisted: !current });
+    } catch {
+      setCandidates((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, shortlisted: current } : c)),
+      );
+    }
+  };
+
   const moveCandidate = async (id: string, newStage: string) => {
     setCandidates((prev) =>
       prev.map((c) => (c.id === id ? { ...c, stage: newStage } : c)),
@@ -137,6 +152,7 @@ export default function HiringPipelinePage() {
           stage: created.stage,
           technicalScore: created.technicalScore ?? 0,
           cultureFitScore: created.cultureFitScore ?? 0,
+          shortlisted: false,
         },
         ...prev,
       ]);
@@ -444,7 +460,7 @@ export default function HiringPipelinePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         {STAGES.map((stage) => {
           const inStage = candidates.filter((c) => c.stage === stage.key);
           return (
@@ -490,6 +506,17 @@ export default function HiringPipelinePage() {
                             Advance →
                           </button>
                         )}
+                        <button
+                          onClick={() => toggleShortlist(candidate.id, candidate.shortlisted)}
+                          className={`inline-flex items-center gap-1 text-xs border px-2 py-1 rounded transition ${
+                            candidate.shortlisted
+                              ? 'border-amber-400 bg-amber-500/10 text-amber-500'
+                              : 'border-hairline hover:bg-canvas'
+                          }`}
+                          title={candidate.shortlisted ? 'Remove from shortlist' : 'Add to shortlist'}
+                        >
+                          <Star size={12} fill={candidate.shortlisted ? 'currentColor' : 'none'} />
+                        </button>
                         <button
                           onClick={() => openCompliance(candidate.id)}
                           className="inline-flex items-center gap-1 text-xs border border-hairline hover:bg-canvas px-2 py-1 rounded transition"

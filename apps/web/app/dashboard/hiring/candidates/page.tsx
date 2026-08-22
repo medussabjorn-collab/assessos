@@ -14,6 +14,7 @@ interface Candidate {
   stage: string;
   technicalScore: number;
   cultureFitScore: number;
+  shortlisted: boolean;
 }
 
 const STAGE_LABEL: Record<string, string> = {
@@ -55,6 +56,15 @@ export default function CandidatesPage() {
     fetchCandidates();
   }, []);
 
+  const toggleShortlist = async (id: string, current: boolean) => {
+    setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, shortlisted: !current } : c)));
+    try {
+      await api.post(`/api/hiring/candidates/${id}/shortlist`, { shortlisted: !current });
+    } catch {
+      setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, shortlisted: current } : c)));
+    }
+  };
+
   const filtered = useMemo(() => {
     return candidates.filter((c) => {
       const matchesStage = stageFilter === 'all' || c.stage === stageFilter;
@@ -69,13 +79,8 @@ export default function CandidatesPage() {
   const stats = useMemo(() => {
     const active = candidates.filter((c) => c.stage !== 'hired' && c.stage !== 'rejected').length;
     const hired = candidates.filter((c) => c.stage === 'hired').length;
-    const avgFit =
-      candidates.length === 0
-        ? 0
-        : Math.round(
-            (candidates.reduce((sum, c) => sum + (c.cultureFitScore || 0), 0) / candidates.length) * 10,
-          ) / 10;
-    return { total: candidates.length, active, hired, avgFit };
+    const shortlisted = candidates.filter((c) => c.shortlisted || c.stage === 'shortlisted').length;
+    return { total: candidates.length, active, hired, shortlisted };
   }, [candidates]);
 
   if (loading) {
@@ -111,7 +116,7 @@ export default function CandidatesPage() {
         <StatCard label="Total Candidates" value={stats.total} icon={Users} color="green" />
         <StatCard label="Active" value={stats.active} icon={Clock} color="violet" />
         <StatCard label="Hired" value={stats.hired} icon={UserCheck} color="teal" />
-        <StatCard label="Avg Culture Fit" value={stats.avgFit} icon={Star} color="amber" />
+        <StatCard label="Shortlisted" value={stats.shortlisted} icon={Star} color="amber" />
       </div>
 
       <div className="frost-card p-4 flex flex-col sm:flex-row gap-3">
@@ -147,6 +152,7 @@ export default function CandidatesPage() {
               <th className="px-4 py-3 font-medium">Stage</th>
               <th className="px-4 py-3 font-medium">Technical</th>
               <th className="px-4 py-3 font-medium">Culture Fit</th>
+              <th className="px-4 py-3 font-medium">Shortlist</th>
             </tr>
           </thead>
           <tbody>
@@ -165,6 +171,17 @@ export default function CandidatesPage() {
                 </td>
                 <td className="px-4 py-3 text-ink">{c.technicalScore}</td>
                 <td className="px-4 py-3 text-ink">{c.cultureFitScore}</td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => toggleShortlist(c.id, c.shortlisted)}
+                    className={`inline-flex items-center justify-center w-7 h-7 rounded-full transition ${
+                      c.shortlisted ? 'text-amber-500' : 'text-subtle hover:text-amber-500'
+                    }`}
+                    title={c.shortlisted ? 'Remove from shortlist' : 'Add to shortlist'}
+                  >
+                    <Star size={16} fill={c.shortlisted ? 'currentColor' : 'none'} />
+                  </button>
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
