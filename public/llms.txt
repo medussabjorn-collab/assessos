@@ -1,0 +1,32 @@
+# Prelim
+
+> Prelim is the AI-powered talent assessment platform for enterprise hiring teams. It builds assessments from job descriptions, runs proctored adaptive tests, auto-scores every response, and returns a ranked, explainable shortlist — covering technical, leadership, and non-IT roles on one defensible scoring model.
+
+## Product
+
+- [Platform](https://prelim.io/platform/): How Prelim works — AI Test Builder, adaptive testing, auto-scoring, ranked shortlist
+- [Products](https://prelim.io/products/): Full product suite — technical tests, leadership psychometrics, live coding IDE, anti-cheat, analytics, API
+- [Pricing](https://prelim.io/pricing/): Free (100 assessments/month), Team (unlimited + live coding IDE), Enterprise (SSO, SOC 2, on-prem)
+
+## Solutions
+
+- [Technical Hiring](https://prelim.io/solutions/technical-hiring/): Live coding IDE, system-design challenges, AI-scored responses for engineering roles
+- [Leadership Hiring](https://prelim.io/solutions/leadership-hiring/): Situational judgment, psychometrics, 360° input for executives and managers
+- [Non-IT Hiring](https://prelim.io/solutions/non-it-hiring/): Role-specific batteries for finance, sales, operations, healthcare, and legal
+
+## Industries
+
+- [Industries](https://prelim.io/industries/): Technology, financial services, healthcare, legal, manufacturing, retail, BPO
+
+## Company
+
+- [About](https://prelim.io/about/): Prelim's mission — defensible hiring on evidence, not instinct
+- [Security](https://prelim.io/security/): SOC 2 Type II, GDPR, flexible cloud/VPC/on-prem deployment
+- [Contact](https://prelim.io/contact/): Book a demo or talk to sales
+
+## Resources
+
+- [Blog](https://prelim.io/resources/blog/): Articles on structured hiring, assessment design, and talent strategy
+- [Guides](https://prelim.io/resources/guides/): In-depth guides for hiring teams
+- [Case Studies](https://prelim.io/resources/case-studies/): Real results from Prelim customers
+- [ROI Calculator](https://prelim.io/resources/roi-calculator/): Estimate cost savings from structured assessment
