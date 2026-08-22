@@ -36,6 +36,7 @@ import {
   FolderOpen,
   Library,
   Sparkles,
+  Briefcase as BriefcaseIcon,
 } from 'lucide-react';
 
 interface NavItem {
@@ -97,6 +98,7 @@ const NAV: NavGroup[] = [
       { labelKey: 'nav.roles', href: '/dashboard/roles', icon: KeyRound, roles: ADMIN_ONLY },
       { labelKey: 'nav.assessments', href: '/dashboard/assessments', icon: ClipboardList, roles: RECRUITER_HR },
       { labelKey: 'nav.questionBank', href: '/dashboard/question-bank', icon: Library, roles: RECRUITER_HR },
+      { labelKey: 'nav.jobProfiles', href: '/dashboard/job-profiles', icon: BriefcaseIcon, roles: RECRUITER_HR },
       { labelKey: 'nav.settings', href: '/dashboard/settings', icon: Settings },
     ],
   },
