@@ -16,8 +16,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   const ind = industryBySlug(params.slug);
   if (!ind) return { title: "Industry" };
   return {
-    title: `${ind.name} Hiring`,
-    description: `${ind.name} hiring, measured: leadership, technical, and non-IT tracks on one defensible model. ${ind.blurb}`,
+    title: `${ind.name} Hiring | Prelim`,
+    description: ind.intro,
     alternates: { canonical: `/industries/${params.slug}/` },
   };
 }

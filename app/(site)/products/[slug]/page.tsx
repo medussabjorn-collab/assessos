@@ -11,7 +11,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const p = productBySlug(params.slug);
   if (!p) return { title: "Product" };
-  return { title: p.name, description: `${p.name}: ${p.blurb}`, alternates: { canonical: `/products/${params.slug}/` } };
+  return { title: `${p.name} | Prelim`, description: p.sub, alternates: { canonical: `/products/${params.slug}/` } };
 }
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
