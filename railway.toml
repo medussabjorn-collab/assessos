@@ -9,7 +9,12 @@
 #   NEXT_PUBLIC_APP_LOGIN_URL          real Prelim app login handoff
 #   NEXT_PUBLIC_REGISTRATION_ENDPOINT  student registration backend
 
+[build]
+builder = "nixpacks"
+buildCommand = "pnpm install && pnpm build"
+
 [deploy]
+startCommand = "pnpm start"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
