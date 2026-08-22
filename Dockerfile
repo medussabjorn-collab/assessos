@@ -23,10 +23,11 @@ ENV NEXT_PUBLIC_REGISTRATION_ENDPOINT=$NEXT_PUBLIC_REGISTRATION_ENDPOINT
 ARG RAILWAY_GIT_COMMIT_SHA
 RUN echo "Building commit ${RAILWAY_GIT_COMMIT_SHA}"
 
-COPY package.json package-lock.json ./
-RUN npm ci
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm build
 
 # Runtime stage
 FROM node:20-alpine
